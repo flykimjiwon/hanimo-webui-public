@@ -1,0 +1,125 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store
+.npm
+.eslintcache
+
+# Next.js
+.next
+out
+.vercel
+.turbo
+
+
+
+# OS/Editor
+.DS_Store
+*.swp
+*.swo
+.idea
+.vscode
+*.sublime-*
+
+# 테스트 및 문서
+*.test.js
+*.test.ts
+*.test.tsx
+*.spec.js
+*.spec.ts
+*.spec.tsx
+__tests__
+__mocks__
+coverage
+.nyc_output
+*.md
+!README.md
+
+# 빌드 및 로그
+dist
+build
+*.log
+logs
+
+# Uploads / Generated data (로컬 개발용에만 적용, 컨테이너에선 볼륨)
+# volumes 폴더는 외부 볼륨으로 마운트되므로 이미지에서 제외
+volumes/
+public/uploads
+public/rag-documents
+data/rag-documents
+
+# 기타
+.cache
+.temp
+tmp
+
+# 소스맵 파일
+*.map
+
+# 개발 도구
+.vscode
+.idea
+*.swp
+*.swo
+*.sublime-*
+
+# 로그 및 임시 파일
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 테스트 관련
+coverage
+.nyc_output
+.jest
+*.test.*
+*.spec.*
+__tests__
+__mocks__
+test
+tests
+spec
+specs
+
+# 문서
+*.md
+!README.md
+docs
+doc
+examples
+example
+
+# 빌드 산출물 (이미 .next는 제외됨)
+dist
+build
+out
+*.tsbuildinfo
+
+# 패키지 관리자
+.npm
+.yarn
+.pnpm-store
+pnpm-lock.yaml
+
+# 환경 설정 (개발용)
+.env.local    # <-------- 주석 해제: .env.local이 Docker 이미지에 포함되어 K8s에서 최우선 적용되던 문제 수정
+# .env.development
+# .env.test
+# .env.production.local
+# .env.development.local
+# .env.test.local
+
+# # Env
+# .env
+# .env.*

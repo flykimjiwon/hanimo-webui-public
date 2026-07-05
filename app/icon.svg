@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="face" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F0EDE8"/>
+    </radialGradient>
+    <radialGradient id="ear" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FDFCFB"/>
+      <stop offset="100%" stop-color="#E8E3DC"/>
+    </radialGradient>
+    <radialGradient id="eyeShine" cx="35%" cy="30%" r="40%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="248" fill="#1a1a2e"/>
+
+  <!-- Left ear (fluffy) -->
+  <ellipse cx="148" cy="220" rx="72" ry="88" fill="url(#ear)"/>
+  <circle cx="120" cy="180" r="28" fill="#FDFCFB"/>
+  <circle cx="170" cy="175" r="22" fill="#FDFCFB"/>
+  <circle cx="110" cy="220" r="24" fill="#F8F6F2"/>
+  <circle cx="160" cy="250" r="20" fill="#F8F6F2"/>
+  <circle cx="130" cy="260" r="18" fill="#F5F2ED"/>
+
+  <!-- Right ear (fluffy) -->
+  <ellipse cx="364" cy="220" rx="72" ry="88" fill="url(#ear)"/>
+  <circle cx="392" cy="180" r="28" fill="#FDFCFB"/>
+  <circle cx="342" cy="175" r="22" fill="#FDFCFB"/>
+  <circle cx="402" cy="220" r="24" fill="#F8F6F2"/>
+  <circle cx="352" cy="250" r="20" fill="#F8F6F2"/>
+  <circle cx="382" cy="260" r="18" fill="#F5F2ED"/>
+
+  <!-- Main head (big fluffy circle) -->
+  <circle cx="256" cy="268" r="148" fill="url(#face)"/>
+
+  <!-- Fluffy top puffs -->
+  <circle cx="200" cy="138" r="48" fill="#FFFFFF"/>
+  <circle cx="256" cy="125" r="52" fill="#FFFFFF"/>
+  <circle cx="312" cy="138" r="48" fill="#FFFFFF"/>
+  <circle cx="175" cy="165" r="38" fill="#FEFEFE"/>
+  <circle cx="337" cy="165" r="38" fill="#FEFEFE"/>
+
+  <!-- Fluffy side puffs -->
+  <circle cx="130" cy="270" r="32" fill="#FAFAF8"/>
+  <circle cx="382" cy="270" r="32" fill="#FAFAF8"/>
+  <circle cx="140" cy="310" r="26" fill="#F8F6F2"/>
+  <circle cx="372" cy="310" r="26" fill="#F8F6F2"/>
+
+  <!-- Fluffy bottom puffs -->
+  <circle cx="200" cy="400" r="30" fill="#F8F6F2"/>
+  <circle cx="256" cy="410" r="34" fill="#F8F6F2"/>
+  <circle cx="312" cy="400" r="30" fill="#F8F6F2"/>
+
+  <!-- Left eye -->
+  <ellipse cx="216" cy="268" rx="22" ry="24" fill="#1a1a1a"/>
+  <circle cx="210" cy="260" r="7" fill="white" opacity="0.9"/>
+  <circle cx="222" cy="272" r="4" fill="white" opacity="0.5"/>
+
+  <!-- Right eye -->
+  <ellipse cx="296" cy="268" rx="22" ry="24" fill="#1a1a1a"/>
+  <circle cx="290" cy="260" r="7" fill="white" opacity="0.9"/>
+  <circle cx="302" cy="272" r="4" fill="white" opacity="0.5"/>
+
+  <!-- Nose -->
+  <ellipse cx="256" cy="318" rx="18" ry="14" fill="#2a2a2a"/>
+  <ellipse cx="252" cy="314" rx="5" ry="3.5" fill="white" opacity="0.4"/>
+
+  <!-- Mouth -->
+  <path d="M 242 332 Q 249 344 256 332" stroke="#3a3a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 256 332 Q 263 344 270 332" stroke="#3a3a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Tongue (tiny peek) -->
+  <ellipse cx="256" cy="342" rx="7" ry="5" fill="#E8878C"/>
+
+  <!-- Subtle cheek blush -->
+  <circle cx="190" cy="305" r="18" fill="#FFB5B5" opacity="0.15"/>
+  <circle cx="322" cy="305" r="18" fill="#FFB5B5" opacity="0.15"/>
+</svg>

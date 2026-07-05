@@ -1,0 +1,139 @@
+# dependencies
+/node_modules
+
+# --- public release sanitize (2026-05-31) ---
+# NOTE: 이미 추적 중인 파일은 아래 등록만으로 제거되지 않음.
+# 공개 전 수동 실행 필요: git rm -r --cached .sisyphus public/cmaps && git rm --cached *.traineddata yarn.lock
+.sisyphus/
+*.traineddata
+public/cmaps/
+yarn.lock
+HANIMO_WEBUI_PATTERNS.md
+QUICK_REFERENCE.md
+docs/session-prompts.html
+run.log
+run2.log
+results.tsv
+*.zip
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Dependencies
+/node_modules
+
+# Next.js build output
+/.next/
+
+# Turbopack
+.turbo/
+
+# Production build
+build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+.env.local
+.env*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Winston logs directory
+logs/
+error.log
+combined.log
+
+# macOS specific
+.DS_Store
+
+.history
+.vscode
+
+# Volumes (외부 볼륨 데이터)
+volumes/
+
+# Uploaded files (사용자 업로드 파일)
+public/uploads/*
+# AGENTS.md
+# .cursor/commands/bugfix.md
+# .cursor/commands/feature.md
+# .cursor/commands/refactor.md
+# .cursor/commands/test.md
+# .cursor/commands/docs.md
+# .cursor/commands/chore.md
+# .cursor/commands/style.md
+# .cursor/commands/perf.md
+# .cursor/commands/build.md
+# .cursor/commands/ci.md
+# .cursor/commands/other.md
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# 개발 참고 문서 및 디버깅 스크립트
+ERROR_HANDLING_GUIDE.md
+SECURITY_CATCH_BLOCK_FIX.md
+debug_models.js
+fix_all_catches.js
+fix_catch_blocks.js
+fix_empty_catch.sh
+fix_remaining_catches.sh
+test_catch_patterns.js
+check_gpt4_config.sql
+
+# Local docs (do not commit)
+멀티턴정책.md
+그룹사SSO.md
+
+# Environment variable files
+*.env
+.envrc
+.envrc.*
+
+# GitLab CI/CD 배포 설정 (운영 전용, 로컬 배포 안 함)
+.gitlab-ci.yml
+.gitlab/
+
+# Tesseract OCR trained data binaries
+*.traineddata
+
+# Agent skills (local tool configurations)
+.agents/
+.agent/
+.claude/
+skills/
+skills-lock.json
+
+# Playwright test reports & artifacts
+tests/reports/
+
+# Development workflow state
+.sisyphus/
+.omc/
+
+# Misc generated files
+results.tsv
+run.log
+run*.log
+
+# 디자인 시안 (Claude 디자인 자료) — 참조용, 리포 포함 안 함
+hanimo_webui_클로드디자인/
+hanimo_webui_클로드디자인.zip
+.bak.*/
+# Local one-off DB/debug scripts (do not commit)
+scripts/_*.js

@@ -1,0 +1,742 @@
+@import 'tailwindcss';
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ────────────────────────────────────────────────
+ * hanimo Brand Tokens — Modol the Honey-Bee Bichon
+ * Synced from hanimo-code/docs/branding/tokens.css
+ * Tailwind v4 @theme directive — usable as bg-hanimo-amber, etc.
+ * ──────────────────────────────────────────────── */
+
+@theme {
+  --color-hanimo-amber:        #f5a623;
+  --color-hanimo-amber-soft:   #ffd089;
+  --color-hanimo-amber-deep:   #d99437;
+  --color-hanimo-cream:        #f0e4d3;
+  --color-hanimo-brown:        #1a1410;
+  --color-hanimo-brown-soft:   #1f1813;
+  --color-hanimo-good:         #6cae75;
+  --color-hanimo-warn:         #e8a317;
+  --color-hanimo-error:        #d97757;
+  --color-hanimo-info:         #6b8db5;
+
+  --font-hanimo-ui:    'Pretendard', 'Noto Sans KR', system-ui, -apple-system, 'SF Pro Text', sans-serif;
+  --font-hanimo-mono:  'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', ui-monospace, monospace;
+}
+
+:root {
+  /* CSS variable form (for non-Tailwind consumers — react inline, plain CSS) */
+  --hanimo-amber:        #f5a623;
+  --hanimo-amber-soft:   #ffd089;
+  --hanimo-amber-deep:   #d99437;
+  --hanimo-amber-glow:   rgba(245, 166, 35, 0.22);
+  --hanimo-cream:        #f0e4d3;
+  --hanimo-brown:        #1a1410;
+  --hanimo-brown-soft:   #1f1813;
+  --hanimo-good:         #6cae75;
+  --hanimo-warn:         #e8a317;
+  --hanimo-error:        #d97757;
+  --hanimo-info:         #6b8db5;
+
+  /* ────────────────────────────────────────────────
+   * hanimo-pick design system — neutral stone + amber
+   * Light mode. 사용자 결정값 반영 (radius=0.625, density=cozy).
+   * ──────────────────────────────────────────────── */
+  --hn-bg:              #fafaf9;
+  --hn-surface:         #ffffff;
+  --hn-surface-2:       #f5f5f4;
+  --hn-surface-3:       #e7e5e4;
+  --hn-fg:              #1c1917;
+  --hn-fg-2:            #44403c;
+  --hn-fg-muted:        #78716c;
+  --hn-border:          #e7e5e4;
+  --hn-border-strong:   #d6d3d1;
+  --hn-primary:         #f5a623;
+  --hn-primary-soft:    rgba(245, 166, 35, 0.14);
+  --hn-primary-strong:  #d99437;
+  --hn-primary-fg:      #ffffff;
+  --hn-radius:          0.625rem;
+  --hn-pad:             14px;
+  --hn-row-gap:         10px;
+  --hn-shadow-sm:       0 1px 2px rgba(28,25,23,.05), 0 0 0 1px rgba(28,25,23,.04);
+  --hn-shadow-md:       0 6px 18px -8px rgba(28,25,23,.16), 0 0 0 1px rgba(28,25,23,.05);
+  --hn-shadow-lg:       0 24px 60px -28px rgba(28,25,23,.4);
+  --hn-font:            "Pretendard Variable", "Pretendard", "Inter", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", "Noto Sans KR", sans-serif;
+  --hn-mono:            "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+  /* ────────────────────────────────────────────────
+   * v2 시안 포팅 — 시맨틱 상태색 (hn- 네임스페이스) + soft 변형
+   * 컴포넌트는 raw blue/green/red 대신 아래 시맨틱 토큰을 참조.
+   * 강조·활성·링크 = --hn-primary(앰버). 파랑은 info 시맨틱에만.
+   * ──────────────────────────────────────────────── */
+  --hn-good:        #6cae75;
+  --hn-warn:        #e8a317;
+  --hn-error:       #d97757;
+  --hn-info:        #6b8db5;
+  --hn-good-soft:   color-mix(in oklch, var(--hn-good)  16%, transparent);
+  --hn-warn-soft:   color-mix(in oklch, var(--hn-warn)  16%, transparent);
+  --hn-error-soft:  color-mix(in oklch, var(--hn-error) 16%, transparent);
+  --hn-info-soft:   color-mix(in oklch, var(--hn-info)  16%, transparent);
+
+  /* 모션 토큰 — 하드코딩 duration-150/200/300 을 점진적으로 대체 */
+  --hn-dur-fast:    150ms;
+  --hn-dur-base:    200ms;
+  --hn-dur-slow:    300ms;
+  --hn-ease:        cubic-bezier(.3, .7, .4, 1);
+
+  /* focus ring (alpha 링용; --ring: var(--hn-primary) 는 기존 유지) */
+  --hn-ring:        color-mix(in oklch, var(--hn-primary) 45%, transparent);
+
+  /* v2 시안 포팅 — 글자 크기 스케일 토큰이 전체 텍스트에 캐스케이드되도록 하는 훅.
+   * ThemeDrawer 가 --type-scale 을 set 하면 루트 폰트크기가 비례 조정됨. (기본 1 = 16px) */
+  --type-scale:     1;
+  font-size:        calc(1rem * var(--type-scale, 1));
+}
+
+/* 스크롤바 스타일링 */
+@layer base {
+  /* WebKit 브라우저 (Chrome, Safari) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500;
+  }
+
+  ::-webkit-scrollbar-corner {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(214 211 209) rgb(245 245 244);
+  }
+
+  html.dark * {
+    scrollbar-color: rgb(68 64 60) rgb(28 25 23);
+  }
+
+  /* 부드러운 전환 효과 */
+  html {
+    @apply transition-colors duration-200;
+  }
+
+  body {
+    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans;
+  }
+
+  button,
+  [role='button'],
+  input[type='button'],
+  input[type='submit'],
+  input[type='reset'] {
+    @apply cursor-pointer;
+  }
+
+  button:disabled,
+  [role='button'][aria-disabled='true'],
+  input[type='button']:disabled,
+  input[type='submit']:disabled,
+  input[type='reset']:disabled {
+    @apply cursor-not-allowed;
+  }
+
+  /* 오버스크롤 시 배경색 통일 */
+  html {
+    @apply bg-gray-50 dark:bg-gray-900;
+  }
+}
+
+@layer components {
+  .chat-message-user {
+    @apply bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700/50 rounded-2xl rounded-br-md px-4 py-3 max-w-[90%] ml-auto text-gray-900 dark:text-gray-100 break-words;
+  }
+
+  .chat-message-assistant {
+    @apply bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700/50 rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%] mr-auto text-gray-900 dark:text-white break-words;
+  }
+}
+
+/* 마크다운 스타일 개선 */
+@layer utilities {
+  /* General Markdown Styles */
+  .markdown-content {
+    @apply text-gray-900 dark:text-white w-full;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    /* 레이아웃 격리: 내부 변경이 외부에 영향 주지 않도록 */
+    contain: layout style;
+  }
+
+  .chat-message-assistant .markdown-content,
+  .chat-message-assistant .markdown-content * {
+    color: #1c1917;
+  }
+
+  .dark .chat-message-assistant .markdown-content,
+  .dark .chat-message-assistant .markdown-content * {
+    color: #fafaf9;
+  }
+
+  .markdown-content * {
+    @apply max-w-full;
+  }
+
+  .markdown-content h1,
+  .markdown-content h2,
+  .markdown-content h3,
+  .markdown-content h4,
+  .markdown-content h5,
+  .markdown-content h6 {
+    @apply font-semibold;
+  }
+
+  .markdown-content code {
+    @apply bg-gray-200 dark:bg-gray-700 text-red-600 dark:text-red-300 px-1 py-0.5 rounded text-sm font-mono;
+  }
+
+  .markdown-content a {
+    @apply text-gray-700 dark:text-gray-300 hover:underline;
+  }
+
+  .markdown-content blockquote {
+    @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic text-gray-600 dark:text-gray-300;
+  }
+
+  .markdown-content pre {
+    @apply bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 p-4 rounded-lg overflow-x-auto text-gray-900 dark:text-gray-100 max-w-full;
+    display: block;
+    max-width: 100%;
+  }
+
+  .markdown-content pre code {
+    @apply bg-transparent p-0 border-0 text-inherit;
+  }
+
+  .markdown-content table {
+    @apply border-collapse border border-gray-300 dark:border-gray-600;
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .markdown-content th,
+  .markdown-content td {
+    @apply border border-gray-300 dark:border-gray-600 px-3 py-2;
+  }
+
+  .markdown-content th {
+    @apply bg-gray-100 dark:bg-gray-700 font-semibold;
+  }
+
+  :root:not(.dark) .markdown-content table,
+  :root:not(.dark) .markdown-content th,
+  :root:not(.dark) .markdown-content td {
+    background-color: #ffffff !important;
+    color: #1c1917 !important;
+  }
+
+  .dark .markdown-content table,
+  .dark .markdown-content th,
+  .dark .markdown-content td {
+    background-color: #1c1917 !important;
+    color: #fafaf9 !important;
+  }
+
+  /* User message specific styles */
+  .chat-message-user .markdown-content * {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  /* Code block copy button */
+  .markdown-content pre {
+    position: relative;
+  }
+
+  .markdown-content pre:hover .copy-button {
+    opacity: 1;
+  }
+
+  .copy-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    background: rgba(255, 255, 255, 0.9);
+    color: #44403c;
+    border: 1px solid #d6d3d1;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .dark .copy-button {
+    background: rgba(41, 37, 36, 0.9);
+    color: #d6d3d1;
+    border-color: #57534e;
+  }
+
+  .copy-button:hover {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 1);
+  }
+
+  .dark .copy-button:hover {
+    background: rgba(41, 37, 36, 1);
+  }
+
+  /* MarkdownPreview library override */
+  .markdown-content .w-md-editor-text-pre,
+  .markdown-content .w-md-editor-text,
+  .markdown-content [data-color-mode='dark'],
+  .markdown-content [data-color-mode='light'] {
+    background-color: transparent !important;
+    color: inherit !important;
+  }
+
+  .markdown-content .wmde-markdown {
+    --color-fg-default: #1c1917;
+    --color-fg-muted: #57534e;
+    --color-canvas-default: transparent;
+    --color-border-default: #d6d3d1;
+    --color-accent-fg: #57534e;
+    --color-prettylights-syntax-comment: #57534e;
+    --color-prettylights-syntax-constant: #0f766e;
+    --color-prettylights-syntax-entity: #57534e;
+    --color-prettylights-syntax-storage-modifier-import: #9a3412;
+    --color-prettylights-syntax-entity-tag: #b91c1c;
+    --color-prettylights-syntax-keyword: #b91c1c;
+    --color-prettylights-syntax-string: #047857;
+    --color-prettylights-syntax-variable: #1c1917;
+    --color-prettylights-syntax-brackethighlighter-unmatched: #b91c1c;
+    --color-prettylights-syntax-invalid-illegal-text: #ffffff;
+    --color-prettylights-syntax-invalid-illegal-bg: #b91c1c;
+    --color-prettylights-syntax-carriage-return-text: #ffffff;
+    --color-prettylights-syntax-carriage-return-bg: #b91c1c;
+    --color-prettylights-syntax-string-regexp: #0e7490;
+    --color-prettylights-syntax-markup-list: #b45309;
+    --color-prettylights-syntax-markup-heading: #57534e;
+    --color-prettylights-syntax-markup-italic: #1c1917;
+    --color-prettylights-syntax-markup-bold: #1c1917;
+    --color-prettylights-syntax-markup-deleted: #b91c1c;
+    --color-prettylights-syntax-markup-inserted: #047857;
+    --color-prettylights-syntax-markup-changed: #b45309;
+    --color-prettylights-syntax-markup-ignored: #e7e5e4;
+    --color-prettylights-syntax-markup-unrecognized: #b91c1c;
+    --color-prettylights-syntax-brackethighlighter-angle: #57534e;
+    --color-prettylights-syntax-sublimelinter-gutter-mark: #a8a29e;
+    --color-prettylights-syntax-constant-other-reference-link: #57534e;
+  }
+
+  .dark .markdown-content .wmde-markdown {
+    --color-fg-default: #fafaf9;
+    --color-fg-muted: #d6d3d1;
+    --color-canvas-default: transparent;
+    --color-border-default: #57534e;
+    --color-accent-fg: #a8a29e;
+  }
+
+  :root:not(.dark) .markdown-content pre,
+  :root:not(.dark) .markdown-content .wmde-markdown pre {
+    background-color: #e7e5e4 !important;
+    border-color: #d6d3d1 !important;
+    color: #1c1917 !important;
+  }
+
+  :root:not(.dark) .markdown-content pre code,
+  :root:not(.dark) .markdown-content .wmde-markdown pre code {
+    color: #1c1917 !important;
+  }
+
+  .dark .markdown-content pre,
+  .dark .markdown-content .wmde-markdown pre {
+    background-color: #44403c !important;
+    border-color: #57534e !important;
+  }
+
+  /* data-color-mode는 배경만 투명 유지 */
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Override Tailwind gray → warm stone (removes blue undertone) */
+  --color-gray-50: #fafaf9;
+  --color-gray-100: #f5f5f4;
+  --color-gray-200: #e7e5e4;
+  --color-gray-300: #d6d3d1;
+  --color-gray-400: #a8a29e;
+  --color-gray-500: #78716c;
+  --color-gray-600: #57534e;
+  --color-gray-700: #44403c;
+  --color-gray-800: #292524;
+  --color-gray-900: #1c1917;
+  --color-gray-950: #0c0a09;
+
+  /* Override Tailwind slate → warm stone (tooltips, etc.) */
+  --color-slate-50: #fafaf9;
+  --color-slate-100: #f5f5f4;
+  --color-slate-200: #e7e5e4;
+  --color-slate-300: #d6d3d1;
+  --color-slate-400: #a8a29e;
+  --color-slate-500: #78716c;
+  --color-slate-600: #57534e;
+  --color-slate-700: #44403c;
+  --color-slate-800: #292524;
+  --color-slate-900: #1c1917;
+  --color-slate-950: #0c0a09;
+
+  /* Design system semantic tokens */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* shadcn ↔ hanimo-pick 토큰 브리지 — primary/ring/sidebar 계열을 hn-primary로 연결.
+   * ThemeDrawer가 hn-primary만 변경해도 사이트 전 컴포넌트가 즉시 반응합니다. */
+  --radius: var(--hn-radius, 0.625rem);
+  --background: var(--hn-bg);
+  --foreground: var(--hn-fg);
+  --card: var(--hn-surface);
+  --card-foreground: var(--hn-fg);
+  --popover: var(--hn-surface);
+  --popover-foreground: var(--hn-fg);
+  --primary: var(--hn-primary);
+  --primary-foreground: var(--hn-primary-fg);
+  --secondary: var(--hn-surface-2);
+  --secondary-foreground: var(--hn-fg);
+  --muted: var(--hn-surface-2);
+  --muted-foreground: var(--hn-fg-muted);
+  --accent: var(--hn-surface-2);
+  --accent-foreground: var(--hn-fg);
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: var(--hn-border);
+  --input: var(--hn-border);
+  --ring: var(--hn-primary);
+  --chart-1: var(--hn-primary);
+  --chart-2: var(--hn-fg-muted);
+  --chart-3: var(--hn-primary-strong);
+  --chart-4: #a8a29e;
+  --chart-5: var(--hn-border-strong);
+  --sidebar: var(--hn-surface-2);
+  --sidebar-foreground: var(--hn-fg);
+  --sidebar-primary: var(--hn-primary);
+  --sidebar-primary-foreground: var(--hn-primary-fg);
+  --sidebar-accent: var(--hn-bg);
+  --sidebar-accent-foreground: var(--hn-fg);
+  --sidebar-border: var(--hn-border);
+  --sidebar-ring: var(--hn-primary);
+}
+
+.dark {
+  /* hanimo-pick design system — Dark mode */
+  --hn-bg:              #14110f;
+  --hn-surface:         #1c1917;
+  --hn-surface-2:       #292524;
+  --hn-surface-3:       #3a3431;
+  --hn-fg:              #fafaf9;
+  --hn-fg-2:            #d6d3d1;
+  --hn-fg-muted:        #a8a29e;
+  --hn-border:          #44403c;
+  --hn-border-strong:   #57534e;
+  --hn-primary:         #f5be5b;
+  --hn-primary-soft:    rgba(245, 190, 91, 0.20);
+  --hn-primary-strong:  #fcd480;
+  --hn-primary-fg:      #1c1917;
+  --hn-shadow-md:       0 8px 24px -10px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.04);
+  --hn-shadow-lg:       0 30px 80px -30px rgba(0,0,0,.85);
+
+  /* v2 시안 포팅 — 다크에서 대비를 위해 상태색을 살짝 들어올림 */
+  --hn-good:            #7cc488;
+  --hn-warn:            #f0b643;
+  --hn-error:           #e58e6f;
+  --hn-info:            #84a4c8;
+
+  /* shadcn ↔ hanimo-pick 토큰 브리지 (Dark) */
+  --background: var(--hn-bg);
+  --foreground: var(--hn-fg);
+  --card: var(--hn-surface);
+  --card-foreground: var(--hn-fg);
+  --popover: var(--hn-surface);
+  --popover-foreground: var(--hn-fg);
+  --primary: var(--hn-primary);
+  --primary-foreground: var(--hn-primary-fg);
+  --secondary: var(--hn-surface-2);
+  --secondary-foreground: var(--hn-fg);
+  --muted: var(--hn-surface-2);
+  --muted-foreground: var(--hn-fg-muted);
+  --accent: var(--hn-surface-2);
+  --accent-foreground: var(--hn-fg);
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: var(--hn-border);
+  --input: var(--hn-border);
+  --ring: var(--hn-primary);
+  --chart-1: var(--hn-primary);
+  --chart-2: var(--hn-fg-muted);
+  --chart-3: var(--hn-primary-strong);
+  --chart-4: #78716c;
+  --chart-5: var(--hn-border-strong);
+  --sidebar: var(--hn-surface);
+  --sidebar-foreground: var(--hn-fg);
+  --sidebar-primary: var(--hn-primary);
+  --sidebar-primary-foreground: var(--hn-primary-fg);
+  --sidebar-accent: var(--hn-surface-2);
+  --sidebar-accent-foreground: var(--hn-fg);
+  --sidebar-border: var(--hn-border);
+  --sidebar-ring: var(--hn-primary);
+}
+
+/* @supports (oklch) 블록 — primary/ring/sidebar 계열은 hn-primary 브리지를 따르고
+ * 나머지 surface/border 등 perceptual stone scale은 oklch 값으로 유지. */
+@supports (color: oklch(1 0 0)) {
+  :root {
+    --background: oklch(0.985 0.002 75);
+    --foreground: oklch(0.216 0.006 56);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.216 0.006 56);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.216 0.006 56);
+    --primary: var(--hn-primary);
+    --primary-foreground: var(--hn-primary-fg);
+    --secondary: oklch(0.97 0.001 106);
+    --secondary-foreground: oklch(0.216 0.006 56);
+    --muted: oklch(0.97 0.001 106);
+    --muted-foreground: oklch(0.553 0.013 58);
+    --accent: oklch(0.97 0.001 106);
+    --accent-foreground: oklch(0.216 0.006 56);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(0.923 0.003 48);
+    --input: oklch(0.923 0.003 48);
+    --ring: var(--hn-primary);
+    --chart-1: var(--hn-primary);
+    --chart-2: oklch(0.553 0.013 58);
+    --chart-3: var(--hn-primary-strong);
+    --chart-4: oklch(0.709 0.01 56);
+    --chart-5: oklch(0.869 0.005 56);
+    --sidebar: oklch(0.97 0.001 106);
+    --sidebar-foreground: oklch(0.216 0.006 56);
+    --sidebar-primary: var(--hn-primary);
+    --sidebar-primary-foreground: var(--hn-primary-fg);
+    --sidebar-accent: oklch(0.985 0.002 75);
+    --sidebar-accent-foreground: oklch(0.216 0.006 56);
+    --sidebar-border: oklch(0.923 0.003 48);
+    --sidebar-ring: var(--hn-primary);
+  }
+
+  .dark {
+    --background: oklch(0.216 0.006 56);
+    --foreground: oklch(0.985 0.002 75);
+    --card: oklch(0.268 0.007 34);
+    --card-foreground: oklch(0.985 0.002 75);
+    --popover: oklch(0.268 0.007 34);
+    --popover-foreground: oklch(0.985 0.002 75);
+    --primary: var(--hn-primary);
+    --primary-foreground: var(--hn-primary-fg);
+    --secondary: oklch(0.268 0.007 34);
+    --secondary-foreground: oklch(0.985 0.002 75);
+    --muted: oklch(0.268 0.007 34);
+    --muted-foreground: oklch(0.709 0.01 56);
+    --accent: oklch(0.268 0.007 34);
+    --accent-foreground: oklch(0.985 0.002 75);
+    --destructive: oklch(0.637 0.237 25);
+    --destructive-foreground: oklch(1 0 0);
+    --border: oklch(0.374 0.01 67);
+    --input: oklch(0.374 0.01 67);
+    --ring: var(--hn-primary);
+    --chart-1: var(--hn-primary);
+    --chart-2: oklch(0.709 0.01 56);
+    --chart-3: var(--hn-primary-strong);
+    --chart-4: oklch(0.553 0.013 58);
+    --chart-5: oklch(0.444 0.011 73);
+    --sidebar: oklch(0.216 0.006 56);
+    --sidebar-foreground: oklch(0.985 0.002 75);
+    --sidebar-primary: var(--hn-primary);
+    --sidebar-primary-foreground: var(--hn-primary-fg);
+    --sidebar-accent: oklch(0.268 0.007 34);
+    --sidebar-accent-foreground: oklch(0.985 0.002 75);
+    --sidebar-border: oklch(0.374 0.01 67);
+    --sidebar-ring: var(--hn-primary);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* v2 시안 포팅 — 키보드 포커스에만 또렷한 앰버 링(마우스 클릭은 깨끗) */
+  :where(a, button, input, textarea, select,
+         [role='button'], [role='switch'], [role='tab'], [tabindex]):focus-visible {
+    outline: 2px solid var(--hn-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* OS·앱 모션 줄이기 — ThemeDrawer 가 html[data-reduce-motion] 도 토글 */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  :root[data-reduce-motion] *,
+  :root[data-reduce-motion] *::before,
+  :root[data-reduce-motion] *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+/* Forcing scrollbar visibility on specific elements */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #f5f5f4;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #d6d3d1;
+  border-radius: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #292524;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #57534e;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #78716c;
+}
+
+/* Chat message list scrollbar - 항상 표시 (Chrome, Firefox, Edge 지원) */
+.chat-scrollbar {
+  /* Firefox, Edge */
+  scrollbar-width: thin;
+  scrollbar-color: #d6d3d1 #f5f5f4;
+  scrollbar-gutter: stable;
+}
+/* Chrome, Safari, Edge (Chromium) */
+.chat-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.chat-scrollbar::-webkit-scrollbar-track {
+  background-color: #f5f5f4;
+}
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #d6d3d1;
+  border-radius: 5px;
+}
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #a8a29e;
+}
+
+.dark .chat-scrollbar {
+  scrollbar-color: #57534e #292524;
+}
+.dark .chat-scrollbar::-webkit-scrollbar-track {
+  background-color: #292524;
+}
+.dark .chat-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #57534e;
+}
+.dark .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #78716c;
+}
+
+/* Ghost Mode animation */
+@keyframes ghostFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ────────────────────────────────────────────────
+ * v2 시안 포팅 — 게시판 글 상세 프로즈 타이포그래피
+ * .board-prose 래퍼로 스코프 → 채팅 등 다른 MarkdownPreview 인스턴스 영향 없음.
+ * ──────────────────────────────────────────────── */
+.board-prose .wmde-markdown {
+  font-size: 15.5px;
+  line-height: 1.8;
+  color: var(--hn-fg-2);
+  background: transparent !important;
+}
+.board-prose .wmde-markdown h2 {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--hn-fg);
+  margin: 30px 0 10px;
+  letter-spacing: -.01em;
+}
+.board-prose .wmde-markdown blockquote {
+  border-left: 3px solid var(--hn-primary);
+  padding: 10px 16px;
+  background: var(--hn-surface-2);
+  border-radius: 6px;
+  color: var(--hn-fg-2);
+  font-style: italic;
+  margin: 0 0 16px;
+}
+.board-prose .wmde-markdown p { margin: 0 0 16px; }
+.board-prose .wmde-markdown strong { color: var(--hn-fg); }
+.dark .board-prose .wmde-markdown {
+  background: transparent !important;
+  color: var(--hn-fg-2);
+}

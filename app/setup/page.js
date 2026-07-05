@@ -1,0 +1,358 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ShieldCheck, User, Mail, Lock, Loader2, AlertTriangle, Sparkles, Database, Cpu, Check } from 'lucide-react';
+import DarkModeToggle from '@/components/DarkModeToggle';
+import { useTranslation } from '@/hooks/useTranslation';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+export default function SetupPage() {
+  const router = useRouter();
+  const { t } = useTranslation();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [hasAdmin, setHasAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/create-first-admin')
+      .then((res) => res.json())
+      .then((data) => {
+        setHasAdmin(data.hasAdmin);
+        setChecking(false);
+        if (data.hasAdmin) {
+          setTimeout(() => router.replace('/login'), 3000);
+        }
+      })
+      .catch(() => {
+        setChecking(false);
+      });
+  }, [router]);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+
+    if (password !== passwordConfirm) {
+      setError(t('signup.password_mismatch'));
+      return;
+    }
+
+    if (password.length < 6) {
+      setError(t('setup.password_min_length'));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/create-first-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || t('setup.create_failed'));
+      }
+
+      localStorage.setItem('token', data.token);
+      router.push('/admin');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // P1: display-only stepper — step 0,1 done; step 2 active (admin account); steps 3,4 pending
+  const setupSteps = [
+    { label: '시작', icon: Sparkles },
+    { label: '데이터베이스', icon: Database },
+    { label: '관리자 계정', icon: ShieldCheck },
+    { label: '모델 연결', icon: Cpu },
+    { label: '완료', icon: Check },
+  ];
+  const activeStep = 2;
+
+  if (checking) {
+    return (
+      <div className='min-h-screen flex items-center justify-center' style={{ background: 'var(--hn-bg)' }}>
+        <Loader2 className='h-8 w-8 animate-spin text-primary' />
+      </div>
+    );
+  }
+
+  if (hasAdmin) {
+    return (
+      <div className='min-h-screen flex items-center justify-center px-4' style={{ background: 'var(--hn-bg)' }}>
+        <div className='text-center'>
+          <AlertTriangle className='h-12 w-12 mx-auto mb-4' style={{ color: 'var(--hn-warn)' }} />
+          <h2 className='text-xl font-semibold mb-2' style={{ color: 'var(--hn-fg)' }}>
+            {t('setup.admin_exists')}
+          </h2>
+          <p className='mb-4' style={{ color: 'var(--hn-fg-muted)' }}>
+            {t('setup.admin_exists_description')}
+          </p>
+          <p className='text-sm' style={{ color: 'var(--hn-fg-muted)' }}>
+            {t('setup.redirect_notice')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className='min-h-screen flex flex-col transition-colors duration-200'
+      style={{ background: 'var(--hn-bg)', color: 'var(--hn-fg)' }}
+    >
+      <div className='flex flex-1'>
+        {/* P1: Left rail stepper */}
+        <div
+          className='hidden md:flex flex-col'
+          style={{
+            width: 240,
+            minWidth: 240,
+            background: 'var(--hn-surface)',
+            borderRight: '1px solid var(--hn-border)',
+            padding: '32px 24px',
+            minHeight: '100vh',
+          }}
+        >
+          {/* Brand row */}
+          <div className='flex items-center gap-2 mb-6'>
+            <div
+              aria-hidden='true'
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: 'var(--hn-primary)',
+                position: 'relative',
+                flexShrink: 0,
+                boxShadow: '0 4px 12px -4px rgba(245,166,35,.45)',
+              }}
+            >
+              <span style={{ position: 'absolute', left: 6, right: 6, top: 9, height: 2.5, background: 'var(--hn-primary-fg)', borderRadius: 2 }} />
+              <span style={{ position: 'absolute', left: 6, right: 6, top: 16, height: 2.5, background: 'var(--hn-primary-fg)', borderRadius: 2, opacity: 0.55 }} />
+            </div>
+            <span className='font-bold text-base' style={{ color: 'var(--hn-fg)' }}>hanimo</span>
+          </div>
+
+          {/* Sub-label */}
+          <p className='text-xs mb-8' style={{ color: 'var(--hn-fg-muted)' }}>
+            셀프호스팅 설치
+          </p>
+
+          {/* Stepper */}
+          <ol className='flex flex-col gap-1 flex-1'>
+            {setupSteps.map((step, idx) => {
+              const isDone = idx < activeStep;
+              const isActive = idx === activeStep;
+              const StepIcon = step.icon;
+              return (
+                <li key={idx} className='flex items-center gap-3 py-2'>
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: isDone || isActive ? 'var(--hn-primary)' : 'transparent',
+                      border: isDone || isActive ? 'none' : '1.5px solid var(--hn-border)',
+                    }}
+                  >
+                    {isDone ? (
+                      <Check style={{ width: 13, height: 13, color: 'var(--hn-primary-fg)' }} />
+                    ) : (
+                      <StepIcon
+                        style={{
+                          width: 13,
+                          height: 13,
+                          color: isActive ? 'var(--hn-primary-fg)' : 'var(--hn-fg-muted)',
+                        }}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className='text-sm'
+                    style={{
+                      color: isActive ? 'var(--hn-fg)' : isDone ? 'var(--hn-fg-muted)' : 'var(--hn-fg-muted)',
+                      fontWeight: isActive ? 600 : 400,
+                    }}
+                  >
+                    {step.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+
+          {/* Version footer */}
+          <p className='text-xs mt-6' style={{ color: 'var(--hn-fg-muted)' }}>
+            v1 · Next.js 15 · PostgreSQL
+          </p>
+        </div>
+
+        {/* Right: form area */}
+        <div className='flex-1 flex items-center justify-center px-4 relative'>
+          <div className='absolute top-4 right-4'>
+            <DarkModeToggle />
+          </div>
+          <div className='w-full max-w-md'>
+            <div className='text-center mb-8'>
+              <div className='flex justify-center mb-4'>
+                {/* P2: amber icon container matching login/signup pattern */}
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'var(--hn-primary-soft)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ShieldCheck className='h-6 w-6 text-primary' />
+                </div>
+              </div>
+              <h1 className='text-3xl font-bold mb-2' style={{ color: 'var(--hn-fg)' }}>
+                {t('setup.title')}
+              </h1>
+              <p style={{ color: 'var(--hn-fg-muted)' }}>
+                {t('setup.subtitle')}
+              </p>
+            </div>
+
+            {/* P2: Card with hn- inline styles matching login/signup */}
+            <Card
+              className='border-0'
+              style={{
+                background: 'var(--hn-surface)',
+                border: '1px solid var(--hn-border)',
+                borderRadius: 14,
+                boxShadow: 'var(--hn-shadow-md)',
+              }}
+            >
+              <form onSubmit={handleSubmit}>
+                <CardContent className='space-y-4'>
+                  {error && (
+                    <Alert variant='destructive'>
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  <div className='space-y-2'>
+                    <Label>{t('signup.name')}</Label>
+                    <div className='relative'>
+                      <User className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
+                      <Input
+                        type='text'
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className='pl-10'
+                        placeholder={t('signup.name_placeholder')}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='space-y-2'>
+                    <Label>{t('auth.email')}</Label>
+                    <div className='relative'>
+                      <Mail className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
+                      <Input
+                        type='email'
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className='pl-10'
+                        placeholder={t('auth.email_placeholder')}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='space-y-2'>
+                    <Label>{t('auth.password')}</Label>
+                    <div className='relative'>
+                      <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
+                      <Input
+                        type='password'
+                        required
+                        minLength={6}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className='pl-10'
+                        placeholder={t('setup.password_placeholder')}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='space-y-2'>
+                    <Label>{t('signup.password_confirm')}</Label>
+                    <div className='relative'>
+                      <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
+                      <Input
+                        type='password'
+                        required
+                        minLength={6}
+                        value={passwordConfirm}
+                        onChange={(e) => setPasswordConfirm(e.target.value)}
+                        className='pl-10'
+                        placeholder={t('signup.password_confirm_placeholder')}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type='submit'
+                    disabled={loading}
+                    className='w-full'
+                    size='lg'
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className='h-5 w-5 animate-spin' />
+                        {t('setup.creating')}
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className='h-5 w-5' />
+                        {t('setup.create_admin')}
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+
+                <CardFooter className='justify-center border-t border-border'>
+                  <a
+                    href='/login'
+                    className='text-sm text-primary hover:text-primary/80'
+                  >
+                    {t('setup.back_to_login')}
+                  </a>
+                </CardFooter>
+              </form>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

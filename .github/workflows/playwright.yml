@@ -1,0 +1,11 @@
+# DEPRECATED — Playwright workflow is disabled.
+# Triggered manually only (workflow_dispatch). Push/PR auto-runs are removed.
+# Restore by replacing 'on:' with the previous push/pull_request triggers.
+name: Playwright Tests (disabled)
+on:
+  workflow_dispatch:
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Playwright workflow is disabled. Trigger manually if needed."

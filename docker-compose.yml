@@ -1,0 +1,47 @@
+# hanimo-webui — one-command self-host (PostgreSQL + app)
+# Author: Kim Jiwon (김지원) https://github.com/flykimjiwon
+# Anyone can self-host in ~5 minutes — no local PostgreSQL install needed.
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hanimo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env or run ./scripts/install.sh}
+      POSTGRES_DB: ${POSTGRES_DB:-hanimo}
+    volumes:
+      - hanimo_pgdata:/var/lib/postgresql/data
+    # expose only if you want host access; not required for the app
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_URI: postgresql://${POSTGRES_USER:-hanimo}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env or run ./scripts/install.sh}@db:5432/${POSTGRES_DB:-hanimo}
+      # Required. scripts/install.sh generates this in .env.
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env or run ./scripts/install.sh}
+      HANIMO_ADMIN_EMAIL: ${HANIMO_ADMIN_EMAIL:-admin@hanimo.ai}
+      HANIMO_ADMIN_PASSWORD: ${HANIMO_ADMIN_PASSWORD:?Set HANIMO_ADMIN_PASSWORD in .env or run ./scripts/install.sh}
+      HANIMO_ADMIN_NAME: ${HANIMO_ADMIN_NAME:-System Administrator}
+      HANIMO_ADMIN_DEPARTMENT: ${HANIMO_ADMIN_DEPARTMENT:-Hanimo}
+      HANIMO_ADMIN_TEAM: ${HANIMO_ADMIN_TEAM:-Admin Team}
+      HANIMO_ENABLE_DESTRUCTIVE_ADMIN: ${HANIMO_ENABLE_DESTRUCTIVE_ADMIN:-false}
+      TZ: ${TZ:-Asia/Seoul}
+      NODE_ENV: production
+      PORT: "3000"
+    ports:
+      - "${PORT:-3000}:3000"
+
+volumes:
+  hanimo_pgdata:
