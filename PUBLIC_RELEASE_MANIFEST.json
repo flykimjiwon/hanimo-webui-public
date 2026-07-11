@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "de42e18be5cd6aa19a1e8b6e9051f4ee7977b0d6",
-  "dirty": true,
+  "sourceCommit": "cecb59aeeb9269b1c734de901906eabcd25bd0eb",
+  "dirty": false,
   "files": [
     {
       "path": ".dockerignore",
