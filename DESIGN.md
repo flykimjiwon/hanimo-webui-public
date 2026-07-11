@@ -89,6 +89,21 @@ All spacing derives from 4px.
 
 ## 5. Components
 
+### Brand mark and chat start surface
+
+- `app/components/brand/HanimoMark.js` is the canonical compact product mark for the chat header, expanded sidebar, rail, login, and setup surfaces. Do not redraw the amber stripe mark inside feature components.
+- The empty chat state is a work-start surface, not a marketing hero. It presents one product promise and three solution intents: create, analyze, and code.
+- Product claims on the start surface must remain contract-backed: self-hosted, OpenAI-compatible, and model choice. Avoid unverified context-size, speed, or privacy superlatives.
+- Workspace owners may customize the site title and description; Hanimo visual identity remains in the token-driven mark and amber command focus.
+- Branding settings preview both the in-app workspace header and the browser-tab identity before saving.
+
+### Provider connection
+
+- `/admin/providers` is the primary connection surface. Common vendors are URL/protocol presets over the existing generic adapters, not separate provider engines.
+- Ollama, Novita, OpenRouter, OpenAI, DeepSeek, and Gemini remain editable after selecting a preset. `Custom` must always remain available for vLLM, LM Studio, intranet, and future OpenAI-compatible endpoints.
+- Provider credentials are write-only in the UI. Saved keys are represented only by `apiKeySet` and must never be returned to the browser.
+- Connection setup and model exposure are separate steps: save a provider first, then choose visible models in `/admin/models`.
+
 ### Sidebar and rail navigation
 
 - **Structure**: fixed 64px rail for desktop, 320px drawer for expanded/mobile navigation.

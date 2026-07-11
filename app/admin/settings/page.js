@@ -14,8 +14,11 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import HanimoMark from '@/components/brand/HanimoMark';
 
 const BRANDING_EVENT_NAME = 'hanimo-webui-site-branding-updated';
+const DEFAULT_SITE_TITLE = 'Hanimo';
+const DEFAULT_SITE_DESCRIPTION = 'Self-hosted AI workspace';
 
 export default function SettingsPage() {
   const { alert, confirm } = useAlert();
@@ -29,8 +32,8 @@ export default function SettingsPage() {
   const [boardEnabled, setBoardEnabled] = useState(true);
   const [supportContacts, setSupportContacts] = useState([]);
   const [supportContactsEnabled, setSupportContactsEnabled] = useState(true);
-  const [siteTitle, setSiteTitle] = useState('hanimo-webui');
-  const [siteDescription, setSiteDescription] = useState('hanimo-webui');
+  const [siteTitle, setSiteTitle] = useState(DEFAULT_SITE_TITLE);
+  const [siteDescription, setSiteDescription] = useState(DEFAULT_SITE_DESCRIPTION);
   const [faviconUrl, setFaviconUrl] = useState(null);
   const [faviconUploading, setFaviconUploading] = useState(false);
   const [roomNameGenerationModel, setRoomNameGenerationModel] = useState('gemma3:4b');
@@ -183,8 +186,8 @@ export default function SettingsPage() {
             ? data.supportContactsEnabled
             : true
         );
-      setSiteTitle(data.siteTitle || 'hanimo-webui');
-      setSiteDescription(data.siteDescription || 'hanimo-webui');
+      setSiteTitle(data.siteTitle || DEFAULT_SITE_TITLE);
+      setSiteDescription(data.siteDescription || DEFAULT_SITE_DESCRIPTION);
           setFaviconUrl(data.faviconUrl || null);
           setRoomNameGenerationModel(data.roomNameGenerationModel || 'gemma3:4b');
           setMaxImagesPerMessage(data.maxImagesPerMessage || 5);
@@ -228,8 +231,8 @@ export default function SettingsPage() {
         setBoardEnabled(true);
         setSupportContacts([]);
         setSupportContactsEnabled(true);
-      setSiteTitle('hanimo-webui');
-      setSiteDescription('hanimo-webui');
+      setSiteTitle(DEFAULT_SITE_TITLE);
+      setSiteDescription(DEFAULT_SITE_DESCRIPTION);
         setFaviconUrl(null);
         setRoomNameGenerationModel('gemma3:4b');
         setDrawEnabled(false);
@@ -254,8 +257,8 @@ export default function SettingsPage() {
       setBoardEnabled(true);
       setSupportContacts([]);
       setSupportContactsEnabled(true);
-      setSiteTitle('hanimo-webui');
-      setSiteDescription('hanimo-webui');
+      setSiteTitle(DEFAULT_SITE_TITLE);
+      setSiteDescription(DEFAULT_SITE_DESCRIPTION);
         setFaviconUrl(null);
         setDrawEnabled(false);
         setDrawModel('');
@@ -908,7 +911,7 @@ export default function SettingsPage() {
               value={siteTitle}
               onChange={(e) => setSiteTitle(e.target.value)}
               className='w-full px-3 py-2 border border-input rounded-md bg-background text-foreground'
-              placeholder='hanimo-webui'
+              placeholder={DEFAULT_SITE_TITLE}
               maxLength={50}
               disabled={loading}
             />
@@ -925,7 +928,7 @@ export default function SettingsPage() {
               value={siteDescription}
               onChange={(e) => setSiteDescription(e.target.value)}
               className='w-full px-3 py-2 border border-input rounded-md bg-background text-foreground'
-              placeholder='hanimo-webui'
+              placeholder={DEFAULT_SITE_DESCRIPTION}
               maxLength={200}
               rows={2}
               disabled={loading}
@@ -978,21 +981,33 @@ export default function SettingsPage() {
             <h4 className='text-sm font-medium text-foreground mb-2'>
               {t('admin_settings.preview')}
             </h4>
-            <div className='flex items-center gap-3 p-2 bg-background rounded border'>
-              {faviconUrl ? (
-                <Image
-                  src={faviconUrl}
-                  alt='Favicon preview'
-                  width={16}
-                  height={16}
-                  className='w-4 h-4'
-                />
-              ) : (
-                <div className='w-4 h-4 bg-muted rounded'></div>
-              )}
-              <span className='text-sm font-medium text-foreground'>
-                {siteTitle}
-              </span>
+            <div className='overflow-hidden rounded-[var(--hn-radius)] border border-border bg-background'>
+              <div className='flex items-center gap-2.5 border-b border-border px-3 py-2.5'>
+                <HanimoMark size={28} />
+                <div className='min-w-0'>
+                  <p className='truncate text-sm font-semibold text-foreground'>
+                    {siteTitle || DEFAULT_SITE_TITLE}
+                  </p>
+                  <p className='truncate text-[11px] text-muted-foreground'>
+                    {siteDescription || DEFAULT_SITE_DESCRIPTION}
+                  </p>
+                </div>
+              </div>
+              <div className='flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground'>
+                {faviconUrl ? (
+                  <Image
+                    src={faviconUrl}
+                    alt='Favicon preview'
+                    width={16}
+                    height={16}
+                    className='h-4 w-4 rounded-sm'
+                  />
+                ) : (
+                  <HanimoMark size={16} />
+                )}
+                <span className='truncate'>{siteTitle || DEFAULT_SITE_TITLE}</span>
+                <span className='ml-auto font-mono text-[10px]'>TAB</span>
+              </div>
             </div>
             <p className='text-xs text-muted-foreground mt-1'>
               {t('admin_settings.browser_tab_preview')}

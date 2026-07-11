@@ -41,6 +41,7 @@ function getBackoffDelay(attempt, baseDelay = 500) {
  * @param {number} config.normalTimeoutMs - normal timeout (default: 600000)
  * @param {function} config.getNextEndpoint - function to get next endpoint (optional)
  * @param {object} config.providerRef - provider reference object (optional)
+ * @param {function} config.buildOptions - rebuild fetch options when endpoint changes (optional)
  * @param {function} config.onRetry - callback called on retry (optional)
  * @param {string} config.endpointPath - endpoint path (e.g., '/api/chat', '/api/generate') (optional)
  * @returns {Promise<Response>} fetch response
@@ -53,6 +54,7 @@ export async function fetchWithRetry(url, options, config = {}) {
     normalTimeoutMs = 600000, // 10 minutes
     getNextEndpoint = null,
     providerRef = null,
+    buildOptions = null,
     onRetry = null,
     endpointPath = '', // Endpoint path (e.g., '/api/chat')
   } = config;
@@ -60,7 +62,19 @@ export async function fetchWithRetry(url, options, config = {}) {
   let lastError;
   let lastResponse;
   let currentUrl = url;
+  let currentOptions = options;
   const timeoutMs = isStreaming ? streamTimeoutMs : normalTimeoutMs;
+
+  function optionsForEndpoint(endpointInfo) {
+    if (typeof buildOptions !== 'function') {
+      return currentOptions;
+    }
+    return buildOptions({
+      endpointInfo,
+      url: currentUrl,
+      previousOptions: currentOptions,
+    });
+  }
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -82,7 +96,7 @@ export async function fetchWithRetry(url, options, config = {}) {
       try {
         // Call fetch
         const response = await fetch(currentUrl, {
-          ...options,
+          ...currentOptions,
           signal: controller.signal,
         });
 
@@ -108,6 +122,7 @@ export async function fetchWithRetry(url, options, config = {}) {
               currentUrl = endpointPath 
                 ? `${nextEndpointInfo.endpoint}${endpointPath}`
                 : nextEndpointInfo.endpoint;
+              currentOptions = optionsForEndpoint(nextEndpointInfo);
               if (providerRef && nextEndpointInfo.provider) {
                 providerRef.value = nextEndpointInfo.provider;
               }
@@ -115,7 +130,7 @@ export async function fetchWithRetry(url, options, config = {}) {
 
             // Call retry callback
             if (onRetry) {
-              onRetry(attempt, currentUrl, status);
+              onRetry(attempt, currentUrl, status, null, nextEndpointInfo);
             }
 
             // Delay before retry (exponential backoff)
@@ -170,10 +185,11 @@ export async function fetchWithRetry(url, options, config = {}) {
           );
 
           currentUrl = nextUrl;
+          currentOptions = optionsForEndpoint(nextEndpointInfo);
 
           // Call retry callback
           if (onRetry) {
-            onRetry(attempt, currentUrl, null, error);
+            onRetry(attempt, currentUrl, null, error, nextEndpointInfo);
           }
 
           // Delay before retry (exponential backoff)

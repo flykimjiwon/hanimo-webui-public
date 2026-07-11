@@ -6,6 +6,7 @@ import {
   assertAllowedOutboundUrl,
   getScreenEndpointTimeoutMs,
   readLimitedEndpointJson,
+  fetchWithOutboundPolicy,
 } from '@/lib/screen-security.mjs';
 
 // POST: 화면 엔드포인트 실행
@@ -110,11 +111,10 @@ export async function POST(request, { params }) {
       if (endpoint.apiKey) headers['Authorization'] = `Bearer ${endpoint.apiKey}`;
       const safeUrl = await assertAllowedOutboundUrl(endpoint.url);
 
-      const res = await fetch(safeUrl, {
+      const res = await fetchWithOutboundPolicy(safeUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(mappedInput),
-        redirect: 'error',
         signal: AbortSignal.timeout(getScreenEndpointTimeoutMs()),
       });
 

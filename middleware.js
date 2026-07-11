@@ -13,7 +13,9 @@
  */
 
 import { NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
+import { jwtVerify } from 'jose/jwt/verify';
+import { areLabsEnabled, isLabsPath } from '@/lib/release-surface.mjs';
+import { isSameOriginRequest, isUnsafeMethod } from '@/lib/security/request-origin.mjs';
 
 function getJwtSecretError() {
   const secret = process.env.JWT_SECRET;
@@ -50,6 +52,13 @@ const ADMIN_PREFIXES = ['/api/admin', '/admin'];
 
 // /api 통과 + 토큰 필수
 const API_PREFIX = '/api';
+const CSRF_SENSITIVE_AUTH_PATHS = new Set([
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/refresh',
+  '/api/auth/logout',
+  '/api/auth/create-first-admin',
+]);
 
 function isPublic(pathname) {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
@@ -65,6 +74,14 @@ function getToken(request) {
   const cookieToken = request.cookies.get('token')?.value;
   if (cookieToken) return cookieToken;
   return null;
+}
+
+function requiresOriginCheck(request, pathname) {
+  if (!isUnsafeMethod(request.method)) return false;
+  const hasSessionCookie = Boolean(
+    request.cookies.get('token')?.value || request.cookies.get('refresh_token')?.value
+  );
+  return hasSessionCookie || CSRF_SENSITIVE_AUTH_PATHS.has(pathname);
 }
 
 async function verifyJwt(token) {
@@ -86,6 +103,17 @@ export async function middleware(request) {
     pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|webp|woff2?|css|js|map)$/i)
   ) {
     return NextResponse.next();
+  }
+
+  if (!areLabsEnabled() && isLabsPath(pathname)) {
+    if (pathname.startsWith(API_PREFIX)) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+    return new NextResponse('Not found', { status: 404 });
+  }
+
+  if (requiresOriginCheck(request, pathname) && !isSameOriginRequest(request)) {
+    return NextResponse.json({ error: 'Cross-site request rejected.' }, { status: 403 });
   }
 
   // PUBLIC 경로 통과

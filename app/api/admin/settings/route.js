@@ -7,12 +7,21 @@ import {
   createValidationError,
   createServerError,
 } from '@/lib/errorHandler';
+import {
+  maskCustomEndpointSecrets,
+  resolveCustomEndpointSecret,
+} from '@/lib/security/settings-secrets.mjs';
+import {
+  decryptProviderEndpoints,
+  encryptProviderEndpoints,
+  encryptProviderSecret,
+} from '@/lib/security/provider-credentials.mjs';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const DEFAULT_SITE_TITLE = 'hanimo-webui';
-const DEFAULT_SITE_DESCRIPTION = 'hanimo-webui';
+const DEFAULT_SITE_TITLE = 'Hanimo';
+const DEFAULT_SITE_DESCRIPTION = 'Self-hosted AI workspace';
 const NO_STORE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
   Pragma: 'no-cache',
@@ -366,7 +375,7 @@ models:
             : 'ollama',
         openaiCompatBase: settings.openaiCompatBase || '',
         openaiCompatApiKeySet: !!settings.openaiCompatApiKey,
-        customEndpoints,
+        customEndpoints: maskCustomEndpointSecrets(customEndpoints),
         // Login type setting
         loginType: settings.loginType || 'local',
         // API key page example settings
@@ -676,9 +685,9 @@ export async function PUT(request) {
         );
       }
       // Sending null removes the key
-      updateData.openaiCompatApiKey = openaiCompatApiKey
-        ? openaiCompatApiKey.trim()
-        : '';
+      updateData.openaiCompatApiKey = encryptProviderSecret(
+        openaiCompatApiKey ? openaiCompatApiKey.trim() : ''
+      );
     }
 
     // Validate and synchronize custom model servers
@@ -686,6 +695,13 @@ export async function PUT(request) {
       if (!Array.isArray(customEndpoints)) {
         return createValidationError('customEndpoints must be an array.');
       }
+      const existingEndpointResult = await query(
+        'SELECT custom_endpoints FROM settings WHERE config_type = $1 LIMIT 1',
+        ['general']
+      );
+      const existingCustomEndpoints = decryptProviderEndpoints(
+        existingEndpointResult.rows[0]?.custom_endpoints || []
+      );
       const sanitized = [];
       const seenNames = new Set(); // For duplicate name checking
       for (const item of customEndpoints) {
@@ -699,8 +715,15 @@ export async function PUT(request) {
             : item.provider === 'gemini'
             ? 'gemini'
             : 'ollama';
-        const apiKey =
-          typeof item.apiKey === 'string' ? item.apiKey.trim() : '';
+        const apiKey = resolveCustomEndpointSecret(
+          item,
+          existingCustomEndpoints
+        );
+        if (item.apiKeySet === true && !apiKey && item.clearApiKey !== true) {
+          return createValidationError(
+            'Re-enter the model server API key when changing its URL.'
+          );
+        }
         // API key is required for Gemini provider
         if (provider === 'gemini' && !apiKey) {
           return createValidationError(
@@ -725,6 +748,11 @@ export async function PUT(request) {
           if (!u.host) {
             return createValidationError(`Invalid URL format: ${url}`);
           }
+          if (u.username || u.password) {
+            return createValidationError(
+              'Model server URLs must not contain credentials.'
+            );
+          }
         } catch (error) {
           logger.warn('[Catch] Error occurred:', error.message);
           return createValidationError(`Not a valid URL: ${url}`);
@@ -733,7 +761,7 @@ export async function PUT(request) {
           item.isActive !== undefined ? Boolean(item.isActive) : true; // Default is active
         sanitized.push({ name, url, provider, apiKey, isActive });
       }
-      updateData.customEndpoints = sanitized;
+      updateData.customEndpoints = encryptProviderEndpoints(sanitized);
       // Also sync ollama-only list for compatibility
       const ollamaOnly = sanitized
         .filter((e) => e.provider === 'ollama')

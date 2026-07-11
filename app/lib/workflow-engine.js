@@ -5,6 +5,8 @@
 
 import { getNextModelServerEndpointWithIndex } from '@/lib/modelServers';
 import { executeWorkflowConditionNode } from './workflow-condition.mjs';
+import { assertAllowedOutboundUrl, fetchWithOutboundPolicy } from './security/outbound-policy.mjs';
+import { decryptOptionalSecret } from './security/secret-box.mjs';
 
 /**
  * Build OpenAI-compatible API URL (prevent /v1 duplication)
@@ -296,7 +298,12 @@ export class WorkflowEngine {
         );
       }
       endpointUrl = ep.endpoint_url || ep.url;
-      apiKey = ep.api_key || '';
+      try {
+        endpointUrl = await assertAllowedOutboundUrl(endpointUrl);
+        apiKey = decryptOptionalSecret(ep.api_key_encrypted || '');
+      } catch (error) {
+        throw new Error(`커스텀 엔드포인트 보안 검증에 실패했습니다: ${error.message}`);
+      }
       actualModelId = ep.model_name || modelId;
     } else {
       const epInfo = await getNextModelServerEndpointWithIndex();
@@ -334,11 +341,19 @@ export class WorkflowEngine {
     let lastError;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const response = await fetch(apiUrl, {
+        const response = modelSource === 'custom'
+          ? await fetchWithOutboundPolicy(apiUrl, {
           method: 'POST',
           headers,
           body: JSON.stringify(body),
-        });
+        }, {
+          timeoutEnvName: 'HANIMO_WORKFLOW_ENDPOINT_TIMEOUT_MS',
+          })
+          : await fetch(apiUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(body),
+          });
 
         if (!response.ok) {
           const errText = await response.text().catch(() => '');

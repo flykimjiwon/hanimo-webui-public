@@ -33,6 +33,11 @@ for (const filePath of listRouteFiles(adminRouteRoot)) {
   assertNotContains(source, 'verifyAdminOrManager', label);
   assertNotContains(source, "['admin', 'manager']", label);
   assertNotContains(source, 'Admin or manager privileges', label);
+  assertNotContains(
+    source,
+    /throw new Error\(['"]JWT_SECRET environment variable is required['"]\)/,
+    label
+  );
 }
 
 const adminLayout = read('app/admin/layout.js');

@@ -1,5 +1,63 @@
 import { query } from './postgres';
 import { logger } from './logger';
+import { boundedContent, metadataOnly, redactRecursive } from './security/redaction.mjs';
+
+const PROMPT_CONTENT_LOG_MAX_CHARS = 2048;
+
+function shouldLogPromptContent() {
+  return process.env.HANIMO_LOG_PROMPT_CONTENT === 'true';
+}
+
+function serializePromptContent(value) {
+  if (value === undefined || value === null) return null;
+  return JSON.stringify(
+    boundedContent(value, {
+      includeContent: shouldLogPromptContent(),
+      maxChars: PROMPT_CONTENT_LOG_MAX_CHARS,
+    })
+  );
+}
+
+function parseJsonIfPossible(value) {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  if (!trimmed || !['{', '['].includes(trimmed[0])) return value;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return value;
+  }
+}
+
+function maskSensitiveString(value) {
+  if (typeof value !== 'string') return value;
+  return value
+    .replace(
+      /\b(api[_-]?key|token|secret|password|authorization|cookie)=([^&\s]+)/gi,
+      '$1=[REDACTED]'
+    )
+    .replace(
+      /\b(api[_-]?key|token|secret|password|authorization|cookie):\s*([^\s,;]+)/gi,
+      '$1: [REDACTED]'
+    );
+}
+
+function sanitizeHttpLogValue(value) {
+  if (value === undefined || value === null) return null;
+  const parsed = parseJsonIfPossible(value);
+  if (process.env.HANIMO_LOG_HTTP_CONTENT !== 'true') return metadataOnly(parsed);
+  return boundedContent(redactRecursive(maskSensitiveString(parsed)), {
+    includeContent: true,
+    maxChars: PROMPT_CONTENT_LOG_MAX_CHARS,
+  });
+}
+
+function normalizeAuthorizationMetadata(value) {
+  if (value === 'present' || value === 'absent' || value === null || value === undefined) {
+    return value || null;
+  }
+  return '[REDACTED]';
+}
 
 /**
  * Logs external API (/api/generate, /api/chat) requests to a separate table.
@@ -35,7 +93,7 @@ export async function logExternalApiRequest(logData) {
       origin: logData.origin || null,
 
       // === Security headers ===
-      authorization: logData.authorization || null,
+      authorization: normalizeAuthorizationMetadata(logData.authorization),
       contentType: logData.contentType || null,
 
       // === Custom headers (for dev tool identification) ===
@@ -73,19 +131,22 @@ export async function logExternalApiRequest(logData) {
     );
     identificationData.roomId = logData.roomId || null; // Store roomId
 
-    // Store full prompt/message data in a separate table
+    const safePrompt = serializePromptContent(logData.prompt);
+    const safeMessages = serializePromptContent(logData.messages);
+    const safeRequestHeaders = sanitizeHttpLogValue(logData.requestHeaders);
+    const safeRequestBody = sanitizeHttpLogValue(logData.requestBody);
+    const safeResponseHeaders = sanitizeHttpLogValue(logData.responseHeaders);
+    const safeResponseBody = sanitizeHttpLogValue(logData.responseBody);
+
+    // Store prompt/message data in a separate table using the configured content policy
     let promptId = null;
-    if (logData.prompt || logData.messages) {
+    if (safePrompt || safeMessages) {
       try {
-        // Store full prompt/message data (no length limit)
         const promptResult = await query(
           `INSERT INTO external_api_prompts (prompt, messages)
            VALUES ($1, $2)
            RETURNING id`,
-          [
-            logData.prompt || null,
-            logData.messages ? JSON.stringify(logData.messages) : null,
-          ]
+          [safePrompt, safeMessages]
         );
         promptId = promptResult.rows[0]?.id || null;
       } catch (promptError) {
@@ -113,19 +174,9 @@ export async function logExternalApiRequest(logData) {
       model: logData.model, // Actual model name
       provider: logData.provider || null,
 
-      // Request content (abbreviated for preview)
-      prompt: truncateText(logData.prompt, 2000), // Max 2000 chars
-      messages: logData.messages
-        ? logData.messages.map((msg) => ({
-            role: msg.role,
-            content: truncateText(
-              typeof msg.content === 'string'
-                ? msg.content
-                : JSON.stringify(msg.content),
-              1000
-            ), // Max 1000 chars per message
-          }))
-        : null,
+      // Request content follows the same metadata-by-default policy as prompt storage
+      prompt: safePrompt,
+      messages: safeMessages,
 
       // Response info (token count only)
       responseTokenCount: logData.responseTokenCount || 0,
@@ -155,10 +206,10 @@ export async function logExternalApiRequest(logData) {
       retryCount: logData.retryCount !== undefined ? logData.retryCount : 1, // Default: succeeded on first attempt
 
       // Full HTTP info
-      requestHeaders: logData.requestHeaders || null,
-      requestBody: logData.requestBody || null,
-      responseHeaders: logData.responseHeaders || null,
-      responseBody: logData.responseBody || null,
+      requestHeaders: safeRequestHeaders,
+      requestBody: safeRequestBody,
+      responseHeaders: safeResponseHeaders,
+      responseBody: safeResponseBody,
 
       // Identification info
       ...identificationData,
@@ -250,7 +301,7 @@ export async function logExternalApiRequest(logData) {
       processedData.provider,
       promptId,
       processedData.prompt,
-      processedData.messages ? JSON.stringify(processedData.messages) : null,
+      processedData.messages,
       processedData.responseTokenCount,
       processedData.promptTokenCount,
       processedData.totalTokenCount,

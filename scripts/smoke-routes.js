@@ -1,11 +1,10 @@
 const BASE_URL = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3000';
+const LABS_ENABLED = process.env.HANIMO_ENABLE_LABS === 'true';
 
-const PAGE_CHECKS = [
+const CORE_PAGE_CHECKS = [
   ['/', 200],
   ['/login', 200],
   ['/chat', 200],
-  ['/workflow', 200],
-  ['/screen-builder', 200],
   ['/board', 200],
   ['/notice', 200],
   ['/profile', 200],
@@ -16,6 +15,11 @@ const PAGE_CHECKS = [
   ['/sso', 200],
 ];
 
+const LABS_PAGE_CHECKS = [
+  ['/workflow', LABS_ENABLED ? 200 : 404],
+  ['/screen-builder', LABS_ENABLED ? 200 : 404],
+];
+
 const API_CHECKS = [
   ['/api/public/settings', 200],
   ['/api/admin/dashboard', 401],
@@ -23,9 +27,9 @@ const API_CHECKS = [
   ['/api/admin/db-restore', 401],
   ['/api/v1/models', 401],
   ['/api/v1/chat/completions', 401],
-  ['/api/workflows', 401],
-  ['/api/screens', 401],
-  ['/api/screens/smoke-screen/execute', 401, {
+  ['/api/workflows', LABS_ENABLED ? 401 : 404],
+  ['/api/screens', LABS_ENABLED ? 401 : 404],
+  ['/api/screens/smoke-screen/execute', LABS_ENABLED ? 401 : 404, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ endpointId: 'missing', inputValues: {} }),
@@ -65,7 +69,10 @@ async function checkStaticAssets() {
 }
 
 async function main() {
-  for (const [pathname, status] of PAGE_CHECKS) {
+  for (const [pathname, status] of CORE_PAGE_CHECKS) {
+    await check(pathname, status);
+  }
+  for (const [pathname, status] of LABS_PAGE_CHECKS) {
     await check(pathname, status);
   }
 

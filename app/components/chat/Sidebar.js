@@ -19,7 +19,7 @@ import {
   Sparkles,
 } from '@/components/icons';
 // 신규 아이콘은 프로젝트 정책에 따라 lucide-react에서 직접 import
-import { Search, ArrowRight, Sun, Moon, LayoutGrid, Workflow, PanelsTopLeft } from 'lucide-react';
+import { Search, ArrowRight, Sun, Moon, LayoutGrid } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -29,6 +29,7 @@ const ConfirmModal = dynamic(() => import('@/components/ui/modal').then(m => m.C
 const PatchNotesModal = dynamic(() => import('@/components/PatchNotesModal'), { ssr: false });
 const DirectMessageModal = dynamic(() => import('@/components/DirectMessageModal'), { ssr: false });
 import { useTranslation } from '@/hooks/useTranslation';
+import HanimoMark from '@/components/brand/HanimoMark';
 
 function Sidebar({
   sidebarOpen,
@@ -47,12 +48,13 @@ function Sidebar({
   profileEditEnabled = true,
   boardEnabled = true,
   brandName = 'Hanimo',
-  brandSub = '셀프호스팅 AI 워크스페이스',
+  brandSub = '',
   recentStyle = 'rich',
 }) {
   const router = useRouter();
   const pathname = usePathname() || '/';
   const { t } = useTranslation();
+  const resolvedBrandSub = brandSub || t('sidebar.brand_sub');
   const [editingRoom, setEditingRoom] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [visibleRoomCount, setVisibleRoomCount] = useState(10);
@@ -99,8 +101,6 @@ function Sidebar({
   // 현재 경로 기반 nav 활성 상태
   const isChatActive = pathname === '/' || pathname.startsWith('/chat');
   const isBoardActive = pathname.startsWith('/board') || pathname.startsWith('/notice');
-  const isWorkflowActive = pathname.startsWith('/workflow');
-  const isScreenBuilderActive = pathname.startsWith('/screen-builder');
   const isAdminActive = pathname.startsWith('/admin');
   const isProfileActive = pathname.startsWith('/profile') || pathname.startsWith('/my-api');
   const showAdmin = userRole === 'admin';
@@ -292,115 +292,6 @@ function Sidebar({
 
   return (
     <>
-      {/* 접힌 사이드바 (아이콘만) */}
-      <div
-        className={`
-           fixed left-0 top-0 h-full w-16 bg-background border-r border-border z-40
-           flex flex-col items-center py-4 overflow-x-hidden
-           transform transition-transform duration-300 ease-in-out
-           ${sidebarOpen ? '-translate-x-full' : 'translate-x-0'}
-        `}
-      >
-        {/* 메뉴 버튼 (열기/닫기 토글) */}
-        <Button
-          id='sidebar-toggle-button'
-          data-testid='sidebar-toggle-button'
-          variant='ghost'
-          size='icon'
-          onClick={handleHamburgerClick}
-          className='mb-4'
-          title={t('sidebar.open_sidebar')}
-          aria-label={t('sidebar.open_sidebar')}
-        >
-          <Menu className='h-5 w-5 text-muted-foreground' />
-        </Button>
-
-        {/* 채팅방 추가 */}
-        <Button
-          id='sidebar-create-room-button'
-          data-testid='sidebar-create-room-button'
-          variant='ghost'
-          size='icon'
-          onClick={handleCreateRoom}
-          className='mb-4'
-          title={t('sidebar.new_chat')}
-          aria-label={t('sidebar.new_chat')}
-          disabled={loading}
-        >
-          <Plus className='h-5 w-5 text-muted-foreground' />
-        </Button>
-
-        {/* 쪽지 */}
-        <div className='relative'>
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={() => !loading && setShowDmModal(true)}
-            className={`relative ${
-              loading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-            title={t('sidebar.direct_messages')}
-            aria-label={t('sidebar.direct_messages')}
-            disabled={loading}
-          >
-            <Mail className='h-5 w-5 text-muted-foreground' />
-            {unreadDmCount > 0 && (
-              <span className='absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-destructive text-destructive-foreground'>
-                {unreadDmCount > 99 ? '99+' : unreadDmCount}
-              </span>
-            )}
-          </Button>
-
-          {/* 새 쪽지 알림 말풍선 */}
-          {showDmNotification && (
-            <div className='absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 animate-bounce'>
-              <div className='relative bg-primary text-primary-foreground text-xs font-medium px-3 py-2 rounded-lg shadow-lg whitespace-nowrap'>
-                <div className='absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-primary'></div>
-                {t('sidebar.new_dm', { count: newDmCount })}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDmNotification(false);
-                  }}
-                  className='ml-2 hover:text-primary-foreground/70'
-                >
-                  <X className='h-3 w-3 inline' />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 로그아웃 */}
-        <Button
-          id='sidebar-logout-button'
-          data-testid='sidebar-logout-button'
-          variant='ghost'
-          size='icon'
-          onClick={() => {
-            if (!loading) {
-              setConfirmModal({
-                isOpen: true,
-                title: t('sidebar.logout_confirm_title'),
-                message: t('sidebar.logout_confirm_message'),
-                type: 'warning',
-                onConfirm: () => {
-                  handleLogout();
-                },
-                confirmText: t('auth.sign_out'),
-                cancelText: t('common.cancel'),
-              });
-            }
-          }}
-          className='mt-auto'
-          title={t('auth.sign_out')}
-          aria-label={t('auth.sign_out')}
-          disabled={loading}
-        >
-          <LogOut className='h-5 w-5 text-muted-foreground' />
-        </Button>
-      </div>
-
       {/* 펼쳐진 사이드바 */}
       <div
         className={`
@@ -412,24 +303,10 @@ function Sidebar({
       >
         {/* 사이드바 헤더 — 브랜드 마크 + 이름 + 서브라인, 접기(close) 버튼 */}
         <div className='flex items-center gap-3 p-4 border-b border-border'>
-          {/* hanimo 로고 마크 (SidebarRail 마크와 동일한 32px amber rounded-rect + 2 stripes) */}
-          <div
-            aria-hidden='true'
-            className='relative flex-shrink-0'
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: 'var(--hn-primary, #f5a623)',
-              boxShadow: '0 4px 12px -4px rgba(245,166,35,.4)',
-            }}
-          >
-            <span style={{ position: 'absolute', left: 6, right: 6, top: 9, height: 2, background: 'var(--hn-primary-fg, #fff)', borderRadius: 1 }} />
-            <span style={{ position: 'absolute', left: 6, right: 6, top: 16, height: 2, background: 'var(--hn-primary-fg, #fff)', borderRadius: 1, opacity: 0.55 }} />
-          </div>
+          <HanimoMark size={32} />
           <div className='min-w-0 flex-1'>
             <div className='font-semibold text-sm text-foreground truncate'>{brandName}</div>
-            <div className='text-[11px] text-muted-foreground truncate'>{brandSub}</div>
+            <div className='text-[11px] text-muted-foreground truncate'>{resolvedBrandSub}</div>
           </div>
           <Button
             variant='ghost'
@@ -492,24 +369,6 @@ function Sidebar({
               {t('sidebar.free_board')}
             </button>
           )}
-          <button
-            type='button'
-            onClick={() => navigateFromDrawer('/workflow')}
-            className={navItemClass(isWorkflowActive)}
-            disabled={loading}
-          >
-            <Workflow className='h-4 w-4 flex-shrink-0' />
-            {t('sidebar.workflow')}
-          </button>
-          <button
-            type='button'
-            onClick={() => navigateFromDrawer('/screen-builder')}
-            className={navItemClass(isScreenBuilderActive)}
-            disabled={loading}
-          >
-            <PanelsTopLeft className='h-4 w-4 flex-shrink-0' />
-            {t('sidebar.screen_builder')}
-          </button>
           {showAdmin && (
             <button
               type='button'

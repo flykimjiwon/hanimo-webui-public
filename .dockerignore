@@ -113,12 +113,9 @@ out
 pnpm-lock.yaml
 
 # 환경 설정 (개발용)
-.env.local    # <-------- 주석 해제: .env.local이 Docker 이미지에 포함되어 K8s에서 최우선 적용되던 문제 수정
-# .env.development
-# .env.test
-# .env.production.local
-# .env.development.local
-# .env.test.local
+.env
+.env.*
+!.env.example
 
 # # Env
 # .env

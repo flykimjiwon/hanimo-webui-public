@@ -9,6 +9,7 @@ import { logQARequest } from '@/lib/qaLogger';
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { fetchWithRetry } from '@/lib/retryUtils';
 import { verifyToken } from '@/lib/auth';
+import { buildProxyHeaders } from '@/lib/security/proxy-headers.mjs';
 
 // Simple log recording function
 async function logModelServerProxyRequest(data) {
@@ -132,6 +133,7 @@ export async function POST(request) {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
+  let provider = 'model-server';
 
     // Verify authentication
     const authPayload = verifyToken(request);
@@ -179,7 +181,7 @@ export async function POST(request) {
     // Parse server name from model name and round-robin only within that server group
     let modelServerEndpoint;
     let roundRobinIndex;
-    let provider = 'model-server'; // Default
+    let selectedEndpointInfo = null;
 
     let { serverName } = parseModelName(body.model);
 
@@ -199,6 +201,7 @@ export async function POST(request) {
       // If server name exists, round-robin only within that server group
       const serverEndpoint = await getModelServerEndpointByName(serverName);
       if (serverEndpoint) {
+        selectedEndpointInfo = serverEndpoint;
         modelServerEndpoint = serverEndpoint.endpoint;
         roundRobinIndex = serverEndpoint.index;
         provider = serverEndpoint.provider || 'model-server';
@@ -211,6 +214,7 @@ export async function POST(request) {
           `[Model Server Proxy] Server group "${serverName}" not found, using global round-robin`
         );
         const next = await getNextModelServerEndpointWithIndex();
+        selectedEndpointInfo = next;
         modelServerEndpoint = next.endpoint;
         roundRobinIndex = next.index;
         provider = next.provider || 'model-server';
@@ -218,6 +222,7 @@ export async function POST(request) {
     } else {
       // If no server name, use global round-robin
       const next = await getNextModelServerEndpointWithIndex();
+      selectedEndpointInfo = next;
       modelServerEndpoint = next.endpoint;
       roundRobinIndex = next.index;
       provider = next.provider || 'model-server';
@@ -229,57 +234,31 @@ export async function POST(request) {
       `[Model Server Proxy] Instance ${roundRobinIndex}: ${modelServerUrl}`
     );
 
-    // Copy original request headers, but modify/exclude some.
-    const headersToForward = {};
-    request.headers.forEach((value, key) => {
-      // 'host' header is not forwarded as fetch sets it automatically.
-      // 'content-length' is not forwarded as fetch sets it based on body length.
-      if (!['host', 'content-length'].includes(key.toLowerCase())) {
-        headersToForward[key] = value;
-      }
-    });
-    // Content-Type is always set to application/json.
-    headersToForward['Content-Type'] = 'application/json';
-
-    // --- Detailed debug log start ---
-    logger.info(
-      '\n\n[MODEL SERVER PROXY DEBUG] ======================================='
-    );
-    logger.info('[MODEL SERVER PROXY DEBUG] Final request info:');
-    logger.info('[MODEL SERVER PROXY DEBUG]   - Destination URL:', modelServerUrl);
-    logger.info('[MODEL SERVER PROXY DEBUG]   - Method:', 'POST');
-    logger.info(
-      '[MODEL SERVER PROXY DEBUG]   - Forwarded headers:',
-      JSON.stringify(headersToForward, null, 2)
-    );
-    logger.info(
-      '[MODEL SERVER PROXY DEBUG]   - Request body keys:',
-      Object.keys(body)
-    );
-    logger.info(
-      '[MODEL SERVER PROXY DEBUG] =======================================\n\n'
-    );
-    // --- Debug log end ---
-
-
     // Reference object for updating provider on retry
     const providerRef = { value: provider };
+    let finalModelServerUrl = modelServerUrl;
+    const buildModelServerFetchOptions = (endpointInfo = selectedEndpointInfo) => ({
+      method: 'POST',
+      headers: buildProxyHeaders({ bearerToken: endpointInfo?.apiKey }),
+      body: JSON.stringify(body),
+    });
 
     let modelServerRes;
     try {
       modelServerRes = await fetchWithRetry(
         modelServerUrl,
-        {
-          method: 'POST',
-          headers: headersToForward, // Use modified headers
-          body: JSON.stringify(body),
-        },
+        buildModelServerFetchOptions(selectedEndpointInfo),
         {
           maxRetries: 2, // Max 2 retries (3 total attempts)
           isStreaming: body.stream !== false,
           getNextEndpoint: getNextModelServerEndpointWithIndex,
           providerRef: providerRef,
           endpointPath: '/api/generate',
+          buildOptions: ({ endpointInfo }) =>
+            buildModelServerFetchOptions(endpointInfo),
+          onRetry: (_attempt, retryUrl) => {
+            finalModelServerUrl = retryUrl;
+          },
         }
       );
 
@@ -302,7 +281,7 @@ export async function POST(request) {
         level: 'error',
         category: 'model_server_proxy',
         method: 'POST',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         clientIP,
         userAgent,
@@ -337,7 +316,7 @@ export async function POST(request) {
         level: 'error',
         category: 'model_server_proxy',
         method: 'POST',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         clientIP,
         userAgent,
@@ -387,7 +366,7 @@ export async function POST(request) {
                     level: 'info',
                     category: 'model_server_proxy',
                     method: 'POST',
-                    endpoint: modelServerUrl,
+                    endpoint: finalModelServerUrl,
                     model: body.model,
                     clientIP,
                     userAgent,
@@ -413,7 +392,7 @@ export async function POST(request) {
                     sourceType: 'internal',
                     provider: provider,
                     apiType: 'generate',
-                    endpoint: modelServerUrl,
+                    endpoint: finalModelServerUrl,
                     model: body.model,
                     prompt: body.prompt,
                     promptTokenCount: promptTokens,
@@ -502,7 +481,7 @@ export async function POST(request) {
         level: 'info',
         category: 'model_server_proxy',
         method: 'POST',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         clientIP,
         userAgent,
@@ -530,7 +509,7 @@ export async function POST(request) {
         sourceType: 'internal',
         provider: provider,
         apiType: 'generate',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         prompt: body.prompt,
         promptTokenCount: promptTokens,

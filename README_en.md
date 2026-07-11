@@ -2,30 +2,38 @@
 
 # hanimo-webui
 
+> **Put your models to work.** A self-hosted AI workspace for asking, creating, and deciding in one focused place.
+
 hanimo-webui is an **open-source, self-hosted AI chat, admin runtime, and OpenAI-compatible API** built with Next.js 15.
 
-The first public promise is chat, model server settings, user/role management, API tokens, and OpenAI-compatible APIs. Workflow / Screen / RAG / MCP surfaces are Labs or future plugin candidates, not core public-release promises.
+The public core promise is chat, model server settings, user/admin management, API tokens, and OpenAI-compatible APIs. Workflow / Screen / RAG / MCP surfaces are Labs or future plugin candidates, not core public-release promises.
 
-> Public-readiness status: P0 RCE/SSRF-class gates are resolved on `main` by code-level checks.
-> Before public release, rerun `test:workflow`, `test:screen-security`, API token/JWT checks, admin DB operation checks, and smoke checks. The honest claim is **P0 resolved + operational gates remain**, not "security complete."
+> Public-readiness status: this release candidate hardens credentials, SSRF, uploads, authentication, and Docker defaults, and passes a standalone E2E from `hmo_` issuance through an authenticated OpenAI-compatible upstream proxy.
+> The clean-Docker harness and CI job are ready, but this machine has no Docker runtime, so that local run remains unverified. Re-enter legacy Workflow credentials before enabling Labs. This is **not a security certification claim**.
 
 ---
 
-## Key Features
+## Public Core
 
 | Feature | Description |
 |---------|-------------|
-| Multi-Model Chat | Connect Ollama, OpenAI-compatible, Gemini models simultaneously; select per room |
-| Agents / Workflow / Screen | Labs or future plugin candidates. They are not the first stable public core promise |
-| Draw (Canvas) | AI generates HTML visualizations with live preview (sandboxed iframe) |
-| Custom Instruction | Per-room user-defined system prompts |
-| OpenAI-Compatible API | `/v1/chat/completions`, `/v1/models`, `/v1/embeddings`, `/v1/rerank` |
-| Admin Panel | Users, models, model servers, logs, settings, analytics dashboard |
-| DB Viewer | Admin database browser with search/sort/CRUD + column description tooltips |
-| PII / Community / SSO | Labs or operational extension surfaces, not the first stable public core |
-| Auth | Local login + JWT refresh tokens. SSO is an operational extension candidate |
-| i18n | Full Korean / English support |
-| Theming | Presets + custom colors, dark/light mode |
+| Chat | Room-based conversations, model selection, streaming responses, image input |
+| Model server settings | Ollama, OpenAI-compatible endpoints, Gemini, and model routing controls |
+| Users / Admin | Local login, JWT refresh tokens, user management, admin-only management UI |
+| API tokens | User token issuing, one-time display, hash storage, OpenAI-compatible API auth |
+| OpenAI-compatible API | `/v1/chat/completions`, `/v1/models`, `/v1/embeddings`, `/v1/rerank` |
+| Self-host operations | Docker Compose install, local install, doctor, route smoke checks |
+
+## Labs / Future Plugin
+
+| Area | Public-release boundary |
+|------|-------------------------|
+| Workflow / Agents | Labs or future plugin candidates. Publish separately after manifest, permission, and audit models are explicit |
+| Screen / Draw / Canvas | Labs candidates. iframe sandboxing and SSRF guards stay in place, but these are not stable core promises |
+| RAG / MCP | Future plugin candidates, outside the first public install/operation scope |
+| DB viewer / destructive DB tools | Admin maintenance surface, not an end-user feature or stable public API promise |
+| PII / Community / SSO / team extensions | Operational extensions, not public core |
+| i18n / theming | UI support for the core app, not a broader platform claim |
 
 ---
 
@@ -43,6 +51,18 @@ The first public promise is chat, model server settings, user/role management, A
 | Package Manager | npm |
 | Default deployment | Docker Compose |
 
+## Security and Operations Boundary
+
+- Model proxies do not forward arbitrary caller headers; they use only credentials selected from administrator-managed endpoints.
+- External API logs do not store prompt bodies by default. Set `HANIMO_LOG_PROMPT_CONTENT=true` only in a controlled development environment when bounded content retention is needed.
+- Workflow custom endpoints are experimental and enforce public-network and redirect policies. Credentials are not stored without `HANIMO_CREDENTIAL_ENCRYPTION_KEY`.
+- The installer generates a key with at least 32 bytes of entropy. Losing it means stored provider credentials cannot be decrypted.
+- Legacy unversioned Workflow plaintext credentials are disabled rather than used automatically; re-enter them after configuring the key.
+- Labs pages and APIs return 404 by default. Set `HANIMO_ENABLE_LABS=true` only when the operator accepts their experimental support scope.
+- Login, registration, and refresh requests have default rate limits. State-changing browser requests carrying Hanimo cookies must be same-origin.
+- Behind a reverse proxy, set `HANIMO_PUBLIC_URL` to the public origin and enable `HANIMO_TRUST_PROXY=true` only when the proxy controls forwarded client IP headers.
+- Server-to-server `/api/v1/*` requests using `hmo_` API keys remain separate from browser-cookie CSRF checks so Hanimo Code and the VS Code extension can use the gateway next.
+
 ---
 
 ## Quick Start
@@ -52,7 +72,7 @@ The first public promise is chat, model server settings, user/role management, A
 The only prerequisite is **Docker Desktop**. You do not need to install PostgreSQL locally.
 
 ```bash
-git clone https://github.com/flykimjiwon/hanimo-webui.git
+git clone https://github.com/flykimjiwon/hanimo-webui-public.git hanimo-webui
 cd hanimo-webui
 ./scripts/install.sh
 ```
@@ -81,12 +101,22 @@ Initial admin account:
 
 `./scripts/install.sh` generates a strong initial password when `.env` is missing or still contains placeholder values. Change it after the first login.
 
+After signing in, open **Admin → AI Providers** to save an Ollama, Novita, OpenRouter, OpenAI, DeepSeek, or Gemini preset, or enter any custom OpenAI-compatible endpoint. Presets only fill connection values; the runtime continues to use the shared compatible adapters.
+
 Inspect the install:
 
 ```bash
 ./scripts/doctor.sh
 ./scripts/doctor.sh --json
 ```
+
+Before a release, run the clean Docker install gate:
+
+```bash
+npm run test:docker-install
+```
+
+It uses an isolated PostgreSQL volume and mock provider to verify admin login, `hmo_` API key issuance, OpenAI-compatible model listing, and chat proxying, then removes only its test resources.
 
 ### Local development path
 
@@ -118,52 +148,23 @@ npm run start
 
 ---
 
-## Docker
-
-```bash
-./scripts/install.sh
-docker compose logs -f app
-docker compose down
-```
-
----
-
-## Useful Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run install:selfhost` | Docker Compose one-command install |
-| `npm run install:local` | macOS/Linux local Node + PostgreSQL install path |
-| `npm run doctor` | Check Node/Docker/env/app/DB status |
-| `npm run scan:public` | Scan a public export for blocked terms and secret patterns |
-| `npm run export:public` | Create a clean `git ls-files` based public export |
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run setup-postgres` | Initialize DB schema |
-| `npm run create-admin` | Create the default admin account |
-| `npm run create-admin:interactive` | Create an admin interactively |
-| `npm run smoke` | Smoke-check pages and protected API boundaries |
-
----
-
 ## Project Structure
 
 ```
 hanimo-webui/
 ├── app/                    # Next.js app routes
 │   ├── admin/              # Admin UI pages
-│   │   ├── database/       #   DB viewer (table browse/CRUD)
+│   │   ├── database/       #   DB maintenance/browse (admin operations surface)
 │   │   ├── users/          #   User management (role changes, deletion)
 │   │   ├── menus/          #   Menu management
-│   │   ├── settings/       #   Site settings (theme, Draw, widgets)
+│   │   ├── settings/       #   Site/model/chat settings
 │   │   └── ...             #   Dashboard, logs, analytics, etc.
 │   ├── api/                # API routes
 │   │   ├── v1/             #   OpenAI-compatible API
 │   │   ├── admin/          #   Admin API
 │   │   └── webapp-chat/    #   Chat API
 │   ├── components/         # Shared UI components
-│   │   ├── chat/           #   Chat-related (ChatInput, MessageList, Sidebar, DrawPreviewPanel)
+│   │   ├── chat/           #   Chat-related (ChatInput, MessageList, Sidebar, etc.)
 │   │   ├── ui/             #   shadcn/ui primitives
 │   │   └── ...             #   PatchNotesModal, NoticePopup, etc.
 │   ├── hooks/              # React custom hooks
@@ -183,7 +184,7 @@ hanimo-webui/
 
 ---
 
-## Feature Guide
+## Core Flows
 
 ### Chat
 
@@ -192,15 +193,6 @@ hanimo-webui/
 3. Type your message and send — real-time streaming response
 4. Image upload supported (drag & drop or clipboard paste)
 
-### Draw (Canvas) Mode
-
-1. Click the **paintbrush icon** on the left side of the chat input to activate Draw mode
-2. Request things like "draw a chart", "create a dashboard"
-3. When the AI generates HTML code, view it in the **live preview panel**
-4. Copy the code or open it in a new tab
-
-> An admin must enable Draw in Settings > Draw first.
-
 ### Custom Instruction
 
 1. Click the **person icon** in the chat input area
@@ -208,23 +200,30 @@ hanimo-webui/
 3. Toggle the enable switch and save
 4. Automatically applied to all conversations in that chat room
 
+### Labs / Operational Extension Boundary
+
+Workflow, Screen, Draw, RAG, MCP, SSO, community/team extensions, and advanced DB tools may still have routes or UI in the current codebase. They are not stable public-core promises and should be separated behind a plugin/Labs security model before being marketed as product features.
+
 ### Admin Panel
 
 Access at `http://localhost:3000/admin` (requires admin role)
 
-| Menu | Features |
-|------|----------|
-| Dashboard | User/message/token stats, popular model chart, system status |
+| Menu | Public-release boundary |
+|------|-------------------------|
+| Dashboard | User/message/token stats, model usage, system status |
 | User Management | Search/filter, role changes, delete |
-| Model Management | Drag & drop sorting, enable/disable, PII settings, categories |
-| Agents | Labs or future plugin candidate |
-| Settings | Site branding, theme, Draw config, chat widget, endpoints |
-| DB Management | DB viewer (table browse/search/CRUD), schema repair, backup/restore |
+| Model Management | Model and model server settings, enable/disable, ordering |
+| Settings | Site branding, theme, chat, endpoint settings |
+| API Tokens | Token issuing, one-time display, hash-storage based authentication |
 | Logs | Message logs, external API logs, security logs |
+| Agents / DB Management / Screen | Labs or admin maintenance surfaces, not first public-core promises |
 
 ### OpenAI-Compatible API
 
 Use hanimo-webui as an AI server with external tools (Continue, Cursor, etc.):
+
+Hanimo Code and the Hanimo VS Code extension will use this same contract in the
+next phase. See the [official client gateway contract](docs/HANIMO_OFFICIAL_CLIENT_GATEWAY.md).
 
 ```bash
 # Chat request
@@ -241,7 +240,7 @@ curl http://localhost:3000/v1/models \
   -H "Authorization: Bearer YOUR_API_TOKEN"
 ```
 
-> API tokens can be issued from Admin Panel > Settings.
+> Issue API tokens from `/my-api-keys` after signing in. The plaintext `hmo_` value is shown once.
 
 ---
 
@@ -281,8 +280,9 @@ npm run start                  # Production server
 ### Docker
 
 ```bash
-docker build -t hanimo-webui .
-docker run -p 3000:3000 --env-file .env.local hanimo-webui
+./scripts/install.sh
+docker compose logs -f app
+docker compose down
 ```
 
 ---
@@ -291,6 +291,12 @@ docker run -p 3000:3000 --env-file .env.local hanimo-webui
 
 | Command | Description |
 |---------|-------------|
+| `npm run install:selfhost` | Docker Compose one-command install |
+| `npm run install:docker` | Same Docker install path as `install:selfhost` |
+| `npm run install:local` | macOS/Linux local Node + PostgreSQL install path |
+| `npm run doctor` | Check Node/Docker/env/app/DB status |
+| `npm run scan:public` | Scan a public export for blocked terms and secret patterns |
+| `npm run export:public` | Create a clean `git ls-files` based public export |
 | `npm run dev` | Start development server |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
@@ -299,6 +305,11 @@ docker run -p 3000:3000 --env-file .env.local hanimo-webui
 | `npm run create-admin:interactive` | Interactive admin creation |
 | `npm run test-postgres` | Test DB connection |
 | `npm run test:ollama` | Test Ollama endpoints |
+| `npm run test:workflow` | Workflow condition RCE regression test |
+| `npm run test:screen-security` | Screen share/outbound SSRF regression test |
+| `npm run test:api-tokens` | API token storage/display security test |
+| `npm run test:admin-policy` | Admin policy regression test |
+| `npm run smoke` | Smoke-check public pages and protected API boundaries |
 | `npm run lint` | Run ESLint |
 
 ---

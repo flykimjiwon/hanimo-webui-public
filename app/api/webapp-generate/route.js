@@ -16,6 +16,11 @@ import { getClientIP } from '@/lib/ip';
 import { logInfo, logWarn } from '@/lib/instanceLogger';
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { detectAndMaskPII } from '@/lib/piiFilter';
+import {
+  buildGeminiGenerateUrl,
+  decryptProviderEndpoints,
+  decryptProviderSecret,
+} from '@/lib/security/provider-credentials.mjs';
 
 export const runtime = 'nodejs';
 
@@ -592,8 +597,8 @@ export async function POST(request) {
           ...settingsRow,
           endpointType: settingsRow.endpoint_type,
           openaiCompatBase: settingsRow.openai_compat_base,
-          openaiCompatApiKey: settingsRow.openai_compat_api_key,
-          customEndpoints: settingsRow.custom_endpoints,
+          openaiCompatApiKey: decryptProviderSecret(settingsRow.openai_compat_api_key || ''),
+          customEndpoints: decryptProviderEndpoints(settingsRow.custom_endpoints || []),
         };
 
         endpointType =
@@ -1180,14 +1185,18 @@ export async function POST(request) {
 
       // Check once more to prevent models/ duplication in URL
       const cleanModelName = normalizedModel.replace(/^models\//, '');
-      const geminiUrl = `${base}/v1beta/models/${cleanModelName}:streamGenerateContent?key=${openaiCompatApiKey}`;
-      const headers = { 'Content-Type': 'application/json' };
+      const geminiUrl = buildGeminiGenerateUrl(
+        base,
+        cleanModelName,
+        'streamGenerateContent'
+      );
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': openaiCompatApiKey,
+      };
 
       console.log(
-        `[generate] Gemini API call: model=${cleanModelName} (normalized=${normalizedModel}, original=${actualModelName}), URL=${geminiUrl.replace(
-          /key=[^&]+/,
-          'key=***'
-        )}`
+        `[generate] Gemini API call: model=${cleanModelName} (normalized=${normalizedModel}, original=${actualModelName}), URL=${geminiUrl}`
       );
 
       // Convert to Gemini API format

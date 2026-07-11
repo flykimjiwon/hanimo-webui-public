@@ -24,6 +24,8 @@ const http = require('http');
 const PORT = parseInt(process.argv[2] || '11434', 10);
 const ID = process.argv[3] || `mock:${PORT}`;
 const LOADING_MS = parseInt(process.env.MOCK_LOADING_MS || '350', 10);
+const HOST = process.env.MOCK_HOST || '127.0.0.1';
+const REQUIRED_API_KEY = process.env.MOCK_API_KEY || '';
 
 const MODELS = [
   { name: 'gemma3:1b', model: 'gemma3:1b', size: 815319791, digest: `mock-${PORT}-aaaa`, modified_at: '2026-01-01T00:00:00Z', details: { family: 'gemma3', parameter_size: '1B', quantization_level: 'Q4_0' } },
@@ -42,6 +44,19 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://localhost:${PORT}`);
   const path = u.pathname;
   console.log(`[${ID}] ${req.method} ${path}`);
+
+  if (
+    REQUIRED_API_KEY &&
+    path.startsWith('/v1/') &&
+    req.headers.authorization !== `Bearer ${REQUIRED_API_KEY}`
+  ) {
+    res.writeHead(401, { 'Content-Type': 'application/json' });
+    return res.end(
+      JSON.stringify({
+        error: { message: 'Invalid upstream API key.', type: 'authentication_error' },
+      })
+    );
+  }
 
   if (path === '/api/tags' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -94,4 +109,4 @@ const server = http.createServer(async (req, res) => {
   res.end(JSON.stringify({ ok: true, served_by: ID, path }));
 });
 
-server.listen(PORT, '127.0.0.1', () => console.log(`[mock-ollama] ${ID} listening on http://127.0.0.1:${PORT}`));
+server.listen(PORT, HOST, () => console.log(`[mock-ollama] ${ID} listening on http://${HOST}:${PORT}`));

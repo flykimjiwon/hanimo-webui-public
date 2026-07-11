@@ -38,6 +38,24 @@ function EnvValueCard({ label, value }) {
   );
 }
 
+function formatBoolean(value) {
+  return value ? 'YES' : 'NO';
+}
+
+function formatDatabaseDiagnostic(postgres) {
+  if (!postgres?.configured) return 'Not configured';
+  if (postgres.parseError) return 'Configured, but URI could not be parsed safely';
+
+  const parts = [
+    postgres.protocol,
+    postgres.hostname,
+    Number.isInteger(postgres.port) ? `port ${postgres.port}` : null,
+    postgres.database ? `db ${postgres.database}` : null,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(' / ') : 'Configured';
+}
+
 export default function AdminEnvPage() {
   const { t } = useTranslation();
   const { alert } = useAlert();
@@ -131,14 +149,39 @@ export default function AdminEnvPage() {
             <>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                 <EnvValueCard
-                  label='NODE_ENV (runtime)'
-                  value={result.runtime?.nodeEnv}
+                  label='NODE_ENV configured'
+                  value={formatBoolean(result.runtime?.nodeEnv?.configured)}
                 />
                 <EnvValueCard
-                  label='POSTGRES_URI (runtime)'
-                  value={result.runtime?.postgresUri}
+                  label='Postgres connection'
+                  value={formatDatabaseDiagnostic(result.runtime?.postgres)}
                 />
               </div>
+
+              {result.runtime?.postgres?.configured && !result.runtime?.postgres?.parseError && (
+                <div className='grid grid-cols-1 md:grid-cols-4 gap-3'>
+                  <EnvValueCard
+                    label='Protocol'
+                    value={result.runtime?.postgres?.protocol}
+                  />
+                  <EnvValueCard
+                    label='Hostname'
+                    value={result.runtime?.postgres?.hostname}
+                  />
+                  <EnvValueCard
+                    label='Port'
+                    value={
+                      Number.isInteger(result.runtime?.postgres?.port)
+                        ? String(result.runtime.postgres.port)
+                        : '-'
+                    }
+                  />
+                  <EnvValueCard
+                    label='Database'
+                    value={result.runtime?.postgres?.database}
+                  />
+                </div>
+              )}
 
               <div className='rounded-lg border border-border overflow-hidden'>
                 <div className='px-4 py-2 bg-muted text-sm font-semibold text-foreground'>
@@ -148,13 +191,13 @@ export default function AdminEnvPage() {
                   <div>
                     <span className='text-muted-foreground'>{t('admin_env.node_env_candidates')}</span>
                     <div className='text-foreground break-all'>
-                      {formatMatchedFiles(result.envFiles?.nodeEnvMatchedFiles)}
+                      {formatMatchedFiles(result.envFiles?.nodeEnvFiles)}
                     </div>
                   </div>
                   <div>
                     <span className='text-muted-foreground'>{t('admin_env.postgres_uri_candidates')}</span>
                     <div className='text-foreground break-all'>
-                      {formatMatchedFiles(result.envFiles?.postgresUriMatchedFiles)}
+                      {formatMatchedFiles(result.envFiles?.postgresUriFiles)}
                     </div>
                   </div>
                   <div className='text-xs text-muted-foreground pt-1'>
@@ -169,13 +212,6 @@ export default function AdminEnvPage() {
                 </div>
 
                 <div className='p-4 space-y-3 text-sm'>
-                  <div className='rounded-md border border-border px-3 py-2 bg-background'>
-                    <div className='text-xs text-muted-foreground'>{t('admin_env.project_root')}</div>
-                    <div className='mt-1 font-medium text-foreground break-all'>
-                      {result.envFiles?.projectRoot || '-'}
-                    </div>
-                  </div>
-
                   <div className='border border-border rounded-md overflow-hidden'>
                     <Table>
                       <TableHeader>
@@ -196,10 +232,10 @@ export default function AdminEnvPage() {
                               {item.exists ? 'YES' : 'NO'}
                             </TableCell>
                             <TableCell className='px-3 py-2 text-foreground break-all'>
-                              {item.hasNodeEnv ? item.nodeEnvValue : '-'}
+                              {formatBoolean(item.hasNodeEnv)}
                             </TableCell>
                             <TableCell className='px-3 py-2 text-foreground break-all'>
-                              {item.hasPostgresUri ? item.postgresUriValue : '-'}
+                              {formatBoolean(item.hasPostgresUri)}
                             </TableCell>
                           </TableRow>
                         ))}

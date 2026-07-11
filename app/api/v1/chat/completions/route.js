@@ -1,4 +1,8 @@
 import logger from '@/lib/logger';
+import {
+  buildGeminiGenerateUrl,
+  decryptProviderEndpoints,
+} from '@/lib/security/provider-credentials.mjs';
 import { NextResponse } from 'next/server';
 import {
   getNextModelServerEndpointWithIndex,
@@ -12,6 +16,8 @@ import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { logOpenAIRequest } from '@/lib/modelServerMonitor';
 import { getClientIP } from '@/lib/ip';
 import { verifyApiToken } from '@/lib/apiTokenUtils';
+import { buildOpenAiEndpoint } from '@/lib/openai-gateway.mjs';
+import { buildProxyHeaders } from '@/lib/security/proxy-headers.mjs';
 import {
   MODEL_SERVER_TIMEOUT_STREAM,
   MODEL_SERVER_TIMEOUT_NORMAL,
@@ -24,6 +30,25 @@ import crypto from 'crypto';
 
 const createChatCompletionId = () =>
   `chatcmpl-${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;
+
+function buildUpstreamHeaders(provider, apiKey = '') {
+  const headers = buildProxyHeaders({
+    bearerToken: provider === 'openai-compatible' ? apiKey : '',
+  });
+  if (provider === 'gemini' && apiKey) headers['x-goog-api-key'] = apiKey;
+  return headers;
+}
+
+function redactEndpointForLog(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    url.search = '';
+    url.hash = '';
+    return url.toString();
+  } catch {
+    return '[invalid-endpoint]';
+  }
+}
 
 function getValueByPath(source, path) {
   if (!source || !path) return undefined;
@@ -1096,6 +1121,7 @@ export async function POST(request) {
     // If server name is specified, call that server directly; otherwise use round robin
     let modelServerEndpoint;
     let provider;
+    let endpointApiKey = '';
     let roundRobinIndex = null;
 
     if (serverName) {
@@ -1104,6 +1130,7 @@ export async function POST(request) {
       if (serverEndpoint) {
         modelServerEndpoint = serverEndpoint.endpoint;
         provider = serverEndpoint.provider;
+        endpointApiKey = serverEndpoint.apiKey || '';
         roundRobinIndex = serverEndpoint.index;
       } else {
         logger.error(
@@ -1125,13 +1152,15 @@ export async function POST(request) {
       if (labelBasedEndpoint) {
         modelServerEndpoint = labelBasedEndpoint.endpoint;
         provider = labelBasedEndpoint.provider;
+        endpointApiKey = labelBasedEndpoint.apiKey || '';
         roundRobinIndex = labelBasedEndpoint.index;
       } else {
         // If display-name-based round robin also fails, use global round robin
         const roundRobinResult = await getNextModelServerEndpointWithIndex();
-        modelServerEndpoint = roundRobinResult.endpoint;
-        provider = roundRobinResult.provider;
-        roundRobinIndex = roundRobinResult.index;
+        modelServerEndpoint = roundRobinResult?.endpoint;
+        provider = roundRobinResult?.provider;
+        endpointApiKey = roundRobinResult?.apiKey || '';
+        roundRobinIndex = roundRobinResult?.index;
       }
     }
 
@@ -1152,7 +1181,10 @@ export async function POST(request) {
     }
 
     // Retrieve API key (for Gemini provider)
-    let apiKey = '';
+    let apiKey = endpointApiKey;
+    if (provider === 'openai-compatible' && !apiKey) {
+      apiKey = process.env.OPENAI_COMPAT_API_KEY || '';
+    }
     if (provider === 'gemini') {
       try {
         const { query } = await import('@/lib/postgres');
@@ -1161,7 +1193,9 @@ export async function POST(request) {
           ['general']
         );
         if (settingsResult.rows.length > 0) {
-          const customEndpoints = settingsResult.rows[0].custom_endpoints || [];
+          const customEndpoints = decryptProviderEndpoints(
+            settingsResult.rows[0].custom_endpoints || []
+          );
           const endpointConfig = customEndpoints.find(
             (e) => e.url && e.url.trim() === modelServerEndpoint.trim()
           );
@@ -1226,15 +1260,16 @@ export async function POST(request) {
       }
 
       const action = stream ? 'streamGenerateContent' : 'generateContent';
-      modelServerUrl = `${baseUrl}/v1beta/models/${normalizedModel}:${action}?key=${apiKey}`;
+      modelServerUrl = buildGeminiGenerateUrl(baseUrl, normalizedModel, action);
 
       logger.info(
         `[OpenAI Chat Completions] Calling Gemini API: model=${normalizedModel} (original=${model})`
       );
     } else {
-      const endpointPath =
-        provider === 'openai-compatible' ? '/v1/chat/completions' : '/api/chat';
-      modelServerUrl = `${modelServerEndpoint}${endpointPath}`;
+      modelServerUrl =
+        provider === 'openai-compatible'
+          ? buildOpenAiEndpoint(modelServerEndpoint, '/chat/completions')
+          : `${modelServerEndpoint.replace(/\/+$/, '')}/api/chat`;
     }
 
     // Determine request body format based on provider
@@ -1529,6 +1564,7 @@ export async function POST(request) {
           // If a server is specified, retry on the same server; otherwise retry on another instance
           let nextEndpoint;
           let nextProvider;
+          let nextApiKey = '';
 
           if (specifiedServerName) {
             // Retry on the specified server (round robin if multiple servers share the same name)
@@ -1538,6 +1574,7 @@ export async function POST(request) {
             if (serverEndpoint) {
               nextEndpoint = serverEndpoint.endpoint;
               nextProvider = serverEndpoint.provider;
+              nextApiKey = serverEndpoint.apiKey || '';
             } else {
               // Use the original URL if specified server cannot be found
               nextEndpoint = url.split('/api/')[0].split('/v1/')[0];
@@ -1552,12 +1589,14 @@ export async function POST(request) {
               if (labelBasedEndpoint) {
                 nextEndpoint = labelBasedEndpoint.endpoint;
                 nextProvider = labelBasedEndpoint.provider;
+                nextApiKey = labelBasedEndpoint.apiKey || '';
               } else {
                 // If display-name-based round robin also fails, use global round robin
                 const roundRobinResult =
                   await getNextModelServerEndpointWithIndex();
                 nextEndpoint = roundRobinResult.endpoint;
                 nextProvider = roundRobinResult.provider;
+                nextApiKey = roundRobinResult.apiKey || '';
               }
             } else {
               // Round robin: retry with another model server instance
@@ -1565,12 +1604,12 @@ export async function POST(request) {
                 await getNextModelServerEndpointWithIndex();
               nextEndpoint = roundRobinResult.endpoint;
               nextProvider = roundRobinResult.provider;
+              nextApiKey = roundRobinResult.apiKey || '';
             }
           }
 
           // For Gemini provider, fetch API key and build URL
           if (nextProvider === 'gemini') {
-            let nextApiKey = '';
             try {
               const { query } = await import('@/lib/postgres');
               const settingsResult = await query(
@@ -1578,8 +1617,9 @@ export async function POST(request) {
                 ['general']
               );
               if (settingsResult.rows.length > 0) {
-                const customEndpoints =
-                  settingsResult.rows[0].custom_endpoints || [];
+                const customEndpoints = decryptProviderEndpoints(
+                  settingsResult.rows[0].custom_endpoints || []
+                );
                 const endpointConfig = customEndpoints.find(
                   (e) => e.url && e.url.trim() === nextEndpoint.trim()
                 );
@@ -1600,19 +1640,31 @@ export async function POST(request) {
               const action = stream
                 ? 'streamGenerateContent'
                 : 'generateContent';
-              retryUrl = `${baseUrl}/v1beta/models/${
-                modelId || model
-              }:${action}?key=${nextApiKey}`;
+              retryUrl = buildGeminiGenerateUrl(
+                baseUrl,
+                modelId || model,
+                action
+              );
+              options = {
+                ...options,
+                headers: buildUpstreamHeaders(nextProvider, nextApiKey),
+              };
             } else {
               // Cannot retry without API key
               throw new Error('Gemini API key not found for retry');
             }
           } else {
-            const nextEndpointPath =
+            if (nextProvider === 'openai-compatible' && !nextApiKey) {
+              nextApiKey = process.env.OPENAI_COMPAT_API_KEY || '';
+            }
+            options = {
+              ...options,
+              headers: buildUpstreamHeaders(nextProvider, nextApiKey),
+            };
+            retryUrl =
               nextProvider === 'openai-compatible'
-                ? '/v1/chat/completions'
-                : '/api/chat';
-            retryUrl = `${nextEndpoint}${nextEndpointPath}`;
+                ? buildOpenAiEndpoint(nextEndpoint, '/chat/completions')
+                : `${nextEndpoint.replace(/\/+$/, '')}/api/chat`;
           }
 
           // Wait before retry (can be configured via environment variable)
@@ -1709,9 +1761,7 @@ export async function POST(request) {
         modelServerUrl,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: buildUpstreamHeaders(provider, apiKey),
           body: stringifiedBody,
         },
         2, // Maximum 2 retries (3 attempts total)
@@ -1731,7 +1781,7 @@ export async function POST(request) {
         errorMessage.includes('timeout') || errorMessage.includes('TIMEOUT');
 
       logger.error('[OpenAI Chat Completions] Model server connection error:', {
-        url: modelServerUrl,
+        url: redactEndpointForLog(modelServerUrl),
         error: errorMessage,
         type: fetchError.name || 'Unknown',
         code: fetchError.code,
@@ -1811,7 +1861,7 @@ export async function POST(request) {
             message: userFriendlyMessage,
             type: 'server_error',
             details: {
-              endpoint: modelServerUrl,
+              endpoint: redactEndpointForLog(modelServerUrl),
               error: errorMessage,
             },
           },
@@ -1837,9 +1887,7 @@ export async function POST(request) {
 
           const fallbackRes = await fetchModelServer(modelServerUrl, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: buildUpstreamHeaders(provider, apiKey),
             body: JSON.stringify(fallbackBodyObj),
           });
 
@@ -1866,7 +1914,7 @@ export async function POST(request) {
         logger.error(
           `[OpenAI Chat Completions] Model server error: ${modelServerRes.status}`,
           {
-            url: modelServerUrl,
+            url: redactEndpointForLog(modelServerUrl),
             status: modelServerRes.status,
             statusText: modelServerRes.statusText,
             error: errorText,

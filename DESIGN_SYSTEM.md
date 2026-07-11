@@ -1,5 +1,10 @@
 # hanimo-webui Design System
 
+> **Status: archived reference.** The canonical design source is [`DESIGN.md`](DESIGN.md),
+> which reflects the current neutral-stone surface system with restrained amber
+> command/focus accents. Where this file conflicts with `DESIGN.md`, follow
+> `DESIGN.md`.
+
 > 최종 업데이트: 2026-03-11  
 > 기반 스택: Next.js 15.5.9 · React 19 · Tailwind CSS 4 · shadcn/ui · Radix UI
 

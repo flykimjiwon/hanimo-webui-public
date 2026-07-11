@@ -2,6 +2,11 @@ import logger from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { verifyAdmin } from '@/lib/adminAuth';
 import { getAllEndpoints } from '@/lib/modelServerMonitor';
+import {
+  buildGeminiModelsUrl,
+  decryptProviderEndpoints,
+  decryptProviderSecret,
+} from '@/lib/security/provider-credentials.mjs';
 
 export async function GET(request) {
   try {
@@ -28,6 +33,7 @@ export async function GET(request) {
 
     // Retrieve OpenAI-compatible API key
     let openaiApiKey = process.env.OPENAI_COMPAT_API_KEY || '';
+    const endpointApiKeys = new Map();
     try {
       const { query } = await import('@/lib/postgres');
       const settingsResult = await query(
@@ -36,7 +42,15 @@ export async function GET(request) {
       );
       const settings = settingsResult.rows[0];
       if (settings?.openai_compat_api_key) {
-        openaiApiKey = settings.openai_compat_api_key;
+        openaiApiKey = decryptProviderSecret(settings.openai_compat_api_key);
+      }
+      for (const endpoint of decryptProviderEndpoints(settings?.custom_endpoints || [])) {
+        if (endpoint?.url && endpoint?.apiKey) {
+          endpointApiKeys.set(
+            endpoint.url.trim().replace(/\/+$/, ''),
+            endpoint.apiKey
+          );
+        }
       }
     } catch (e) {
       logger.warn(
@@ -56,7 +70,8 @@ export async function GET(request) {
 
         if (provider === 'gemini') {
           // Gemini API: /v1beta/models
-          const apiKey = endpoint.apiKey || '';
+          const apiKey =
+            endpointApiKeys.get(endpoint.url.trim().replace(/\/+$/, '')) || '';
           if (!apiKey) {
             logger.warn(`[get-local-models] Gemini API key is missing: ${endpoint.url}`);
             endpointResults.push({
@@ -71,8 +86,11 @@ export async function GET(request) {
           }
 
           const base = endpoint.url.replace(/\/+$/, '') || 'https://generativelanguage.googleapis.com';
-          const url = `${base}/v1beta/models?key=${apiKey}`;
-          const headers = { 'Content-Type': 'application/json' };
+          const url = buildGeminiModelsUrl(base);
+          const headers = {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          };
 
           logger.info(`[get-local-models] Querying Gemini model server: ${url}`);
 
@@ -109,8 +127,11 @@ export async function GET(request) {
           const path = /\/v1(\/|$)/.test(base) ? '/models' : '/v1/models';
           const url = `${base}${path}`;
           const headers = { 'Content-Type': 'application/json' };
-          if (openaiApiKey) {
-            headers['Authorization'] = `Bearer ${openaiApiKey}`;
+          const apiKey =
+            endpointApiKeys.get(endpoint.url.trim().replace(/\/+$/, '')) ||
+            openaiApiKey;
+          if (apiKey) {
+            headers['Authorization'] = `Bearer ${apiKey}`;
           }
 
           logger.info(`[get-local-models] Querying OpenAI-compatible model server: ${url}`);

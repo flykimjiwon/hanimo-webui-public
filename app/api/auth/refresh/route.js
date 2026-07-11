@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { query } from '@/lib/postgres';
 import { JWT_SECRET } from '@/lib/config';
+import { authRateLimitConfig, consumeRateLimit, rateLimitKey } from '@/lib/security/rate-limit.mjs';
 
 const ACCESS_TOKEN_EXPIRES = '1h';
 const REFRESH_TOKEN_EXPIRES_DAYS = 30;
@@ -25,6 +26,20 @@ export async function POST(request) {
 
     // Validate refresh token in DB
     const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    const limitConfig = authRateLimitConfig();
+    const refreshLimit = consumeRateLimit(rateLimitKey('auth:refresh', tokenHash), {
+      limit: 60,
+      windowMs: limitConfig.windowMs,
+    });
+    if (!refreshLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many refresh attempts.', errorType: 'rate_limited' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(refreshLimit.retryAfterSeconds) },
+        }
+      );
+    }
     const tokenResult = await query(
       `SELECT rt.*, u.id as uid, u.email, u.name, u.department, u.cell, u.role,
               u.employee_no, u.auth_type

@@ -1,21 +1,27 @@
 import logger from '@/lib/logger';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 import { query } from '@/lib/postgres';
+import {
+  generateOpaqueToken,
+  hashOpaqueToken,
+  legacyHashApiToken as legacySha256Hash,
+} from '@/lib/security/tokens.mjs';
 import {
   getNextModelServerEndpointWithIndex,
   getModelServerEndpointByName,
   getModelServerEndpointByLabel,
   parseModelName,
 } from '@/lib/modelServers';
-import { JWT_SECRET } from '@/lib/config';
 
 export function hashApiToken(token) {
-  return crypto.createHash('sha256').update(token).digest('hex');
+  return hashOpaqueToken(token);
 }
 
 export function legacyHashApiToken(token) {
-  return hashApiToken(token).substring(0, 16);
+  return legacySha256Hash(token);
+}
+
+export function generateApiToken() {
+  return generateOpaqueToken('hmo_');
 }
 
 function toISOString(dateValue) {
@@ -26,25 +32,33 @@ function toISOString(dateValue) {
 
 export async function verifyApiToken(token) {
   try {
-    const tokenPayload = jwt.verify(token, JWT_SECRET);
-    if (tokenPayload.type !== 'api_token') {
-      return { valid: false, error: 'Invalid token type. API token required.' };
-    }
-
     const fullTokenHash = hashApiToken(token);
     const legacyTokenHash = legacyHashApiToken(token);
     const tokenHashes =
       fullTokenHash === legacyTokenHash
         ? [fullTokenHash]
         : [fullTokenHash, legacyTokenHash];
-    const userId = tokenPayload.sub || tokenPayload.id;
-    const hashPlaceholders = tokenHashes.map((_, index) => `$${index + 2}`).join(', ');
+    const hashPlaceholders = tokenHashes.map((_, index) => `$${index + 1}`).join(', ');
     const tokenResult = await query(
-      `SELECT * FROM api_tokens
-       WHERE user_id = $1 AND token_hash IN (${hashPlaceholders})
-       ORDER BY LENGTH(token_hash) DESC
+      `SELECT
+         api_tokens.id,
+         api_tokens.user_id,
+         api_tokens.token_hash,
+         api_tokens.name AS token_name,
+         api_tokens.expires_at,
+         api_tokens.is_active,
+         api_tokens.created_at,
+         users.email,
+         users.name AS user_name,
+         users.department,
+         users.cell,
+         users.role
+       FROM api_tokens
+       INNER JOIN users ON users.id = api_tokens.user_id
+       WHERE api_tokens.token_hash IN (${hashPlaceholders})
+       ORDER BY LENGTH(api_tokens.token_hash) DESC
        LIMIT 1`,
-      [userId, ...tokenHashes]
+      tokenHashes
     );
 
     if (tokenResult.rows.length === 0) {
@@ -52,15 +66,13 @@ export async function verifyApiToken(token) {
     }
 
     const apiToken = tokenResult.rows[0];
+    const userId = apiToken.user_id?.toString?.() || apiToken.user_id;
+
     if (!apiToken.is_active) {
       return { valid: false, error: 'API token is inactive.' };
     }
 
     if (apiToken.expires_at && new Date(apiToken.expires_at) < new Date()) {
-      return { valid: false, error: 'API token has expired.' };
-    }
-
-    if (tokenPayload.exp && tokenPayload.exp < Math.floor(Date.now() / 1000)) {
       return { valid: false, error: 'API token has expired.' };
     }
 
@@ -75,33 +87,23 @@ export async function verifyApiToken(token) {
       valid: true,
       userInfo: {
         userId,
-        email: tokenPayload.email,
-        name: tokenPayload.name,
-        role: tokenPayload.role,
-        department: tokenPayload.department,
-        cell: tokenPayload.cell,
+        email: apiToken.email,
+        name: apiToken.user_name,
+        role: apiToken.role,
+        department: apiToken.department,
+        cell: apiToken.cell,
       },
       tokenInfo: {
         tokenHash,
         tokenId: apiToken.id?.toString() || null,
         userId,
-        name: apiToken.name,
-        issuedAt:
-          toISOString(apiToken.created_at) ||
-          (tokenPayload.iat ? new Date(tokenPayload.iat * 1000).toISOString() : null),
-        expiresAt:
-          toISOString(apiToken.expires_at) ||
-          (tokenPayload.exp ? new Date(tokenPayload.exp * 1000).toISOString() : null),
+        name: apiToken.token_name,
+        issuedAt: toISOString(apiToken.created_at),
+        expiresAt: toISOString(apiToken.expires_at),
         isLegacyHash: tokenHash.length === 16,
       },
     };
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return { valid: false, error: 'API token has expired.' };
-    }
-    if (error.name === 'JsonWebTokenError') {
-      return { valid: false, error: 'Invalid API token.' };
-    }
     logger.error('[API Token Verification] Error:', error);
     return { valid: false, error: 'Invalid API token.' };
   }

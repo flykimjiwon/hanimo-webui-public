@@ -20,6 +20,9 @@ const BASE_URL = (
   'http://127.0.0.1:3000'
 ).replace(/\/+$/, '');
 const MODEL_SERVER_URL = (process.env.API_TOKEN_DB_TEST_MODEL_SERVER_URL || '').replace(/\/+$/, '');
+const MODEL_SERVER_PROVIDER =
+  process.env.API_TOKEN_DB_TEST_MODEL_SERVER_PROVIDER || 'model-server';
+const MODEL_SERVER_API_KEY = process.env.API_TOKEN_DB_TEST_MODEL_SERVER_API_KEY || '';
 
 function hashApiToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -40,8 +43,8 @@ function assert(condition, message) {
   }
 }
 
-async function fetchModels(token) {
-  const response = await fetch(`${BASE_URL}/api/v1/models`, {
+async function fetchModels(token, apiBase = '/api/v1') {
+  const response = await fetch(`${BASE_URL}${apiBase}/models`, {
     headers: { Authorization: `Bearer ${token}` },
     signal: AbortSignal.timeout(5000),
   });
@@ -49,8 +52,8 @@ async function fetchModels(token) {
   return { response, body };
 }
 
-async function fetchChatCompletion(token) {
-  const response = await fetch(`${BASE_URL}/api/v1/chat/completions`, {
+async function fetchChatCompletion(token, apiBase = '/api/v1') {
+  const response = await fetch(`${BASE_URL}${apiBase}/chat/completions`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -95,23 +98,26 @@ async function insertToken(client, { userId, tokenHash, name, isActive = true, e
 }
 
 async function expectAccepted(token, label) {
-  const { response, body } = await fetchModels(token);
   if (MODEL_SERVER_URL) {
-    assert(response.status === 200, `${label} /api/v1/models should return 200; got ${response.status} with body: ${body}`);
-    const models = JSON.parse(body);
-    assert(Array.isArray(models.data), `${label} /api/v1/models should return OpenAI model list; body: ${body}`);
+    for (const apiBase of ['/api/v1', '/v1']) {
+      const { response, body } = await fetchModels(token, apiBase);
+      assert(response.status === 200, `${label} ${apiBase}/models should return 200; got ${response.status} with body: ${body}`);
+      const models = JSON.parse(body);
+      assert(Array.isArray(models.data), `${label} ${apiBase}/models should return OpenAI model list; body: ${body}`);
 
-    const chat = await fetchChatCompletion(token);
-    assert(
-      chat.response.status === 200,
-      `${label} /api/v1/chat/completions should return 200; got ${chat.response.status} with body: ${chat.body}`
-    );
-    const chatBody = JSON.parse(chat.body);
-    const message = chatBody.choices?.[0]?.message?.content || '';
-    assert(message.includes('Hello from'), `${label} chat response should come from mock Ollama; body: ${chat.body}`);
+      const chat = await fetchChatCompletion(token, apiBase);
+      assert(
+        chat.response.status === 200,
+        `${label} ${apiBase}/chat/completions should return 200; got ${chat.response.status} with body: ${chat.body}`
+      );
+      const chatBody = JSON.parse(chat.body);
+      const message = chatBody.choices?.[0]?.message?.content || '';
+      assert(message.includes('Hello from'), `${label} chat response should come from mock provider; body: ${chat.body}`);
+    }
     return;
   }
 
+  const { response, body } = await fetchModels(token);
   assert(response.status !== 401, `${label} should pass API-token authentication; got 401 with body: ${body}`);
 }
 
@@ -141,6 +147,59 @@ async function expectRejected(token, expectedText, label) {
   assert(body.includes(expectedText), `${label} should mention "${expectedText}"; body: ${body}`);
 }
 
+async function verifyMaskedEndpointSettings(client, userId) {
+  if (!MODEL_SERVER_API_KEY || MODEL_SERVER_PROVIDER !== 'openai-compatible') {
+    return;
+  }
+
+  const adminAccessToken = jwt.sign(
+    { sub: userId, role: 'admin', type: 'access' },
+    JWT_SECRET,
+    { expiresIn: '10m' }
+  );
+  const response = await fetch(`${BASE_URL}/api/admin/settings`, {
+    headers: { Authorization: `Bearer ${adminAccessToken}` },
+    signal: AbortSignal.timeout(5000),
+  });
+  const responseText = await response.text();
+  assert(response.status === 200, `masked settings GET failed: ${response.status} ${responseText}`);
+  assert(!responseText.includes(MODEL_SERVER_API_KEY), 'settings response exposed the upstream API key');
+
+  const settings = JSON.parse(responseText);
+  const endpoint = settings.customEndpoints?.find(
+    (item) => item.url?.replace(/\/+$/, '') === MODEL_SERVER_URL
+  );
+  assert(endpoint?.apiKeySet === true, 'settings response should expose only apiKeySet=true');
+  assert(!Object.hasOwn(endpoint, 'apiKey'), 'settings response must omit apiKey');
+
+  const updateResponse = await fetch(`${BASE_URL}/api/admin/settings`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${adminAccessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ customEndpoints: settings.customEndpoints }),
+    signal: AbortSignal.timeout(5000),
+  });
+  const updateBody = await updateResponse.text();
+  assert(updateResponse.status === 200, `masked settings PUT failed: ${updateResponse.status} ${updateBody}`);
+
+  const stored = await client.query(
+    'SELECT custom_endpoints FROM settings WHERE config_type = $1 LIMIT 1',
+    ['general']
+  );
+  const storedEndpoint = stored.rows[0]?.custom_endpoints?.find(
+    (item) => item.url?.replace(/\/+$/, '') === MODEL_SERVER_URL
+  );
+  const { decryptProviderSecret } = await import(
+    '../app/lib/security/provider-credentials.mjs'
+  );
+  assert(
+    decryptProviderSecret(storedEndpoint?.apiKey || '') === MODEL_SERVER_API_KEY,
+    'masked settings update should preserve the existing upstream API key'
+  );
+}
+
 async function main() {
   if (!POSTGRES_URI) skip('POSTGRES_URI or DATABASE_URL is not configured');
   if (!JWT_SECRET) skip('JWT_SECRET is not configured');
@@ -156,7 +215,10 @@ async function main() {
 
   try {
     await client.query('BEGIN');
-    modelServerSnapshot = await configureModelServer(client, MODEL_SERVER_URL);
+    modelServerSnapshot = await configureModelServer(client, MODEL_SERVER_URL, {
+      provider: MODEL_SERVER_PROVIDER,
+      apiKey: MODEL_SERVER_API_KEY,
+    });
     await client.query(
       `INSERT INTO users (id, email, password_hash, name, role, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
@@ -188,6 +250,8 @@ async function main() {
     });
 
     await client.query('COMMIT');
+
+    await verifyMaskedEndpointSettings(client, userId);
 
     await expectAccepted(fullToken, 'full hash token');
     await expectAccepted(legacyToken, 'legacy hash token');

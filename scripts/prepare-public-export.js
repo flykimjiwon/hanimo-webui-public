@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 const { execFileSync, spawnSync } = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { POLICY_VERSION, listReleaseFiles } = require('./public-export-policy');
 
 const rootDir = path.resolve(__dirname, '..');
 const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, '');
 let outDir = path.resolve(rootDir, '..', `hanimo-webui-public-export-${timestamp}`);
+let allowDirty = false;
 
 for (let i = 2; i < process.argv.length; i += 1) {
   const arg = process.argv[i];
@@ -18,42 +21,25 @@ for (let i = 2; i < process.argv.length; i += 1) {
     i += 1;
     continue;
   }
+  if (arg === '--allow-dirty') {
+    allowDirty = true;
+    continue;
+  }
   if (arg === '-h' || arg === '--help') {
-    console.log('Usage: node scripts/prepare-public-export.js [--out PATH]');
+    console.log('Usage: node scripts/prepare-public-export.js [--out PATH] [--allow-dirty]');
     process.exit(0);
   }
   console.error(`Error: unknown option: ${arg}`);
   process.exit(2);
 }
 
-const excludedPrefixes = [
-  'webui_design/',
-  'hanimo_webui_',
-  ['docs/T', 'ECHAI_SYNC'].join(''),
-  'docs/session-prompts.html',
-];
-const excludedNames = new Set([
-  'HANIMO_WEBUI_PATTERNS.md',
-  'QUICK_REFERENCE.md',
-  'results.tsv',
-  'run.log',
-  'run2.log',
-  'yarn.lock',
-]);
-
-function isExcluded(relativePath) {
-  if (excludedNames.has(relativePath)) return true;
-  if (excludedPrefixes.some((prefix) => relativePath.startsWith(prefix))) return true;
-  return relativePath.endsWith('.traineddata') || relativePath.endsWith('.zip');
-}
-
-function listTrackedFiles() {
-  const stdout = execFileSync('git', ['ls-files', '-z'], { cwd: rootDir });
-  return stdout
-    .toString('utf8')
-    .split('\0')
-    .filter(Boolean)
-    .filter((filePath) => !isExcluded(filePath));
+function assertCleanSource() {
+  const status = execFileSync('git', ['status', '--porcelain'], { cwd: rootDir, encoding: 'utf8' });
+  if (status.trim() && !allowDirty) {
+    console.error('Error: canonical source is dirty. Commit the release source or pass --allow-dirty for local verification.');
+    process.exit(2);
+  }
+  return Boolean(status.trim());
 }
 
 function ensureEmptyOutput() {
@@ -85,13 +71,42 @@ function runScan() {
   if (result.status !== 0) process.exit(result.status || 1);
 }
 
+function digest(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+function writeManifest(relativePaths, dirty) {
+  const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], {
+    cwd: rootDir,
+    encoding: 'utf8',
+  }).trim();
+  const manifest = {
+    schemaVersion: 1,
+    policyVersion: POLICY_VERSION,
+    sourceRepository: 'flykimjiwon/hanimo-webui',
+    sourceCommit,
+    dirty,
+    files: relativePaths.map((relativePath) => ({
+      path: relativePath,
+      sha256: digest(path.join(outDir, relativePath)),
+    })),
+  };
+  fs.writeFileSync(
+    path.join(outDir, 'PUBLIC_RELEASE_MANIFEST.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`
+  );
+}
+
 function main() {
+  const dirty = assertCleanSource();
   ensureEmptyOutput();
-  const trackedFiles = listTrackedFiles();
-  for (const relativePath of trackedFiles) copyTrackedFile(relativePath);
+  const releaseFiles = listReleaseFiles(rootDir, { includeUntracked: allowDirty });
+  for (const relativePath of releaseFiles) copyTrackedFile(relativePath);
+  writeManifest(releaseFiles, dirty);
   runScan();
   console.log(`public export ready: ${outDir}`);
-  console.log(`tracked files exported: ${trackedFiles.length}`);
+  console.log(`release files exported: ${releaseFiles.length}`);
+  console.log(`source commit: ${execFileSync('git', ['rev-parse', 'HEAD'], { cwd: rootDir, encoding: 'utf8' }).trim()}`);
 }
 
 main();

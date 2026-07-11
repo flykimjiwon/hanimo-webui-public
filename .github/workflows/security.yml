@@ -1,0 +1,63 @@
+name: Security and Release Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run audit:dependencies
+      - run: npm run test:security
+      - run: npm run test:workflow
+      - run: npm run test:screen-security
+      - run: npm run test:api-tokens
+      - run: npm run test:admin-policy
+      - run: npm run scan:public
+      - run: npm run lint
+      - run: npm run build
+
+  public-parity:
+    if: github.repository == 'flykimjiwon/hanimo-webui'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: flykimjiwon/hanimo-webui-public
+          path: hanimo-webui-public
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:parity
+      - run: node scripts/check-public-export.js --canonical . --public hanimo-webui-public --require-manifest --source-commit "$GITHUB_SHA"
+
+  public-manifest:
+    if: github.repository == 'flykimjiwon/hanimo-webui-public'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/check-public-export.js --canonical . --public . --require-manifest
+
+  docker-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:docker-install

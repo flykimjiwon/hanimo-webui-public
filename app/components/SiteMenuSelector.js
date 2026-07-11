@@ -5,11 +5,10 @@ import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
 import { LayoutGrid, ChevronRight, X, Loader2, ExternalLink } from '@/components/icons';
 import { useTranslation } from '@/hooks/useTranslation';
+import { filterStableMenus } from '@/lib/release-surface.mjs';
 
 const CORE_MENU_LINKS = [
   { id: 'core-chat', labelKey: 'sidebar.chat_rooms', descriptionKey: 'site_menu.core_chat_desc', link: '/' },
-  { id: 'core-workflow', labelKey: 'sidebar.workflow', descriptionKey: 'site_menu.core_workflow_desc', link: '/workflow' },
-  { id: 'core-screen-builder', labelKey: 'sidebar.screen_builder', descriptionKey: 'site_menu.core_screen_builder_desc', link: '/screen-builder' },
   { id: 'core-board', labelKey: 'sidebar.free_board', descriptionKey: 'site_menu.core_board_desc', link: '/board' },
   { id: 'core-notice', labelKey: 'notice.title', descriptionKey: 'site_menu.core_notice_desc', link: '/notice' },
   { id: 'core-api-keys', labelKey: 'sidebar.my_api_keys', descriptionKey: 'site_menu.core_api_keys_desc', link: '/my-api-keys' },
@@ -54,7 +53,8 @@ export default function SiteMenuSelector() {
         if (res.ok) {
           const data = await res.json();
           const fetchedMenus = Array.isArray(data.menus) ? data.menus : [];
-          setMenus(fetchedMenus.length > 0 ? fetchedMenus : buildCoreMenus(t));
+          const stableMenus = filterStableMenus(fetchedMenus);
+          setMenus(stableMenus.length > 0 ? stableMenus : buildCoreMenus(t));
         }
       } catch {
         // 조용히 실패

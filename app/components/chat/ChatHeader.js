@@ -3,12 +3,17 @@
 
 import logger from '@/lib/logger';
 import { useState, useEffect, memo } from 'react';
+import HanimoMark from '@/components/brand/HanimoMark';
 
 const BRANDING_EVENT_NAME = 'hanimo-webui-site-branding-updated';
-const DEFAULT_SITE_DESCRIPTION = 'hanimo-webui';
+const DEFAULT_SITE_TITLE = 'Hanimo';
+const DEFAULT_SITE_DESCRIPTION = 'Self-hosted AI workspace';
 
 const DynamicSiteTitle = memo(function DynamicSiteTitle() {
-  const [siteDescription, setSiteDescription] = useState(DEFAULT_SITE_DESCRIPTION);
+  const [branding, setBranding] = useState({
+    siteTitle: DEFAULT_SITE_TITLE,
+    siteDescription: DEFAULT_SITE_DESCRIPTION,
+  });
 
   useEffect(() => {
     const fetchSiteSettings = async () => {
@@ -21,7 +26,10 @@ const DynamicSiteTitle = memo(function DynamicSiteTitle() {
         });
         if (response.ok) {
           const data = await response.json();
-          setSiteDescription(data.siteDescription || DEFAULT_SITE_DESCRIPTION);
+          setBranding({
+            siteTitle: data.siteTitle || DEFAULT_SITE_TITLE,
+            siteDescription: data.siteDescription || DEFAULT_SITE_DESCRIPTION,
+          });
         }
         } catch (error) {
           logger.error('Failed to load site settings:', error);
@@ -29,9 +37,11 @@ const DynamicSiteTitle = memo(function DynamicSiteTitle() {
       };
 
     const handleBrandingUpdated = (event) => {
-      setSiteDescription(
-        event?.detail?.siteDescription || DEFAULT_SITE_DESCRIPTION
-      );
+      setBranding({
+        siteTitle: event?.detail?.siteTitle || DEFAULT_SITE_TITLE,
+        siteDescription:
+          event?.detail?.siteDescription || DEFAULT_SITE_DESCRIPTION,
+      });
     };
 
     fetchSiteSettings();
@@ -44,33 +54,21 @@ const DynamicSiteTitle = memo(function DynamicSiteTitle() {
   }, []);
 
   return (
-    <h1
+    <div
       id='chat-header-title'
       data-testid='chat-header-title'
-      className='font-bold flex items-center gap-2'
-      style={{
-        fontSize: 16,
-        letterSpacing: '-0.015em',
-        color: 'var(--hn-fg)',
-      }}
+      className='flex min-w-0 items-center gap-2.5'
     >
-      <span
-        aria-hidden='true'
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          background: 'var(--hn-primary)',
-          boxShadow: '0 0 0 3px var(--hn-primary-soft)',
-          flexShrink: 0,
-        }}
-      />
-      {siteDescription}
-      {/* Pro 배지 — 브랜딩 목적, 항상 표시 (설정 토글은 후속 작업으로 추가 가능) */}
-      <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--hn-primary-soft)] text-[var(--hn-primary-strong)] ml-2'>
-        Pro
-      </span>
-    </h1>
+      <HanimoMark size={27} />
+      <div className='min-w-0 text-left'>
+        <h1 className='m-0 truncate text-[14px] font-semibold tracking-[-0.015em] text-[var(--hn-fg)] sm:text-[15px]'>
+          {branding.siteTitle}
+        </h1>
+        <p className='m-0 hidden max-w-[360px] truncate text-[10px] font-medium text-[var(--hn-fg-muted)] sm:block'>
+          {branding.siteDescription}
+        </p>
+      </div>
+    </div>
   );
 });
 
@@ -85,7 +83,7 @@ function ChatHeader() {
         borderBottom: '1px solid var(--hn-border)',
       }}
     >
-      <div className='w-full max-w-full md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 py-3'>
+      <div className='w-full max-w-full md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto flex items-center justify-center gap-4 px-14 py-2.5 sm:px-4'>
         <div className='w-10' />
         <DynamicSiteTitle />
         <div className='w-10' />

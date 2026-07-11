@@ -141,7 +141,7 @@ export default function Home() {
       <div
         id='chat-input-container'
         data-testid='chat-input-container'
-        className={`fixed bottom-0 z-30 bg-background border-t border-border transition-all duration-300 ease-in-out left-16 ${sidebarOpen ? 'lg:left-80' : 'lg:left-16'
+        className={`fixed bottom-0 z-30 bg-background border-t border-border transition-all duration-300 ease-in-out left-0 ${sidebarOpen ? 'lg:left-80' : 'lg:left-16'
           } right-0 ${loading ? 'relative' : ''}`}
       >
         {/* 맨 아래로 스크롤 버튼 - 응답 끝나고 맨 아래가 아닐 때 표시 */}
@@ -162,7 +162,7 @@ export default function Home() {
           <div
             id='chat-loading-overlay'
             data-testid='chat-loading-overlay'
-            className='absolute top-0 bottom-0 -left-16 lg:-left-80 right-0 bg-background z-40 flex items-center justify-center'
+            className={`absolute inset-y-0 left-0 right-0 bg-background z-40 flex items-center justify-center ${sidebarOpen ? 'lg:-left-80' : 'lg:-left-16'}`}
           >
             <div className='w-full px-4'>
               <div className='flex flex-col items-center gap-2 w-full'>

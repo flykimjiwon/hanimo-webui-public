@@ -1,22 +1,36 @@
 import logger from '@/lib/logger';
 import { NextResponse } from 'next/server';
-import { getNextModelServerEndpoint } from '@/lib/modelServers';
+import { getNextModelServerEndpointWithIndex } from '@/lib/modelServers';
 import { verifyApiToken } from '@/lib/apiTokenUtils';
+import {
+  buildModelsUpstreamRequest,
+  normalizeModelsResponse,
+} from '@/lib/openai-gateway.mjs';
 
-// OpenAI-compatible Models API
-// Returns model server's model list in OpenAI format
+export const runtime = 'nodejs';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Cache-Control': 'no-store',
+};
+
+function redactEndpoint(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    url.search = '';
+    url.hash = '';
+    return url.toString();
+  } catch {
+    return '[invalid-endpoint]';
+  }
+}
 
 export async function GET(request) {
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
-
   try {
-    // Verify API token
     const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1] || null;
     if (!token) {
       return NextResponse.json(
         { error: { message: 'API token required.', type: 'auth_error' } },
@@ -31,17 +45,38 @@ export async function GET(request) {
       );
     }
 
-    // Get model server endpoint
-    const modelServerEndpoint = await getNextModelServerEndpoint();
-    const modelsUrl = `${modelServerEndpoint}/api/tags`;
+    const endpointInfo = await getNextModelServerEndpointWithIndex();
+    if (!endpointInfo?.endpoint) {
+      return NextResponse.json(
+        {
+          error: {
+            message: 'No model server endpoint is configured.',
+            type: 'configuration_error',
+          },
+        },
+        { status: 503, headers: corsHeaders }
+      );
+    }
 
-    logger.info('[OpenAI Models] Fetching model list:', modelsUrl);
+    const provider = endpointInfo.provider || 'model-server';
+    const configuredApiKey =
+      endpointInfo.apiKey ||
+      (provider === 'openai-compatible'
+        ? process.env.OPENAI_COMPAT_API_KEY || ''
+        : '');
+    const upstream = buildModelsUpstreamRequest({
+      endpoint: endpointInfo.endpoint,
+      provider,
+      apiKey: configuredApiKey,
+    });
 
-    const res = await fetch(modelsUrl, {
+    logger.info(
+      `[OpenAI Models] Fetching ${provider} model list: ${redactEndpoint(upstream.url)}`
+    );
+
+    const res = await fetch(upstream.url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: upstream.headers,
       signal: AbortSignal.timeout(30000),
     });
 
@@ -60,26 +95,20 @@ export async function GET(request) {
       );
     }
 
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json().catch(() => null);
+    if (!data) {
+      return NextResponse.json(
+        {
+          error: {
+            message: 'Model server returned an invalid JSON response.',
+            type: 'upstream_error',
+          },
+        },
+        { status: 502, headers: corsHeaders }
+      );
+    }
 
-    // Ollama format: { models: [{ name, ... }] }
-    // OpenAI format: { data: [{ id, object: "model", created, owned_by }] }
-    const ollamaModels = Array.isArray(data.models) ? data.models : [];
-    const openaiModels = ollamaModels.map((model, index) => ({
-      id: model.name || `model-${index}`,
-      object: 'model',
-      created: model.modified_at
-        ? Math.floor(new Date(model.modified_at).getTime() / 1000)
-        : Math.floor(Date.now() / 1000),
-      owned_by: 'ollama',
-    }));
-
-    const openaiResponse = {
-      object: 'list',
-      data: openaiModels,
-    };
-
-    return NextResponse.json(openaiResponse, {
+    return NextResponse.json(normalizeModelsResponse(data, provider), {
       status: 200,
       headers: corsHeaders,
     });
@@ -89,7 +118,7 @@ export async function GET(request) {
     return NextResponse.json(
       {
         error: {
-          message: error.message || 'Internal server error',
+          message: 'Failed to fetch the model list.',
           type: 'server_error',
         },
       },
@@ -98,16 +127,12 @@ export async function GET(request) {
   }
 }
 
-export async function OPTIONS(request) {
+export async function OPTIONS() {
   return NextResponse.json(
     {},
     {
       status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
+      headers: corsHeaders,
     }
   );
 }

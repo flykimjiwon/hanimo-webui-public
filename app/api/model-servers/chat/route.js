@@ -10,6 +10,7 @@ import { logQARequest } from '@/lib/qaLogger';
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { fetchWithRetry } from '@/lib/retryUtils';
 import { verifyToken } from '@/lib/auth';
+import { buildProxyHeaders } from '@/lib/security/proxy-headers.mjs';
 
 // Simple logging function (uses same log table as generate)
 async function logModelServerProxyRequest(data) {
@@ -108,6 +109,7 @@ export async function POST(request) {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
+  let provider = 'model-server';
 
     // Verify authentication
     const authPayload = verifyToken(request);
@@ -154,7 +156,7 @@ export async function POST(request) {
     // Parse server name from model name and round-robin within that server group only
     let modelServerEndpoint;
     let roundRobinIndex;
-    let provider = 'model-server'; // default
+    let selectedEndpointInfo = null;
 
     let { serverName } = parseModelName(body.model);
 
@@ -174,6 +176,7 @@ export async function POST(request) {
       // If server name exists, use round-robin only within that server group
       const serverEndpoint = await getModelServerEndpointByName(serverName);
       if (serverEndpoint) {
+        selectedEndpointInfo = serverEndpoint;
         modelServerEndpoint = serverEndpoint.endpoint;
         roundRobinIndex = serverEndpoint.index;
         provider = serverEndpoint.provider || 'model-server';
@@ -186,6 +189,7 @@ export async function POST(request) {
           `[Model Server Chat Proxy] Could not find server group "${serverName}", using global round-robin`
         );
         const next = await getNextModelServerEndpointWithIndex();
+        selectedEndpointInfo = next;
         modelServerEndpoint = next.endpoint;
         roundRobinIndex = next.index;
         provider = next.provider || 'model-server';
@@ -193,6 +197,7 @@ export async function POST(request) {
     } else {
       // If there is no server name, use global round-robin
       const next = await getNextModelServerEndpointWithIndex();
+      selectedEndpointInfo = next;
       modelServerEndpoint = next.endpoint;
       roundRobinIndex = next.index;
       provider = next.provider || 'model-server';
@@ -205,61 +210,31 @@ export async function POST(request) {
       `[Model Server Chat Proxy] Instance ${roundRobinIndex}: ${modelServerUrl}`
     );
 
-    // Copy headers from original request, with some modifications/exclusions
-    const headersToForward = {};
-    request.headers.forEach((value, key) => {
-      // Do not forward 'host' because fetch sets it automatically.
-      // Do not forward 'content-length' because fetch sets it based on body length.
-      if (!['host', 'content-length'].includes(key.toLowerCase())) {
-        headersToForward[key] = value;
-      }
-    });
-    // Always set Content-Type to application/json.
-    headersToForward['Content-Type'] = 'application/json';
-
-    // --- Detailed debug logs ---
-    logger.info(
-      '\n\n[MODEL SERVER CHAT PROXY DEBUG] ======================================='
-    );
-    logger.info(
-      '[MODEL SERVER CHAT PROXY DEBUG] Final request info (to Model Server Instance):'
-    );
-    logger.info(
-      '[MODEL SERVER CHAT PROXY DEBUG]   - Destination URL:',
-      modelServerUrl
-    );
-    logger.info(
-      '[MODEL SERVER CHAT PROXY DEBUG]   - Forwarded headers:',
-      JSON.stringify(headersToForward, null, 2)
-    );
-    logger.info(
-      '[MODEL SERVER CHAT PROXY DEBUG]   - Request body keys:',
-      Object.keys(body)
-    );
-    logger.info(
-      '[MODEL SERVER CHAT PROXY DEBUG] =======================================\n\n'
-    );
-    // --- End debug logs ---
-
-
     // Reference object for provider update on retries
     const providerRef = { value: provider };
+    let finalModelServerUrl = modelServerUrl;
+    const buildModelServerFetchOptions = (endpointInfo = selectedEndpointInfo) => ({
+      method: 'POST',
+      headers: buildProxyHeaders({ bearerToken: endpointInfo?.apiKey }),
+      body: JSON.stringify(body),
+    });
 
     let modelServerRes;
     try {
       modelServerRes = await fetchWithRetry(
         modelServerUrl,
-        {
-          method: 'POST',
-          headers: headersToForward, // use modified headers
-          body: JSON.stringify(body),
-        },
+        buildModelServerFetchOptions(selectedEndpointInfo),
         {
           maxRetries: 2, // retry up to 2 times (3 attempts total)
           isStreaming: body.stream !== false,
           getNextEndpoint: getNextModelServerEndpointWithIndex,
           providerRef: providerRef,
           endpointPath: '/api/chat',
+          buildOptions: ({ endpointInfo }) =>
+            buildModelServerFetchOptions(endpointInfo),
+          onRetry: (_attempt, retryUrl) => {
+            finalModelServerUrl = retryUrl;
+          },
         }
       );
 
@@ -282,7 +257,7 @@ export async function POST(request) {
         level: 'error',
         category: 'model_server_proxy_chat',
         method: 'POST',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         clientIP,
         userAgent,
@@ -316,7 +291,7 @@ export async function POST(request) {
         level: 'error',
         category: 'model_server_proxy_chat',
         method: 'POST',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         clientIP,
         userAgent,
@@ -354,7 +329,7 @@ export async function POST(request) {
         level: 'info',
         category: 'model_server_proxy_chat',
         method: 'POST',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         clientIP,
         userAgent,
@@ -380,9 +355,9 @@ export async function POST(request) {
       // External API dedicated logging (streaming)
       await logExternalApiRequest({
         sourceType: 'internal',
-        provider: 'model-server',
+        provider: provider,
         apiType: 'chat',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         messages: body.messages,
         responseTokenCount: 0, // difficult to calculate in real time during streaming
@@ -429,7 +404,7 @@ export async function POST(request) {
         level: 'info',
         category: 'model_server_proxy_chat',
         method: 'POST',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         clientIP,
         userAgent,
@@ -455,9 +430,9 @@ export async function POST(request) {
       // External API dedicated logging (normal response)
       await logExternalApiRequest({
         sourceType: 'internal',
-        provider: 'model-server',
+        provider: provider,
         apiType: 'chat',
-        endpoint: modelServerUrl,
+        endpoint: finalModelServerUrl,
         model: body.model,
         messages: body.messages,
         responseTokenCount: completionTokens,

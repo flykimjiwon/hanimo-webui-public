@@ -127,8 +127,9 @@ export default function ClientLayout({ children }) {
         const response = await fetch('/api/public/settings');
         if (response.ok) {
           const data = await response.json();
-          const siteTitle = data.siteTitle || 'hanimo-webui';
-          const siteDescription = data.siteDescription || 'hanimo-webui';
+          const siteTitle = data.siteTitle || 'Hanimo';
+          const siteDescription =
+            data.siteDescription || 'Self-hosted AI workspace';
 
           // 동적으로 title 업데이트
           document.title = siteTitle;

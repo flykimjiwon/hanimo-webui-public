@@ -231,6 +231,15 @@ ensure_env_file() {
     log "$(color 32 OK) JWT_SECRET already configured"
   fi
 
+  local credential_key
+  credential_key="$(get_env_value HANIMO_CREDENTIAL_ENCRYPTION_KEY)"
+  if [[ -z "$credential_key" || "$credential_key" == "your-credential-encryption-key-here" || ${#credential_key} -lt 32 ]]; then
+    set_env_value HANIMO_CREDENTIAL_ENCRYPTION_KEY "$(generate_secret)"
+    log "$(color 32 Updated) HANIMO_CREDENTIAL_ENCRYPTION_KEY in .env"
+  else
+    log "$(color 32 OK) HANIMO_CREDENTIAL_ENCRYPTION_KEY already configured"
+  fi
+
   set_env_value PORT "$PORT_VALUE"
 
   if [[ -z "$(get_env_value POSTGRES_USER)" ]]; then
@@ -282,6 +291,10 @@ ensure_env_file() {
   if [[ -z "$(get_env_value HANIMO_ENABLE_DESTRUCTIVE_ADMIN)" ]]; then
     set_env_value HANIMO_ENABLE_DESTRUCTIVE_ADMIN "false"
   fi
+
+  if [[ -z "$(get_env_value HANIMO_ENABLE_LABS)" ]]; then
+    set_env_value HANIMO_ENABLE_LABS "false"
+  fi
 }
 
 wait_for_app() {
@@ -332,7 +345,7 @@ main() {
   log ""
   log "$(color 32 Ready) hanimo-webui is running at ${base_url}"
   log "Initial admin email: $(get_env_value HANIMO_ADMIN_EMAIL)"
-  log "Initial admin password: $(get_env_value HANIMO_ADMIN_PASSWORD)"
+  log "Initial admin password is stored in ${ENV_FILE}. It is not printed to terminal logs."
   log "The admin bootstrap runs inside the app container if no admin exists."
   log "Run ./scripts/doctor.sh to inspect the install."
   finish_json true "hanimo-webui is running" "$base_url" "$smoke_status"

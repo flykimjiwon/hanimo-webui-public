@@ -13,12 +13,12 @@
 
 ## Project Overview
 
-hanimo-webui는 Next.js 15 기반 **오픈소스 셀프호스팅 AI 챗 플랫폼**.
-멀티모델 채팅, 관리자 패널, OpenAI 호환 API, 커뮤니티(게시판/공지/쪽지), 컴플라이언스 도구를 **단일 React/Next.js 앱**으로 제공. 별도 백엔드 서비스(FastAPI 등)나 멀티에이전트 오케스트레이션 계층 없음.
+hanimo-webui는 Next.js 15 기반 **오픈소스 셀프호스팅 AI 챗 및 OpenAI-compatible gateway**다.
+첫 공개 Core는 채팅, 모델/provider 설정, 사용자·관리자, `hmo_` API Key, `/v1` API, 셀프호스팅 운영이다. Workflow, Screen, RAG, MCP, Agents는 `HANIMO_ENABLE_LABS=true`에서만 여는 Labs이며 stable claim이 아니다. 별도 FastAPI 서비스나 멀티에이전트 오케스트레이션 계층은 없다.
 
 ## Tech Stack
 
-- **Framework**: Next.js 15.5.9 (App Router, no `src/` directory)
+- **Framework**: Next.js 15.5.20 (App Router, no `src/` directory)
 - **Language**: JavaScript (no TypeScript — `jsconfig.json` with path aliases)
 - **UI**: shadcn/ui + Tailwind CSS v4 + Lucide/Phosphor icons
 - **Database**: PostgreSQL 14+ via `pg` (raw SQL, parameterized queries)
@@ -40,7 +40,7 @@ app/
 ├── admin/                  # Admin panel (22 pages, own layout.js)
 │   ├── layout.js           # Admin layout
 │   └── [agents|users|models|settings|database|...]/
-├── api/                    # ~95 API routes
+├── api/                    # ~100 API routes
 │   ├── auth/               # login, register, refresh, validate, sso
 │   ├── admin/              # 46 admin endpoints
 │   ├── v1/                 # OpenAI-compatible (chat/completions, models, embeddings, rerank)
@@ -115,10 +115,16 @@ npm run dev:turbopack    # Dev with Turbopack
 npm run build            # Production build (SKIP_DB_CONNECTION=true)
 npm run start            # Production server
 npm run lint             # ESLint
+npm run audit:dependencies # npm advisory gate
 npm run setup-postgres   # Initialize DB schema
 npm run create-admin     # Create admin account
 npm run test-postgres    # Test DB connection
 npm run test:ollama      # Test Ollama endpoints
+npm run test:security    # Security and release-contract regression tests
+npm run test:parity      # Canonical/public security parity
+npm run verify:public    # Full deterministic public-export parity
+npm run check:production # Standalone auth + proxy E2E
+npm run test:docker-install # Clean Docker install E2E
 ```
 
 ## Development Rules
@@ -140,10 +146,10 @@ npm run test:ollama      # Test Ollama endpoints
 
 ## Known Issues
 
-- **No middleware.js**: Auth is per-route, not centralized. New admin routes MUST include auth checks.
-- **chat variants 통합 완료**: `chat1/`, `chat2/`, `chat3/`은 `chat/`로 redirect. 본문은 git history에 보존
-- **God components**: `admin/models/page.js` (3,994 lines), `PPTMaker.js` (3,543 lines) need decomposition
-- **216 console.log**: Scattered across 39 files, should use Winston logger
-- **Static crypto salt**: `api/user/api-tokens/route.js` uses hardcoded `'salt'` for scrypt
-- **Unused shadcn/ui**: avatar, popover, progress, radio-group, skeleton, sonner, tooltip — never imported
-- **Unused dep**: `radix-ui` umbrella package — individual `@radix-ui/*` are used instead
+- `middleware.js` owns Labs and cookie-origin boundaries, but route authorization is still explicit. Every protected API route must continue to call the shared user/admin verifier.
+- `chat1/`, `chat2/`, `chat3/` redirect to `chat/`; do not add another chat variant.
+- Remaining large modules include `admin/models/components/ModelForm.jsx` (727 lines), `admin/models/hooks/useModelConfig.js` (653 lines), and the legacy generate route.
+- App code still has 98 console calls across 9 files and lint has 12 warnings; migrate deliberately to Winston without hiding user-visible errors.
+- New API keys are opaque `hmo_` values stored as full SHA-256 hashes. Do not reintroduce JWT-coupled tokens, token previews, or static salts.
+- Access tokens remain in localStorage in legacy client paths. Cookie-only access-token migration is a P2 security improvement.
+- The clean-Docker harness exists, but the 2026-07-11 local verification machine had no Docker runtime. Require its CI pass before tagging.

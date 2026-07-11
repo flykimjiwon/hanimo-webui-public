@@ -54,6 +54,8 @@ import {
 } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Cable } from 'lucide-react';
+import HanimoMark from '@/components/brand/HanimoMark';
 
 const ADMIN_ONLY_MENU_IDS = ['messages', 'direct-messages', 'external-api-logs', 'database'];
 
@@ -287,6 +289,12 @@ export default function AdminLayout({ children }) {
         icon: LayoutDashboard,
       },
       { id: 'users', name: t('admin.users'), href: '/admin/users', icon: Users },
+      {
+        id: 'providers',
+        name: t('admin.providers'),
+        href: '/admin/providers',
+        icon: Cable,
+      },
       {
         id: 'modelServers',
         name: t('admin.model_servers'),
@@ -621,16 +629,25 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className='min-h-screen bg-background transition-all duration-300 ease-in-out'>
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className='fixed left-3 top-3 z-30 rounded-lg border border-border bg-card p-2 shadow-sm lg:hidden'
+        title={t('admin.open_sidebar')}
+        aria-label={t('admin.open_sidebar')}
+      >
+        <Menu className='h-5 w-5 text-muted-foreground' />
+      </button>
       {/* 접힌 사이드바 (아이콘만) */}
       <div
         className={`
           fixed left-0 top-0 h-full w-16 bg-card border-r border-border z-40
-          flex flex-col items-center py-4
+          hidden lg:flex flex-col items-center py-4
           transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? '-translate-x-full' : 'translate-x-0'}
         `}
         data-testid='admin-sidebar-collapsed'
       >
+        <HanimoMark size={32} className='mb-3' />
         {/* 메뉴 버튼 (열기/닫기 토글) */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}

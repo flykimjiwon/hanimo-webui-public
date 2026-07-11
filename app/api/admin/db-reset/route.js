@@ -1,11 +1,9 @@
 import logger from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
-import jwt from 'jsonwebtoken';
+import { verifyAdmin } from '@/lib/adminAuth';
 
 const pool = new Pool({ connectionString: process.env.POSTGRES_URI });
-
-export const dynamic = 'force-dynamic';
 
 function requireDestructiveAdminEnabled() {
   if (process.env.HANIMO_ENABLE_DESTRUCTIVE_ADMIN === 'true') return null;
@@ -24,35 +22,8 @@ function requireDestructiveAdminEnabled() {
  */
 export async function POST(req) {
   try {
-    // Check authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      return NextResponse.json(
-        { error: 'JWT_SECRET environment variable is required.' },
-        { status: 500 }
-      );
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, jwtSecret);
-    } catch (error) {
-      return NextResponse.json({ error: 'Invalid token.' }, { status: 401 });
-    }
-
-    // Check admin privileges
-    if (decoded.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin privileges required.' },
-        { status: 403 }
-      );
-    }
+    const adminResult = verifyAdmin(req);
+    if (adminResult instanceof NextResponse) return adminResult;
 
     const destructiveGate = requireDestructiveAdminEnabled();
     if (destructiveGate) return destructiveGate;

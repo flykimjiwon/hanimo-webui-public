@@ -172,7 +172,10 @@ export default function SSOLoginPage() {
         logger.info('[SSO useEffect] Valid token -> redirecting to home');
         router.replace('/');
       } catch (error) {
-        logger.error('[SSO useEffect] Token parse failed -> removing:', error, { tokenPreview: token?.substring(0, 100) });
+        logger.error('[SSO useEffect] Token parse failed -> removing:', error, {
+          tokenExists: !!token,
+          tokenLength: token?.length,
+        });
         localStorage.removeItem('token');
       }
     }

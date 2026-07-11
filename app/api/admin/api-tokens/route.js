@@ -2,9 +2,7 @@ import logger from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/postgres';
 import { verifyAdminWithResult } from '@/lib/auth';
-import jwt from 'jsonwebtoken';
-import { hashApiToken } from '@/lib/apiTokenUtils';
-import { JWT_SECRET } from '@/lib/config';
+import { generateApiToken, hashApiToken } from '@/lib/apiTokenUtils';
 import { isValidUUID } from '@/lib/utils';
 import { createAuthError, createValidationError, createNotFoundError, createServerError } from '@/lib/errorHandler';
 
@@ -225,22 +223,8 @@ export async function POST(request) {
     const user = userResult.rows[0];
     const userDbIdStr = user.id.toString();
 
-    // Generate JWT token
     const expiresIn = expiresInDays * 24 * 60 * 60; // Convert days to seconds
-    const tokenPayload = {
-      sub: userDbIdStr,
-      email: user.email,
-      name: user.name,
-      department: user.department,
-      cell: user.cell,
-      role: user.role || 'user',
-      type: 'api_token', // Indicates this is an API token
-    };
-
-    const token = jwt.sign(tokenPayload, JWT_SECRET, {
-      expiresIn: `${expiresInDays}d`,
-    });
-
+    const token = generateApiToken();
     const tokenHash = hashApiToken(token);
 
     // Save token information

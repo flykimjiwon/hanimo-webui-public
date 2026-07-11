@@ -157,6 +157,135 @@
 }
 
 @layer components {
+  .hanimo-start {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .hanimo-start::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: 9%;
+    left: 50%;
+    width: min(68vw, 680px);
+    height: 330px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 50% 30%, var(--hn-primary-soft), transparent 58%),
+      radial-gradient(circle at 50% 50%, color-mix(in oklch, var(--hn-surface-2) 75%, transparent), transparent 72%);
+    opacity: 0.82;
+    pointer-events: none;
+  }
+
+  .hanimo-start__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 34px;
+    padding: 4px 5px 4px 5px;
+    border: 1px solid var(--hn-border);
+    border-radius: calc(var(--hn-radius) + 2px);
+    background: color-mix(in oklch, var(--hn-surface) 86%, transparent);
+    box-shadow: var(--hn-shadow-sm);
+    color: var(--hn-fg-2);
+    font-family: var(--hn-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .hanimo-start__ready {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 7px;
+    border-radius: 6px;
+    background: var(--hn-good-soft);
+    color: var(--hn-good);
+    letter-spacing: 0.04em;
+  }
+
+  .hanimo-start__ready::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 0 3px color-mix(in oklch, currentColor 16%, transparent);
+  }
+
+  .hanimo-solution-card {
+    display: flex;
+    min-height: 94px;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 15px;
+    border: 1px solid var(--hn-border);
+    border-radius: calc(var(--hn-radius) + 2px);
+    background: color-mix(in oklch, var(--hn-surface) 92%, transparent);
+    box-shadow: var(--hn-shadow-sm);
+    color: var(--hn-fg);
+    transition:
+      transform var(--hn-dur-base) var(--hn-ease),
+      border-color var(--hn-dur-fast) ease-out,
+      box-shadow var(--hn-dur-base) var(--hn-ease),
+      background var(--hn-dur-fast) ease-out;
+  }
+
+  .hanimo-solution-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklch, var(--hn-primary) 48%, var(--hn-border));
+    background: var(--hn-surface);
+    box-shadow: var(--hn-shadow-md);
+  }
+
+  .hanimo-solution-card:focus-visible {
+    outline: 2px solid var(--hn-primary);
+    outline-offset: 3px;
+  }
+
+  .hanimo-solution-card__icon {
+    display: inline-flex;
+    width: 31px;
+    height: 31px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--hn-primary-soft);
+    color: var(--hn-primary-strong);
+  }
+
+  .hanimo-solution-card strong,
+  .hanimo-solution-card small {
+    display: block;
+  }
+
+  .hanimo-solution-card strong {
+    margin-top: 1px;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .hanimo-solution-card small {
+    margin-top: 5px;
+    color: var(--hn-fg-muted);
+    font-size: 11px;
+    font-weight: 450;
+    line-height: 1.45;
+  }
+
+  .hanimo-start i {
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--hn-border-strong);
+  }
+
   .chat-message-user {
     @apply bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700/50 rounded-2xl rounded-br-md px-4 py-3 max-w-[90%] ml-auto text-gray-900 dark:text-gray-100 break-words;
   }

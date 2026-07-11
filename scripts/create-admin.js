@@ -221,6 +221,8 @@ async function createAdmin(customEmail = null, customPassword = null) {
 
     if (existingAdminResult.rows.length > 0) {
       const existingAdmin = existingAdminResult.rows[0];
+      const rotatePassword =
+        process.env.HANIMO_ADMIN_ROTATE_PASSWORD === 'true';
       console.log('⚠️  An account with this email already exists.');
       console.log(`📧 Email: ${adminData.email}`);
       console.log(`🆔 Account ID: ${existingAdmin.id}`);
@@ -228,6 +230,15 @@ async function createAdmin(customEmail = null, customPassword = null) {
 
       // Prevent duplicate creation if already admin
       if (existingAdmin.role === 'admin') {
+        if (rotatePassword) {
+          const hashedPassword = await bcryptjs.hash(adminData.password, 12);
+          await client.query(
+            'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE email = $2',
+            [hashedPassword, adminData.email]
+          );
+          console.log('✅ Admin password rotated. The new value remains only in the local env file.');
+          return;
+        }
         console.log(
           'ℹ️  This account already has admin privileges. Skipping duplicate creation.'
         );
@@ -287,7 +298,7 @@ async function createAdmin(customEmail = null, customPassword = null) {
       console.log('');
       console.log('📋 Admin account information:');
       console.log(`📧 Email: ${adminData.email}`);
-      console.log(`🔑 Password: ${adminData.password}`);
+      console.log('🔑 Password: stored in the local environment; not printed');
       console.log(`👤 Name: ${adminData.name}`);
       console.log(`🏢 Department: ${adminData.department}`);
       console.log(`📱 Cell: ${adminData.cell}`);

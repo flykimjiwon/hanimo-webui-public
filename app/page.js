@@ -233,7 +233,6 @@ export default function Home() {
       logger.info('[Main] 토큰 상태:', {
         exists: !!token,
         length: token?.length,
-        preview: token ? token.substring(0, 50) + '...' : null
       });
 
       if (!token) {
@@ -255,7 +254,10 @@ export default function Home() {
         setUserRole(payload.role || 'user');
         setAuthChecked(true);
       } catch (error) {
-        logger.error('[Main] 토큰 파싱 실패:', error, { token: token?.substring(0, 100) });
+        logger.error('[Main] 토큰 파싱 실패:', error, {
+          tokenExists: !!token,
+          tokenLength: token?.length,
+        });
         logger.error('토큰 파싱 실패:', error);
         const loginUrl = await TokenManager.getLoginUrl();
         router.replace(loginUrl);
@@ -452,7 +454,7 @@ export default function Home() {
       <div
         id='chat-input-container'
         data-testid='chat-input-container'
-        className={`fixed bottom-0 z-30 bg-background border-t border-border transition-all duration-300 ease-in-out left-16 ${sidebarOpen ? 'lg:left-80' : 'lg:left-16'
+        className={`fixed bottom-0 z-30 bg-background border-t border-border transition-all duration-300 ease-in-out left-0 ${sidebarOpen ? 'lg:left-80' : 'lg:left-16'
           } right-0 ${loading ? 'relative' : ''}`}
       >
         {/* 맨 아래로 스크롤 버튼 - 응답 끝나고 맨 아래가 아닐 때 표시 */}

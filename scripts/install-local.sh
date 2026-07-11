@@ -5,8 +5,10 @@ VERSION="2026.07.05"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ROOT_DIR}/.env"
 PORT_VALUE="${PORT:-3000}"
+PORT_EXPLICIT=0
 START_APP=1
 SKIP_NPM_INSTALL=0
+ROTATE_ADMIN_PASSWORD=0
 DB_URI="${POSTGRES_URI:-}"
 
 usage() {
@@ -23,6 +25,8 @@ Options:
       --db-uri URI        PostgreSQL URI to write to .env
       --no-start          Install, migrate, create admin, then stop
       --skip-npm-install  Skip npm install/npm ci
+      --rotate-admin-password
+                          Generate and apply a new admin password without printing it
 
 Examples:
   ./scripts/install-local.sh --db-uri postgresql://127.0.0.1:5432/hanimo
@@ -46,6 +50,7 @@ while [[ $# -gt 0 ]]; do
         exit 2
       fi
       PORT_VALUE="$2"
+      PORT_EXPLICIT=1
       shift 2
       ;;
     --db-uri)
@@ -62,6 +67,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-npm-install)
       SKIP_NPM_INSTALL=1
+      shift
+      ;;
+    --rotate-admin-password)
+      ROTATE_ADMIN_PASSWORD=1
       shift
       ;;
     *)
@@ -131,9 +140,28 @@ ensure_env_file() {
     echo "Updated JWT_SECRET"
   fi
 
+  local credential_key
+  credential_key="$(get_env_value HANIMO_CREDENTIAL_ENCRYPTION_KEY)"
+  if [[ -z "$credential_key" || "$credential_key" == "your-credential-encryption-key-here" || ${#credential_key} -lt 32 ]]; then
+    set_env_value HANIMO_CREDENTIAL_ENCRYPTION_KEY "$(generate_secret)"
+    echo "Updated HANIMO_CREDENTIAL_ENCRYPTION_KEY"
+  fi
+
+  if [[ -z "$DB_URI" ]]; then
+    DB_URI="$(get_env_value POSTGRES_URI)"
+  fi
   if [[ -z "$DB_URI" || "$DB_URI" == *"your-password"* ]]; then
     DB_URI="postgresql://127.0.0.1:5432/hanimo"
   fi
+
+  if [[ "$PORT_EXPLICIT" -eq 0 ]]; then
+    local existing_port
+    existing_port="$(get_env_value PORT)"
+    if [[ "$existing_port" =~ ^[0-9]+$ ]]; then
+      PORT_VALUE="$existing_port"
+    fi
+  fi
+
   set_env_value POSTGRES_URI "$DB_URI"
   set_env_value PORT "$PORT_VALUE"
 
@@ -143,14 +171,40 @@ ensure_env_file() {
 
   local admin_password
   admin_password="$(get_env_value HANIMO_ADMIN_PASSWORD)"
-  if [[ -z "$admin_password" || "$admin_password" == "change-me-after-install" || ${#admin_password} -lt 12 ]]; then
+  if [[ "$ROTATE_ADMIN_PASSWORD" -eq 1 || -z "$admin_password" || "$admin_password" == "change-me-after-install" || ${#admin_password} -lt 12 ]]; then
     set_env_value HANIMO_ADMIN_PASSWORD "$(generate_secret)"
-    echo "Updated HANIMO_ADMIN_PASSWORD"
+    if [[ "$ROTATE_ADMIN_PASSWORD" -eq 1 ]]; then
+      echo "Rotated HANIMO_ADMIN_PASSWORD"
+    else
+      echo "Updated HANIMO_ADMIN_PASSWORD"
+    fi
   fi
 
   if [[ -z "$(get_env_value HANIMO_ENABLE_DESTRUCTIVE_ADMIN)" ]]; then
     set_env_value HANIMO_ENABLE_DESTRUCTIVE_ADMIN "false"
   fi
+
+  if [[ -z "$(get_env_value HANIMO_ENABLE_LABS)" ]]; then
+    set_env_value HANIMO_ENABLE_LABS "false"
+  fi
+}
+
+export_runtime_env() {
+  # The setup scripts are plain Node processes, so Next.js does not load .env
+  # for them. Export the values just written above without printing secrets.
+  export POSTGRES_URI="$DB_URI"
+  export PORT="$PORT_VALUE"
+  export JWT_SECRET="$(get_env_value JWT_SECRET)"
+  export HANIMO_CREDENTIAL_ENCRYPTION_KEY="$(get_env_value HANIMO_CREDENTIAL_ENCRYPTION_KEY)"
+  export HANIMO_ADMIN_EMAIL="$(get_env_value HANIMO_ADMIN_EMAIL)"
+  export HANIMO_ADMIN_PASSWORD="$(get_env_value HANIMO_ADMIN_PASSWORD)"
+  if [[ "$ROTATE_ADMIN_PASSWORD" -eq 1 ]]; then
+    export HANIMO_ADMIN_ROTATE_PASSWORD="true"
+  else
+    export HANIMO_ADMIN_ROTATE_PASSWORD="false"
+  fi
+  export HANIMO_ENABLE_DESTRUCTIVE_ADMIN="$(get_env_value HANIMO_ENABLE_DESTRUCTIVE_ADMIN)"
+  export HANIMO_ENABLE_LABS="$(get_env_value HANIMO_ENABLE_LABS)"
 }
 
 maybe_create_local_database() {
@@ -185,6 +239,7 @@ main() {
   need_cmd npm "Install npm with Node.js."
 
   ensure_env_file
+  export_runtime_env
   maybe_create_local_database
 
   if [[ "$SKIP_NPM_INSTALL" -eq 0 ]]; then
@@ -203,7 +258,7 @@ main() {
   echo "hanimo-webui local setup complete."
   echo "URL: http://127.0.0.1:${PORT_VALUE}"
   echo "Admin email: $(get_env_value HANIMO_ADMIN_EMAIL)"
-  echo "Admin password: $(get_env_value HANIMO_ADMIN_PASSWORD)"
+  echo "Admin password is stored in ${ENV_FILE}. It is not printed to terminal logs."
 
   if [[ "$START_APP" -eq 1 ]]; then
     npm run build

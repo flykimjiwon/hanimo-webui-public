@@ -6,8 +6,8 @@ import { useEffect } from 'react';
 
 const BRANDING_EVENT_NAME = 'hanimo-webui-site-branding-updated';
 const THEME_EVENT_NAME = 'hanimo-webui-theme-updated';
-const DEFAULT_SITE_TITLE = 'hanimo-webui';
-const DEFAULT_SITE_DESCRIPTION = 'hanimo-webui';
+const DEFAULT_SITE_TITLE = 'Hanimo';
+const DEFAULT_SITE_DESCRIPTION = 'Self-hosted AI workspace';
 const THEME_STORAGE_KEY = 'hanimo-webui-theme';
 
 const THEME_VARS = [

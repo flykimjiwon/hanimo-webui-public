@@ -1,5 +1,11 @@
 import { query } from '@/lib/postgres';
 import bcryptjs from 'bcryptjs';
+import {
+  authRateLimitConfig,
+  consumeRateLimit,
+  rateLimitKey,
+  trustedClientAddress,
+} from '@/lib/security/rate-limit.mjs';
 
 export async function POST(request) {
   const { name, email, password, department, position } = await request.json();
@@ -16,6 +22,27 @@ export async function POST(request) {
 
   // Normalize email to lowercase (prevent duplicates)
   const normalizedEmail = email.toLowerCase().trim();
+  const limitConfig = authRateLimitConfig();
+  const clientAddress = trustedClientAddress(request);
+  const identityLimit = clientAddress
+    ? consumeRateLimit(
+        rateLimitKey('auth:register:identity', normalizedEmail, clientAddress),
+        { limit: 3, windowMs: limitConfig.windowMs }
+      )
+    : { allowed: true, retryAfterSeconds: 0 };
+  const clientLimit = clientAddress
+    ? consumeRateLimit(rateLimitKey('auth:register:client', clientAddress), {
+        limit: 30,
+        windowMs: limitConfig.windowMs,
+      })
+    : { allowed: true, retryAfterSeconds: 0 };
+  if (!identityLimit.allowed || !clientLimit.allowed) {
+    const retryAfter = Math.max(identityLimit.retryAfterSeconds, clientLimit.retryAfterSeconds);
+    return Response.json(
+      { error: 'Too many sign-up attempts. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+    );
+  }
 
   // Check whether department is valid.
   // Configurable via ALLOWED_DEPARTMENTS env (comma-separated). Generic defaults for OSS.

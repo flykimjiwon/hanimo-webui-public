@@ -36,6 +36,7 @@ export default function ModelServersPage() {
   const [endpointNameInput, setEndpointNameInput] = useState('');
   const [endpointUrlInput, setEndpointUrlInput] = useState('http://localhost:11434');
   const [endpoints, setEndpoints] = useState([]); // [{name, url, provider}]
+  const [preservedCloudEndpoints, setPreservedCloudEndpoints] = useState([]);
   const [savingEndpoints, setSavingEndpoints] = useState(false);
   const [editingEndpoint, setEditingEndpoint] = useState(null); // {originalUrl, name, url, provider}
   const [showAddForm, setShowAddForm] = useState(false); // 추가 폼 표시 여부
@@ -314,7 +315,11 @@ export default function ModelServersPage() {
   // 설정에서 Ollama 서버 조회
   const fetchEndpointsFromSettings = async () => {
     try {
-      const response = await fetch('/api/admin/settings');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/settings', {
+        cache: 'no-store',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (response.ok) {
         let data;
         try {
@@ -329,8 +334,16 @@ export default function ModelServersPage() {
           logger.error('설정 JSON 파싱 실패:', parseError);
           data = {};
         }
-        const listRaw = Array.isArray(data.customEndpoints)
+        const customEndpoints = Array.isArray(data.customEndpoints)
           ? data.customEndpoints
+          : [];
+        setPreservedCloudEndpoints(
+          customEndpoints.filter(
+            (endpoint) => endpoint.provider && endpoint.provider !== 'ollama'
+          )
+        );
+        const listRaw = customEndpoints.length > 0
+          ? customEndpoints
               .filter((e) => !e.provider || e.provider === 'ollama')
               .map((e) => ({
                 name: e.name || '',
@@ -468,13 +481,17 @@ export default function ModelServersPage() {
       const uniqueList = Array.from(byNormalizedUrl.values());
 
       const body = {
-        // 신규 구조: customEndpoints를 저장, 하위호환 위해 ollamaEndpoints도 동기화됨
-        customEndpoints: uniqueList.map((e) => ({
-          name: e.name || '',
-          url: e.url,
-          provider: 'ollama',
-          isActive: e.isActive !== undefined ? e.isActive : true,
-        })),
+        // Keep cloud providers managed by /admin/providers while this legacy
+        // screen edits only Ollama endpoints.
+        customEndpoints: [
+          ...preservedCloudEndpoints,
+          ...uniqueList.map((e) => ({
+            name: e.name || '',
+            url: e.url,
+            provider: 'ollama',
+            isActive: e.isActive !== undefined ? e.isActive : true,
+          })),
+        ],
       };
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',

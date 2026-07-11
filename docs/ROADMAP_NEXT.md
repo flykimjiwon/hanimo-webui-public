@@ -1,5 +1,12 @@
 # 다음 라운드 ROADMAP — hanimo-webui 본 프로젝트
 
+> **Status: archived 2026-05 planning snapshot.** Current release truth is
+> [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) and
+> [`HANIMO_OFFICIAL_CLIENT_GATEWAY.md`](HANIMO_OFFICIAL_CLIENT_GATEWAY.md).
+> Docker/CI, opaque API keys, Labs default-off, rate limits/Origin checks, and
+> canonical-to-public export are implemented; the old salt/Docker/P0 blockers
+> below must not be treated as current state.
+
 > 2026-05 기준. hanimo-webui 본 프로젝트 한정 작업.
 > 별도 라이브러리(hanimo-pick 등)는 각자 독립 리포에서 관리합니다.
 

@@ -2,11 +2,18 @@ import logger from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { getNextModelServerEndpoint } from '@/lib/modelServers';
 import { verifyAdmin } from '@/lib/adminAuth';
+import {
+  buildGeminiModelsUrl,
+  chooseOpenAICompatibleKey,
+  decryptProviderEndpoints,
+  decryptProviderSecret,
+} from '@/lib/security/provider-credentials.mjs';
 
 export async function GET(request) {
   // Hoisted to function scope so the catch block can reference them
   // (fixes ReferenceError: endpointParam is not defined on fetch failure)
   let endpointParam = null;
+  let endpointApiKey = '';
   let provider = 'model-server';
   let modelServerUrl = '';
   try {
@@ -29,7 +36,9 @@ export async function GET(request) {
           ['general']
         );
         if (settingsResult.rows.length > 0) {
-          const customEndpoints = settingsResult.rows[0].custom_endpoints || [];
+          const customEndpoints = decryptProviderEndpoints(
+            settingsResult.rows[0].custom_endpoints || []
+          );
           // URL normalization helper (remove trailing slash)
           const normalizeUrl = (url) => {
             try {
@@ -47,6 +56,7 @@ export async function GET(request) {
             (e) => e.url && normalizeUrl(e.url) === normalizedEndpointParam
           );
           if (endpointConfig) {
+            endpointApiKey = endpointConfig.apiKey || '';
             // Auto-detect provider from URL (priority: URL > DB setting)
             const url = endpointConfig.url.toLowerCase();
             if (url.includes('generativelanguage.googleapis.com')) {
@@ -128,7 +138,7 @@ export async function GET(request) {
     // Gemini branch: /v1beta/models
     if (provider === 'gemini') {
       // Load API key from DB
-      let apiKey = '';
+      let apiKey = endpointApiKey;
       try {
         const { query } = await import('@/lib/postgres');
         const settingsResult = await query(
@@ -136,7 +146,9 @@ export async function GET(request) {
           ['general']
         );
         if (settingsResult.rows.length > 0) {
-          const customEndpoints = settingsResult.rows[0].custom_endpoints || [];
+          const customEndpoints = decryptProviderEndpoints(
+            settingsResult.rows[0].custom_endpoints || []
+          );
           const endpointConfig = customEndpoints.find(
             (e) =>
               e.url && e.url.trim() === (endpointParam || modelServerUrl).trim()
@@ -165,8 +177,11 @@ export async function GET(request) {
       const base =
         (endpointParam || modelServerUrl).replace(/\/+$/, '') ||
         'https://generativelanguage.googleapis.com';
-      const target = `${base}/v1beta/models?key=${apiKey}`;
-      const headers = { 'Content-Type': 'application/json' };
+      const target = buildGeminiModelsUrl(base);
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      };
 
       // Create AbortController for timeout handling
       let abortController = null;
@@ -303,7 +318,7 @@ export async function GET(request) {
     // OpenAI-compatible branch: /v1/models
     if (provider === 'openai-compatible') {
       // Load API key from DB or fall back to ENV
-      let apiKey = process.env.OPENAI_COMPAT_API_KEY || '';
+      let globalApiKey = '';
       try {
         const { query } = await import('@/lib/postgres');
         const settingsResult = await query(
@@ -312,7 +327,7 @@ export async function GET(request) {
         );
         const settings = settingsResult.rows[0];
         if (settings?.openai_compat_api_key) {
-          apiKey = settings.openai_compat_api_key;
+          globalApiKey = decryptProviderSecret(settings.openai_compat_api_key);
         }
       } catch (e) {
         logger.warn(
@@ -320,6 +335,12 @@ export async function GET(request) {
           e?.message || e
         );
       }
+
+      const apiKey = chooseOpenAICompatibleKey(
+        endpointApiKey,
+        globalApiKey,
+        process.env.OPENAI_COMPAT_API_KEY
+      );
 
       const base = (endpointParam || modelServerUrl).replace(/\/+$/, '');
       const path = /\/v1(\/|$)/.test(base) ? '/models' : '/v1/models';

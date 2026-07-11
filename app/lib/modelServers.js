@@ -1,4 +1,5 @@
 import logger from '@/lib/logger';
+import { decryptProviderEndpoints } from '@/lib/security/provider-credentials.mjs';
 let endpoints = []; // Store in [{ url, provider }] format
 
 function normalizeEndpointForRuntime(url) {
@@ -402,7 +403,9 @@ export async function initModelServerEndpoints() {
 
       // Prefer customEndpoints; fallback to legacy fields if absent
       // PostgreSQL query() returns snake_case — use custom_endpoints first
-      const customEps = settings?.custom_endpoints || settings?.customEndpoints;
+      const customEps = decryptProviderEndpoints(
+        settings?.custom_endpoints || settings?.customEndpoints || []
+      );
       if (
         Array.isArray(customEps) &&
         customEps.length > 0
@@ -560,7 +563,7 @@ export async function getModelServerEndpointsByName(serverName) {
   try {
     // Use cached settings
     const settings = await getSettings();
-    const customEndpoints = settings?.custom_endpoints || null;
+    const customEndpoints = decryptProviderEndpoints(settings?.custom_endpoints || []);
 
     if (customEndpoints && Array.isArray(customEndpoints)) {
       const found = customEndpoints
@@ -720,7 +723,7 @@ export async function getEndpointsByLabel(modelId) {
         // If URL-based detection fails, check cached settings
         try {
           const settings = await getSettings();
-          const customEndpoints = settings?.custom_endpoints || null;
+          const customEndpoints = decryptProviderEndpoints(settings?.custom_endpoints || []);
 
           if (customEndpoints && Array.isArray(customEndpoints)) {
             const epConfig = customEndpoints.find(
@@ -1035,8 +1038,10 @@ export function getCurrentRoundRobinIndex() {
 // @returns {Promise<{ endpoint: string, provider: string, index: number }>}
 export async function getNextModelServerEndpointWithIndex() {
   if (endpoints.length === 0) await initModelServerEndpoints();
+  if (endpoints.length === 0) return null;
   const currentIndex = cursor;
   const ep = endpoints[cursor];
+  if (!ep) return null;
   cursor = (cursor + 1) % endpoints.length;
   return {
     endpoint: ep.url || ep, // Backward compatibility

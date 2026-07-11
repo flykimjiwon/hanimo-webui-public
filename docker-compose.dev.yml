@@ -1,0 +1,6 @@
+# Deliberate development-only override. Keep the default Compose file private
+# to the application network; use this file only when host DB access is needed.
+services:
+  db:
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"

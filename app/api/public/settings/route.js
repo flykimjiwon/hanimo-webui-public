@@ -6,6 +6,9 @@ import logger from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/postgres';
 
+const DEFAULT_SITE_TITLE = 'Hanimo';
+const DEFAULT_SITE_DESCRIPTION = 'Self-hosted AI workspace';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -38,8 +41,8 @@ export async function GET() {
     return NextResponse.json(
       {
         loginType: settings.login_type || 'local',
-        siteTitle: settings.site_title || 'hanimo-webui',
-        siteDescription: settings.site_description || 'hanimo-webui',
+        siteTitle: settings.site_title || DEFAULT_SITE_TITLE,
+        siteDescription: settings.site_description || DEFAULT_SITE_DESCRIPTION,
         faviconUrl: settings.favicon_url || null,
         themePreset: settings.theme_preset || 'amber-soft',
         themeColors: settings.theme_colors || {},
@@ -61,8 +64,8 @@ export async function GET() {
     return NextResponse.json(
       {
         loginType: 'local',
-        siteTitle: 'hanimo-webui',
-        siteDescription: 'hanimo-webui',
+        siteTitle: DEFAULT_SITE_TITLE,
+        siteDescription: DEFAULT_SITE_DESCRIPTION,
         faviconUrl: null,
         themePreset: 'amber-soft',
         themeColors: {},

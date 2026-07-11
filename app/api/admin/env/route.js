@@ -66,11 +66,68 @@ function uniqueFileList(nodeEnv) {
   return Array.from(new Set([...BASE_ENV_FILES, ...modeFiles]));
 }
 
-function findMatchingFiles(snapshots, key, runtimeValue) {
-  if (!runtimeValue) return [];
+function findFilesContainingKey(snapshots, key) {
   return snapshots
-    .filter((snapshot) => snapshot.exists && snapshot.values[key] === runtimeValue)
+    .filter(
+      (snapshot) =>
+        snapshot.exists &&
+        Object.prototype.hasOwnProperty.call(snapshot.values, key)
+    )
     .map((snapshot) => snapshot.fileName);
+}
+
+export function sanitizePostgresUri(rawValue) {
+  if (!rawValue) {
+    return {
+      configured: false,
+      parseError: false,
+      protocol: null,
+      hostname: null,
+      port: null,
+      database: null,
+    };
+  }
+
+  try {
+    const parsed = new URL(rawValue);
+    const database = parsed.pathname
+      ? decodeURIComponent(parsed.pathname.replace(/^\/+/, ''))
+      : '';
+    const parsedPort = parsed.port ? Number.parseInt(parsed.port, 10) : null;
+
+    return {
+      configured: true,
+      parseError: false,
+      protocol: parsed.protocol ? parsed.protocol.replace(/:$/, '') : null,
+      hostname: parsed.hostname || null,
+      port: Number.isInteger(parsedPort) ? parsedPort : null,
+      database: database || null,
+    };
+  } catch {
+    return {
+      configured: true,
+      parseError: true,
+      protocol: null,
+      hostname: null,
+      port: null,
+      database: null,
+    };
+  }
+}
+
+function summarizeEnvSnapshot(snapshot) {
+  return {
+    fileName: snapshot.fileName,
+    exists: snapshot.exists,
+    hasNodeEnv: Object.prototype.hasOwnProperty.call(
+      snapshot.values,
+      'NODE_ENV'
+    ),
+    hasPostgresUri: Object.prototype.hasOwnProperty.call(
+      snapshot.values,
+      'POSTGRES_URI'
+    ),
+  };
 }
 
 export async function GET(request) {
@@ -88,44 +145,25 @@ export async function GET(request) {
       readEnvFileSnapshot(webRoot, fileName)
     );
 
-    const nodeEnvMatchedFiles = findMatchingFiles(
-      snapshots,
-      'NODE_ENV',
-      nodeEnv
-    );
-    const postgresUriMatchedFiles = findMatchingFiles(
-      snapshots,
-      'POSTGRES_URI',
-      postgresUri
-    );
+    const nodeEnvFiles = findFilesContainingKey(snapshots, 'NODE_ENV');
+    const postgresUriFiles = findFilesContainingKey(snapshots, 'POSTGRES_URI');
+    const postgres = sanitizePostgresUri(postgresUri);
 
     return NextResponse.json({
       success: true,
       runtime: {
-        nodeEnv,
-        postgresUri,
+        nodeEnv: {
+          configured: Boolean(nodeEnv),
+        },
+        postgres,
       },
       envFiles: {
-        projectRoot: webRoot,
         checkedOrder: fileNames,
-        nodeEnvMatchedFiles,
-        postgresUriMatchedFiles,
+        nodeEnvFiles,
+        postgresUriFiles,
         caveat:
-          'If the same value exists in multiple files, the actual final effective file cannot be determined by runtime alone.',
-        snapshots: snapshots.map((snapshot) => ({
-          fileName: snapshot.fileName,
-          exists: snapshot.exists,
-          hasNodeEnv: Object.prototype.hasOwnProperty.call(
-            snapshot.values,
-            'NODE_ENV'
-          ),
-          hasPostgresUri: Object.prototype.hasOwnProperty.call(
-            snapshot.values,
-            'POSTGRES_URI'
-          ),
-          nodeEnvValue: snapshot.values.NODE_ENV || null,
-          postgresUriValue: snapshot.values.POSTGRES_URI || null,
-        })),
+          'Only key presence and connection diagnostics are shown. Runtime values are intentionally omitted.',
+        snapshots: snapshots.map(summarizeEnvSnapshot),
       },
     });
   } catch (error) {

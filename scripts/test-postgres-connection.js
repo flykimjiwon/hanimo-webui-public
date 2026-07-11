@@ -7,18 +7,21 @@
  *   node scripts/test-postgres-connection.js
  */
 
-require('dotenv').config({ path: '.env.development' });
+require('dotenv').config({
+  path: ['.env.development.local', '.env.local', '.env.development', '.env'],
+  quiet: true,
+});
 const { Pool } = require('pg');
 
 const POSTGRES_URI = process.env.POSTGRES_URI || process.env.DATABASE_URL;
 
 if (!POSTGRES_URI) {
   console.error(
-    '❌ error POSTGRES_URI or DATABASE_URL is not defined in .env.development.'
+    '❌ error POSTGRES_URI or DATABASE_URL is not defined in local env files.'
   );
   console.error('');
   console.error('💡 How to fix:');
-  console.error('   Add the following to the .env.development file:');
+  console.error('   Add the following to .env:');
   console.error(
     '   POSTGRES_URI=postgresql://username:password@host:port/database_name'
   );

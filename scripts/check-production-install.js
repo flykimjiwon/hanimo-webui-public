@@ -8,6 +8,7 @@ const appPort = process.env.PRODUCTION_CHECK_PORT || '3130';
 const mockPort = process.env.PRODUCTION_CHECK_MOCK_PORT || '19035';
 const appUrl = `http://127.0.0.1:${appPort}`;
 const mockUrl = `http://127.0.0.1:${mockPort}`;
+const mockApiKey = 'hanimo-production-check-upstream-key';
 
 function runCommand(command, args, extraEnv = {}) {
   return new Promise((resolve, reject) => {
@@ -88,6 +89,7 @@ async function main() {
     console.log(`[production-check] start mock Ollama at ${mockUrl}`);
     mockServer = startProcess('node', ['scripts/mock-ollama.js', mockPort, 'production-check-mock'], {
       MOCK_LOADING_MS: '1',
+      MOCK_API_KEY: mockApiKey,
     });
     await waitFor(`${mockUrl}/api/version`, 'mock Ollama');
 
@@ -105,7 +107,9 @@ async function main() {
     });
     await runCommand('npm', ['run', 'test:api-tokens:db'], {
       API_TOKEN_DB_TEST_BASE_URL: appUrl,
-      API_TOKEN_DB_TEST_MODEL_SERVER_URL: mockUrl,
+      API_TOKEN_DB_TEST_MODEL_SERVER_URL: `${mockUrl}/v1`,
+      API_TOKEN_DB_TEST_MODEL_SERVER_PROVIDER: 'openai-compatible',
+      API_TOKEN_DB_TEST_MODEL_SERVER_API_KEY: mockApiKey,
     });
 
     console.log('[production-check] production install check passed');

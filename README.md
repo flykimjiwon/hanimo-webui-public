@@ -11,30 +11,38 @@
 [![Tailwind](https://img.shields.io/badge/Tailwind-4-f5a623.svg)](https://tailwindcss.com)
 [![Postgres](https://img.shields.io/badge/Postgres-15+-f5a623.svg)](https://www.postgresql.org)
 
+> **내 모델로, 바로 일하세요.** 질문하고, 만들고, 결정하는 일을 한 화면에서 이어가는 셀프호스팅 AI 워크스페이스.
+
 hanimo-webui는 Next.js 15 기반의 **오픈소스 셀프호스팅 AI 챗 + 관리자 런타임 + OpenAI 호환 API**입니다.
 
-첫 공개판의 핵심 약속은 채팅, 모델 서버 설정, 사용자/권한 관리, API 토큰, OpenAI-compatible API입니다. Workflow / Screen / RAG / MCP 계열은 삭제 대상이 아니라, 공개판에서는 Labs 또는 플러그인 후보로 분리합니다.
+공개판의 core 약속은 채팅, 모델 서버 설정, 사용자/관리자, API 토큰, OpenAI-compatible API입니다. Workflow / Screen / RAG / MCP 계열은 삭제 대상이 아니라, 공개판에서는 Labs 또는 플러그인 후보로 분리합니다.
 
-> 공개 준비 상태: P0 RCE/SSRF 계열 게이트는 `main`에서 코드 실측으로 해소됐습니다.
-> 다만 공개 전에는 `test:workflow`, `test:screen-security`, API 토큰/JWT, 관리자 DB 작업, smoke check를 다시 통과시키고, "보안 완료"가 아니라 **P0 해소 + 운영 게이트 잔여**로 표기합니다.
+> 공개 준비 상태: credential/SSRF/upload/auth/Docker 기본값을 보강하고, `hmo_` 발급부터 인증된 OpenAI-compatible 업스트림 프록시까지 standalone E2E를 통과한 release candidate입니다.
+> clean Docker 설치 harness와 CI job은 준비됐지만 이 머신에는 Docker 실행기가 없어 로컬 실행은 미확인입니다. Labs의 기존 Workflow credential은 활성화 전에 재입력이 필요하며, 이 상태는 **보안 인증 완료를 의미하지 않습니다**.
 
 ---
 
-## 주요 특징
+## 공개 Core
 
 | 기능 | 설명 |
 |------|------|
-| 멀티모델 채팅 | Ollama, OpenAI 호환, Gemini 등 여러 모델을 동시에 연결하고 방별로 선택 |
-| 에이전트/워크플로우/스크린 | 첫 공개판에서는 Labs 또는 플러그인 후보. core 안정화 후 manifest/권한/audit 모델과 함께 분리 공개 |
-| Draw (캔버스) | AI가 HTML 시각화를 생성하면 실시간 미리보기 (iframe 샌드박싱) |
-| Custom Instruction | 채팅방별 사용자 지정 시스템 프롬프트 설정 |
-| OpenAI 호환 API | `/v1/chat/completions`, `/v1/models`, `/v1/embeddings`, `/v1/rerank` |
-| 관리자 패널 | 사용자, 모델, 모델 서버, 로그, 설정, 분석 대시보드 |
-| DB 뷰어 | 관리자용 데이터베이스 조회/검색/정렬/CRUD + 컬럼 설명 툴팁 |
-| PII/커뮤니티/SSO | 첫 공개판에서는 stable core가 아닌 Labs/운영 확장 영역 |
-| 인증 | 로컬 로그인 + JWT 리프레시 토큰. SSO는 운영 확장 후보 |
-| 다국어 | 한국어 / 영어 완전 지원 (i18n) |
-| 테마 | 프리셋 + 커스텀 색상, 다크/라이트 모드 |
+| 채팅 | 방 기반 대화, 모델 선택, 스트리밍 응답, 이미지 입력 |
+| 모델 서버 설정 | Ollama, OpenAI-compatible endpoint, Gemini 등 모델 서버 연결/선택 |
+| 사용자/관리자 | 로컬 로그인, JWT refresh token, 사용자 관리, admin-only 관리 화면 |
+| API 토큰 | 사용자 토큰 발급, 1회 표시, 해시 저장, OpenAI-compatible API 인증 |
+| OpenAI-compatible API | `/v1/chat/completions`, `/v1/models`, `/v1/embeddings`, `/v1/rerank` |
+| 셀프호스팅 운영 | Docker Compose 설치, 로컬 설치, doctor, route smoke check |
+
+## Labs / Future Plugin
+
+| 영역 | 공개판 기준 |
+|------|-------------|
+| Workflow / Agents | Labs 또는 future plugin 후보. core 안정화 후 manifest/권한/audit 모델과 함께 분리 공개 |
+| Screen / Draw / Canvas | Labs 후보. iframe sandbox와 SSRF guard는 유지하지만 stable core 약속은 아님 |
+| RAG / MCP | future plugin 후보. 첫 공개판의 필수 설치/운영 범위 밖 |
+| DB viewer / destructive DB tools | 관리자 운영·유지보수 표면. 일반 사용자 기능 또는 stable public API로 약속하지 않음 |
+| PII / Community / SSO / team extensions | 운영 확장 후보. 첫 공개판 core가 아님 |
+| 다국어 / 테마 | core 사용성을 돕는 UI 기능. 별도 플랫폼 약속으로 과장하지 않음 |
 
 ---
 
@@ -52,6 +60,18 @@ hanimo-webui는 Next.js 15 기반의 **오픈소스 셀프호스팅 AI 챗 + 관
 | 패키지 매니저 | npm |
 | 기본 배포 | Docker Compose |
 
+## 보안·운영 경계
+
+- 모델 프록시는 호출자의 임의 헤더를 전달하지 않고, 관리자 설정의 endpoint credential만 사용합니다.
+- 외부 API 로그는 기본적으로 프롬프트 본문을 저장하지 않습니다. 제한된 본문 기록이 필요한 개발 환경에서만 `HANIMO_LOG_PROMPT_CONTENT=true`를 명시하세요.
+- Workflow custom endpoint는 실험 기능이며, 공개/사설 네트워크 및 redirect 정책을 검사합니다. credential은 `HANIMO_CREDENTIAL_ENCRYPTION_KEY`가 없으면 저장되지 않습니다.
+- `HANIMO_CREDENTIAL_ENCRYPTION_KEY`는 설치 스크립트가 생성하는 32바이트 이상 키입니다. 키를 잃으면 저장된 provider credential을 복구할 수 없습니다.
+- 기존 버전의 Workflow 평문 credential은 자동 사용하지 않습니다. 키를 설정한 뒤 다시 입력해야 합니다.
+- Labs 페이지와 API는 기본적으로 404를 반환합니다. 실험 범위를 이해한 운영자만 `.env`에 `HANIMO_ENABLE_LABS=true`를 설정해 활성화하세요.
+- 로그인·회원가입·refresh에는 기본 rate limit이 적용됩니다. 브라우저 쿠키가 포함된 상태 변경 요청은 same-origin이어야 합니다.
+- reverse proxy 뒤에서 운영할 때는 `HANIMO_PUBLIC_URL`을 실제 공개 origin으로 설정하고, 전달 IP를 통제하는 프록시에서만 `HANIMO_TRUST_PROXY=true`를 사용하세요.
+- `hmo_` API Key를 사용하는 `/api/v1/*` 서버 간 호출은 브라우저 cookie CSRF 정책과 분리되어 Hanimo Code·VS Code 같은 공식 클라이언트가 사용할 수 있습니다.
+
 ---
 
 ## 빠른 시작
@@ -61,7 +81,7 @@ hanimo-webui는 Next.js 15 기반의 **오픈소스 셀프호스팅 AI 챗 + 관
 사전 요구사항은 **Docker Desktop** 하나입니다. 로컬 PostgreSQL 설치는 필요 없습니다.
 
 ```bash
-git clone https://github.com/flykimjiwon/hanimo-webui.git
+git clone https://github.com/flykimjiwon/hanimo-webui-public.git hanimo-webui
 cd hanimo-webui
 ./scripts/install.sh
 ```
@@ -70,7 +90,7 @@ cd hanimo-webui
 
 | 단계 | 내용 |
 |---|---|
-| 환경 파일 | `.env` 생성, 강한 `JWT_SECRET` 자동 생성, `PORT` 반영 |
+| 환경 파일 | `.env` 생성, 강한 `JWT_SECRET`·`HANIMO_CREDENTIAL_ENCRYPTION_KEY` 자동 생성, `PORT` 반영 |
 | 컨테이너 | PostgreSQL 15 + Next.js app을 `docker compose up -d --build`로 실행 |
 | 부트스트랩 | app 컨테이너에서 DB 스키마와 기본 관리자 계정 생성 |
 | 검증 | `/api/public/settings`, 주요 페이지, 보호 API 401 경계 smoke check |
@@ -90,12 +110,22 @@ open http://localhost:3000
 
 `./scripts/install.sh`는 `.env`가 없거나 placeholder 값이면 강한 초기 비밀번호를 자동 생성합니다. 첫 로그인 후 비밀번호를 변경하세요.
 
+로그인 후 **관리자 → AI 공급사 연결**에서 Ollama·Novita·OpenRouter·OpenAI·DeepSeek·Gemini 프리셋 또는 Custom OpenAI-compatible 주소를 저장할 수 있습니다. 프리셋은 연결값만 채우며, 실제 통신은 공통 호환 어댑터를 사용합니다.
+
 설치 점검:
 
 ```bash
 ./scripts/doctor.sh
 ./scripts/doctor.sh --json
 ```
+
+릴리스 전 깨끗한 Docker 설치 검증:
+
+```bash
+npm run test:docker-install
+```
+
+이 검증은 임시 PostgreSQL 볼륨과 mock provider를 사용해 관리자 로그인, `hmo_` API Key 발급, OpenAI-compatible 모델 조회와 채팅 프록시를 확인한 뒤 테스트 전용 자원만 정리합니다.
 
 ### 로컬 개발 경로
 
@@ -133,17 +163,17 @@ npm run start        # 프로덕션 서버 실행
 hanimo-webui/
 ├── app/                    # Next.js 앱 라우트
 │   ├── admin/              # 관리자 UI 페이지
-│   │   ├── database/       #   DB 뷰어 (테이블 조회/CRUD)
+│   │   ├── database/       #   DB 유지보수/조회 (관리자 운영 표면)
 │   │   ├── users/          #   사용자 관리 (역할 변경, 삭제)
 │   │   ├── menus/          #   메뉴 관리
-│   │   ├── settings/       #   사이트 설정 (테마, Draw, 위젯)
+│   │   ├── settings/       #   사이트/모델/채팅 설정
 │   │   └── ...             #   대시보드, 로그, 분석 등
 │   ├── api/                # API 라우트
 │   │   ├── v1/             #   OpenAI 호환 API
 │   │   ├── admin/          #   관리자 API
 │   │   └── webapp-chat/    #   채팅 API
 │   ├── components/         # 공유 UI 컴포넌트
-│   │   ├── chat/           #   채팅 관련 (ChatInput, MessageList, Sidebar, DrawPreviewPanel)
+│   │   ├── chat/           #   채팅 관련 (ChatInput, MessageList, Sidebar 등)
 │   │   ├── ui/             #   shadcn/ui 기본 컴포넌트
 │   │   └── ...             #   PatchNotesModal, NoticePopup 등
 │   ├── hooks/              # React 커스텀 훅
@@ -163,7 +193,7 @@ hanimo-webui/
 
 ---
 
-## 주요 기능 상세 가이드
+## Core 사용 흐름
 
 ### 채팅
 
@@ -172,15 +202,6 @@ hanimo-webui/
 3. 메시지 입력 후 전송 — 실시간 스트리밍 응답
 4. 이미지 업로드 (드래그&드롭 또는 클립보드 붙여넣기) 지원
 
-### Draw (캔버스) 모드
-
-1. 채팅 입력창 좌측의 **붓 아이콘**을 클릭하여 Draw 모드 활성화
-2. "차트 그려줘", "대시보드 만들어줘" 등 요청
-3. AI가 HTML 코드를 생성하면 **미리보기 패널**에서 실시간 확인
-4. 코드 복사 또는 새 탭에서 열기 가능
-
-> 관리자가 설정 > Draw에서 활성화해야 사용 가능합니다.
-
 ### Custom Instruction (사용자 지정 프롬프트)
 
 1. 채팅 입력창의 **사람 아이콘**을 클릭
@@ -188,23 +209,30 @@ hanimo-webui/
 3. 활성화 토글을 켜고 저장
 4. 해당 채팅방의 모든 대화에 자동 적용
 
+### Labs / 운영 확장 경계
+
+Workflow, Screen, Draw, RAG, MCP, SSO, 커뮤니티/팀 확장, 고급 DB 도구는 현재 코드에 일부 route 또는 UI가 남아 있을 수 있습니다. 공개 core의 안정 기능으로 약속하지 않으며, 별도 plugin/Labs 보안 모델과 운영 문서가 준비된 뒤 분리합니다.
+
 ### 관리자 패널
 
 `http://localhost:3000/admin`으로 접속 (admin 역할 필요)
 
-| 메뉴 | 기능 |
-|------|------|
-| 대시보드 | 사용자/메시지/토큰 통계, 인기 모델 차트, 시스템 상태 |
+| 메뉴 | 공개판 기준 |
+|------|-------------|
+| 대시보드 | 사용자/메시지/토큰 통계, 모델 사용 현황, 시스템 상태 |
 | 사용자 관리 | 검색/필터, 역할 변경, 삭제 |
-| 모델 관리 | 드래그&드롭 정렬, 활성화/비활성화, PII 설정, 카테고리 분류 |
-| 에이전트 | Labs 또는 플러그인 후보 |
-| 설정 | 사이트 브랜딩, 테마, Draw 설정, 채팅 위젯, 엔드포인트 |
-| DB 관리 | DB 뷰어 (테이블 조회/검색/CRUD), 스키마 수복, 백업/복원 |
+| 모델 관리 | 모델 및 모델 서버 설정, 활성화/비활성화, 정렬 |
+| 설정 | 사이트 브랜딩, 테마, 채팅/엔드포인트 설정 |
+| API 토큰 | 토큰 발급, 1회 표시, 해시 저장 기반 인증 |
 | 로그 | 메시지 로그, 외부 API 로그, 보안 로그 |
+| Agents / DB 관리 / Screen | Labs 또는 관리자 운영 표면. 첫 공개판 core 약속이 아님 |
 
 ### OpenAI 호환 API
 
 외부 도구(Continue, Cursor 등)에서 hanimo-webui를 AI 서버로 사용할 수 있습니다:
+
+Hanimo Code와 Hanimo VS Code 확장은 다음 단계에서 이 동일한 계약에
+연결합니다. 기준 문서는 [Hanimo 공식 클라이언트 게이트웨이 계약](docs/HANIMO_OFFICIAL_CLIENT_GATEWAY.md)입니다.
 
 ```bash
 # 채팅 요청
@@ -221,7 +249,7 @@ curl http://localhost:3000/v1/models \
   -H "Authorization: Bearer YOUR_API_TOKEN"
 ```
 
-> API 토큰은 관리자 패널 > 설정에서 발급받을 수 있습니다.
+> API 토큰은 로그인 후 `/my-api-keys`에서 발급받습니다. `hmo_` 원문은 한 번만 표시됩니다.
 
 ---
 
@@ -273,6 +301,7 @@ docker compose down
 | 명령어 | 설명 |
 |--------|------|
 | `npm run install:selfhost` | Docker Compose 기반 원클릭 설치 |
+| `npm run install:docker` | `install:selfhost`와 같은 Docker 설치 경로 |
 | `npm run install:local` | macOS/Linux 로컬 Node + PostgreSQL 설치 경로 |
 | `npm run doctor` | Node/Docker/env/app/DB 상태 점검 |
 | `npm run scan:public` | public export 전 금지어/비밀 패턴 검사 |
@@ -285,6 +314,10 @@ docker compose down
 | `npm run create-admin:interactive` | 대화형 관리자 계정 생성 |
 | `npm run test-postgres` | DB 연결 테스트 |
 | `npm run test:ollama` | Ollama 엔드포인트 테스트 |
+| `npm run test:workflow` | Workflow condition RCE 회귀 테스트 |
+| `npm run test:screen-security` | Screen share/outbound SSRF 회귀 테스트 |
+| `npm run test:api-tokens` | API token 저장/표시 보안 테스트 |
+| `npm run test:admin-policy` | 관리자 정책 회귀 테스트 |
 | `npm run smoke` | 공개 페이지와 보호 API 경계 smoke check |
 | `npm run lint` | ESLint 검사 |
 

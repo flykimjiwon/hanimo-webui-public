@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/postgres';
 import { verifyTokenWithResult } from '@/lib/auth';
+import { prepareWorkflowEndpoint } from '@/lib/security/workflow-endpoint.mjs';
 
 // GET: list custom endpoints for a workflow
 export async function GET(request, { params }) {
@@ -47,11 +48,21 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: '이름과 URL은 필수입니다' }, { status: 400 });
   }
 
+  let normalizedEndpoint;
+  let encryptedApiKey = '';
+  try {
+    const prepared = await prepareWorkflowEndpoint({ endpointUrl, apiKey });
+    normalizedEndpoint = prepared.normalizedEndpoint;
+    encryptedApiKey = prepared.encryptedApiKey;
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: error.statusCode || 400 });
+  }
+
   const result = await query(
     `INSERT INTO workflow_endpoints (workflow_id, name, endpoint_url, api_key_encrypted, provider_type, model_name)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id, name, endpoint_url, provider_type, model_name, created_at`,
-    [id, name.trim(), endpointUrl.trim(), apiKey || null, providerType || 'openai-compat', modelName || null]
+    [id, name.trim(), normalizedEndpoint, encryptedApiKey || null, providerType || 'openai-compat', modelName || null]
   );
 
   return NextResponse.json({ endpoint: result.rows[0] }, { status: 201 });

@@ -15,6 +15,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { memo, useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
+import HanimoMark from '@/components/brand/HanimoMark';
 
 const Glyph = ({ d, size = 18 }) => (
   <svg
@@ -90,8 +91,6 @@ function SidebarRail({ onNew, onOpenSidebar, userRole }) {
 
   const isChat = pathname === '/' || pathname.startsWith('/chat');
   const isBoard = pathname.startsWith('/board') || pathname.startsWith('/notice');
-  const isWorkflow = pathname.startsWith('/workflow');
-  const isScreenBuilder = pathname.startsWith('/screen-builder');
   const isAdmin = pathname.startsWith('/admin');
   const isProfile = pathname.startsWith('/profile') || pathname.startsWith('/my-api');
 
@@ -119,21 +118,7 @@ function SidebarRail({ onNew, onOpenSidebar, userRole }) {
       className='fixed left-0 top-0 bottom-0 z-30 hidden lg:flex flex-col items-center justify-between w-16 py-3.5 bg-[var(--hn-surface)] border-r border-border'
     >
       <div className='flex flex-col items-center gap-3'>
-        {/* hanimo mark */}
-        <div
-          aria-hidden='true'
-          className='relative'
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 8,
-            background: 'var(--hn-primary, #f5a623)',
-            boxShadow: '0 4px 12px -4px rgba(245,166,35,.4)',
-          }}
-        >
-          <span style={{ position: 'absolute', left: 6, right: 6, top: 9, height: 2, background: 'var(--hn-primary-fg, #fff)', borderRadius: 1 }} />
-          <span style={{ position: 'absolute', left: 6, right: 6, top: 16, height: 2, background: 'var(--hn-primary-fg, #fff)', borderRadius: 1, opacity: 0.55 }} />
-        </div>
+        <HanimoMark size={32} />
 
         {/* new chat */}
         <button
@@ -167,8 +152,6 @@ function SidebarRail({ onNew, onOpenSidebar, userRole }) {
         <nav className='flex flex-col items-center gap-1'>
           <NavBtn icon={ICON.chat}    label='채팅'    active={isChat}    onClick={() => router.push('/')} />
           <NavBtn icon={ICON.board}   label='게시판'   active={isBoard}   onClick={() => router.push('/board')} />
-          <NavBtn icon={ICON.workflow} label='워크플로' active={isWorkflow} onClick={() => router.push('/workflow')} />
-          <NavBtn icon={ICON.screen} label='스크린 빌더' active={isScreenBuilder} onClick={() => router.push('/screen-builder')} />
           {showAdmin && (
             <NavBtn icon={ICON.admin} label='관리자'   active={isAdmin}   onClick={() => router.push('/admin')} />
           )}

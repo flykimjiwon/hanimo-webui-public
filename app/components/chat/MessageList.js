@@ -3,12 +3,13 @@
 import { useState, useRef, useEffect, useMemo, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { MessageCircle, Check, Copy, ThumbsUp, ThumbsDown } from '@/components/icons';
-import { Paintbrush2, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Code2, Paintbrush2, PenLine, ScanSearch } from 'lucide-react';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import TypingAnimation from '../TypingAnimation';
 const DrawPreviewPanel = dynamic(() => import('./DrawPreviewPanel'), { ssr: false });
 import { logger } from '@/lib/logger';
 import { useTranslation } from '@/hooks/useTranslation';
+import HanimoMark from '@/components/brand/HanimoMark';
 
 const MarkdownPreview = dynamic(() => import('@uiw/react-markdown-preview'), {
   ssr: false,
@@ -348,15 +349,6 @@ const SafeMarkdown = memo(function SafeMarkdown({ source }) {
   );
 });
 
-// 시간대별 인사말 (5시 미만=늦은 밤 / 12시 미만=좋은 아침 / 18시 미만=좋은 오후 / 그 외=좋은 저녁)
-function hnTimeGreeting() {
-  const h = new Date().getHours();
-  if (h < 5) return '늦은 밤이에요';
-  if (h < 12) return '좋은 아침이에요';
-  if (h < 18) return '좋은 오후예요';
-  return '좋은 저녁이에요';
-}
-
 // userEmail에서 표시 이름 추출 (@ 앞부분). 없으면 null.
 function hnNameFromEmail(email) {
   if (!email || typeof email !== 'string') return null;
@@ -382,13 +374,29 @@ function MessageList({
   // greet 빈 상태용 인사 이름 (이메일 → @ 앞부분, 없으면 greet_title 폴백)
   const userName = hnNameFromEmail(userEmail);
 
-  // 인텐트 칩: 표시 라벨 + 작곡기에 시드될 문자열 (이미 존재하는 i18n 키만 사용)
+  // 첫 화면은 기능 목록이 아니라 사용자가 해결하려는 일 3가지로 압축한다.
   const intentChips = [
-    { key: 'write', label: t('chat.intent_write'), seed: t('chat.intent_write_seed') },
-    { key: 'analyze', label: t('chat.intent_analyze'), seed: t('chat.intent_analyze_seed') },
-    { key: 'code', label: t('chat.intent_code'), seed: t('chat.intent_code_seed') },
-    { key: 'summarize', label: t('chat.intent_summarize'), seed: t('chat.intent_summarize_seed') },
-    { key: 'translate', label: t('chat.intent_translate'), seed: t('chat.intent_translate_seed') },
+    {
+      key: 'write',
+      icon: PenLine,
+      label: t('chat.solution_create_title'),
+      description: t('chat.solution_create_desc'),
+      seed: t('chat.intent_write_seed'),
+    },
+    {
+      key: 'analyze',
+      icon: ScanSearch,
+      label: t('chat.solution_analyze_title'),
+      description: t('chat.solution_analyze_desc'),
+      seed: t('chat.intent_analyze_seed'),
+    },
+    {
+      key: 'code',
+      icon: Code2,
+      label: t('chat.solution_code_title'),
+      description: t('chat.solution_code_desc'),
+      seed: t('chat.intent_code_seed'),
+    },
   ];
 
   // 방제목 생성 관련 디버그 메시지 필터링
@@ -527,38 +535,54 @@ function MessageList({
         <div
           id='message-list-empty'
           data-testid='message-list-empty'
-          className='flex flex-col items-center justify-center text-center min-h-[60vh] gap-4 px-4 py-10'
+          className='hanimo-start flex min-h-[60vh] w-full flex-col items-center justify-center px-1 py-10 text-center sm:px-4'
         >
-          {/* greet 마크 — Sparkles */}
-          <Sparkles className='w-10 h-10 text-primary' aria-hidden='true' />
-          {/* 시간대 인사말 (이름은 이메일 @ 앞부분, 없으면 greet_title 폴백) */}
-          <h1 className='text-2xl sm:text-3xl font-bold tracking-tight text-foreground m-0'>
+          <div className='hanimo-start__eyebrow'>
+            <HanimoMark size={24} />
+            <span>{t('chat.solution_kicker')}</span>
+            <span className='hanimo-start__ready'>{t('chat.solution_ready')}</span>
+          </div>
+
+          <p className='mb-2 mt-7 text-[12px] font-semibold text-[var(--hn-primary-strong)]'>
             {userName
-              ? `${hnTimeGreeting()}, ${userName}님`
+              ? t('chat.greet_personal', { name: userName })
               : t('chat.greet_title')}
-          </h1>
-          <p className='text-sm text-muted-foreground max-w-[520px] m-0 leading-relaxed'>
-            {t('chat.greet_sub')}
           </p>
-          {/* 인텐트 칩 — 클릭 시 onIntentSelect(seed)로 작곡기에 시드만 채움 (자동 전송 X) */}
-          <div className='flex flex-wrap gap-2 justify-center mt-2'>
+          <h1 className='m-0 max-w-[720px] text-balance text-[30px] font-bold leading-[1.15] tracking-[-0.035em] text-[var(--hn-fg)] sm:text-[42px]'>
+            {t('chat.solution_title')}
+          </h1>
+          <p className='m-0 mt-4 max-w-[580px] text-balance text-sm leading-6 text-[var(--hn-fg-muted)] sm:text-[15px]'>
+            {t('chat.solution_sub')}
+          </p>
+
+          <div className='mt-8 grid w-full max-w-[780px] grid-cols-1 gap-2.5 text-left sm:grid-cols-3'>
             {intentChips.map((chip) => (
               <button
                 key={chip.key}
                 type='button'
-                role='button'
                 aria-label={chip.label}
                 onClick={() => onIntentSelect && onIntentSelect(chip.seed)}
-                className='inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background hover:bg-accent text-sm font-medium transition-colors cursor-pointer'
+                className='hanimo-solution-card group'
               >
-                {chip.label}
+                <span className='hanimo-solution-card__icon'>
+                  <chip.icon className='h-[17px] w-[17px]' aria-hidden='true' />
+                </span>
+                <span className='min-w-0 flex-1'>
+                  <strong>{chip.label}</strong>
+                  <small>{chip.description}</small>
+                </span>
+                <ArrowUpRight className='h-4 w-4 text-[var(--hn-fg-muted)] transition-transform duration-[var(--hn-dur-fast)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--hn-primary-strong)]' aria-hidden='true' />
               </button>
             ))}
           </div>
-          {/* 하단 힌트 */}
-          <p className='text-[11.5px] text-muted-foreground mt-3.5 opacity-75'>
-            {t('chat.input_hint')} · {t('chat.image_drag_hint_full')}
-          </p>
+
+          <div className='mt-7 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--hn-fg-muted)]'>
+            <span>{t('chat.solution_proof_self_hosted')}</span>
+            <i aria-hidden='true' />
+            <span>{t('chat.solution_proof_openai')}</span>
+            <i aria-hidden='true' />
+            <span>{t('chat.solution_proof_models')}</span>
+          </div>
         </div>
       ) : (
         (() => {

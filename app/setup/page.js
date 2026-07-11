@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import HanimoMark from '@/components/brand/HanimoMark';
 
 export default function SetupPage() {
   const router = useRouter();
@@ -78,11 +79,11 @@ export default function SetupPage() {
 
   // P1: display-only stepper — step 0,1 done; step 2 active (admin account); steps 3,4 pending
   const setupSteps = [
-    { label: '시작', icon: Sparkles },
-    { label: '데이터베이스', icon: Database },
-    { label: '관리자 계정', icon: ShieldCheck },
-    { label: '모델 연결', icon: Cpu },
-    { label: '완료', icon: Check },
+    { label: t('setup.step_start'), icon: Sparkles },
+    { label: t('setup.step_database'), icon: Database },
+    { label: t('setup.step_admin'), icon: ShieldCheck },
+    { label: t('setup.step_model'), icon: Cpu },
+    { label: t('setup.step_done'), icon: Check },
   ];
   const activeStep = 2;
 
@@ -133,27 +134,13 @@ export default function SetupPage() {
         >
           {/* Brand row */}
           <div className='flex items-center gap-2 mb-6'>
-            <div
-              aria-hidden='true'
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: 'var(--hn-primary)',
-                position: 'relative',
-                flexShrink: 0,
-                boxShadow: '0 4px 12px -4px rgba(245,166,35,.45)',
-              }}
-            >
-              <span style={{ position: 'absolute', left: 6, right: 6, top: 9, height: 2.5, background: 'var(--hn-primary-fg)', borderRadius: 2 }} />
-              <span style={{ position: 'absolute', left: 6, right: 6, top: 16, height: 2.5, background: 'var(--hn-primary-fg)', borderRadius: 2, opacity: 0.55 }} />
-            </div>
-            <span className='font-bold text-base' style={{ color: 'var(--hn-fg)' }}>hanimo</span>
+            <HanimoMark size={32} />
+            <span className='font-bold text-base' style={{ color: 'var(--hn-fg)' }}>Hanimo</span>
           </div>
 
           {/* Sub-label */}
           <p className='text-xs mb-8' style={{ color: 'var(--hn-fg-muted)' }}>
-            셀프호스팅 설치
+            {t('setup.brand_sub')}
           </p>
 
           {/* Stepper */}

@@ -17,12 +17,15 @@ if (process.stdout.isTTY === false) {
   process.stderr._handle?.setBlocking?.(true);
 }
 
-// In Docker, .env.development may not exist, so load it optionally
+// Match the local Next.js env precedence for standalone setup scripts.
 try {
-  require('dotenv').config({ path: '.env.development' });
+  require('dotenv').config({
+    path: ['.env.development.local', '.env.local', '.env.development', '.env'],
+    quiet: true,
+  });
 } catch (e) {
   console.warn(
-    '[create-postgres-schema] Failed to load .env.development:',
+    '[create-postgres-schema] Failed to load local env files:',
     e?.message
   );
 }

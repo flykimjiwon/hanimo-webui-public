@@ -124,8 +124,8 @@ if (typeof window !== 'undefined') {
 
 // Next.js 15 App Router에서 metadata API 사용
 export const metadata = {
-  title: 'hanimo-webui',
-  description: 'hanimo-webui - Open-source self-hosted AI platform',
+  title: 'Hanimo',
+  description: 'Hanimo - Self-hosted AI workspace and OpenAI-compatible gateway',
   icons: {
     icon: [
       { url: '/icon.svg', type: 'image/svg+xml' },

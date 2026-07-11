@@ -5,13 +5,59 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { runAutoMigration } from '@/lib/autoMigrate';
 import { NextResponse } from 'next/server';
+import {
+  authRateLimitConfig,
+  clearRateLimit,
+  consumeRateLimit,
+  rateLimitKey,
+  trustedClientAddress,
+} from '@/lib/security/rate-limit.mjs';
 
+function rateLimited(retryAfterSeconds) {
+  return NextResponse.json(
+    { error: 'Too many login attempts. Please try again later.' },
+    { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+  );
+}
 
 export async function POST(request) {
-  const { email, password } = await request.json();
+  let credentials;
+  try {
+    credentials = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid login request.' }, { status: 400 });
+  }
+  const { email, password } = credentials || {};
 
   // Normalize email to lowercase (prevent duplicates)
   const normalizedEmail = email?.toLowerCase().trim();
+  if (!normalizedEmail || typeof password !== 'string') {
+    return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
+  }
+
+  const limitConfig = authRateLimitConfig();
+  const clientAddress = trustedClientAddress(request);
+  const identityKey = clientAddress
+    ? rateLimitKey('auth:login:identity', normalizedEmail, clientAddress)
+    : null;
+  const clientKey = clientAddress
+    ? rateLimitKey('auth:login:client', clientAddress)
+    : null;
+  const identityLimit = identityKey
+    ? consumeRateLimit(identityKey, {
+        limit: limitConfig.identityLimit,
+        windowMs: limitConfig.windowMs,
+      })
+    : { allowed: true, retryAfterSeconds: 0 };
+  const clientLimit = clientKey
+    ? consumeRateLimit(clientKey, {
+        limit: limitConfig.clientLimit,
+        windowMs: limitConfig.windowMs,
+      })
+    : { allowed: true, retryAfterSeconds: 0 };
+  if (!identityLimit.allowed || !clientLimit.allowed) {
+    return rateLimited(Math.max(identityLimit.retryAfterSeconds, clientLimit.retryAfterSeconds));
+  }
 
   const result = await query(
     'SELECT id, email, password_hash, name, department, cell, role, auth_type FROM users WHERE email = $1',
@@ -19,12 +65,7 @@ export async function POST(request) {
   );
 
   if (result.rows.length === 0) {
-    return new Response(
-      JSON.stringify({ error: 'Email does not exist.' }),
-      {
-        status: 401,
-      }
-    );
+    return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
   }
 
   const user = result.rows[0];
@@ -41,23 +82,15 @@ export async function POST(request) {
 
   // If password_hash is missing (abnormal case)
   if (!user.password_hash) {
-    return new Response(
-      JSON.stringify({ error: 'Password is not set for this account. Please contact an administrator.' }),
-      {
-        status: 401,
-      }
-    );
+    return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
   }
 
   const match = await bcryptjs.compare(password, user.password_hash);
   if (!match) {
-    return new Response(
-      JSON.stringify({ error: 'Incorrect password.' }),
-      {
-        status: 401,
-      }
-    );
+    return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
   }
+
+  if (identityKey) clearRateLimit(identityKey);
 
   // Update last login time
   await query(

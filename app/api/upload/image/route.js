@@ -4,6 +4,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { verifyToken } from '@/lib/auth';
 import { randomBytes } from 'crypto';
+import { detectImageMagic } from '@/lib/security/image-magic.mjs';
 
 export async function POST(request) {
   try {
@@ -26,17 +27,24 @@ export async function POST(request) {
       return NextResponse.json({ error: 'File size cannot exceed 10MB.' }, { status: 400 });
     }
 
-    // Validate file extension
+    // Validate the declared type and the actual file signature. Never trust the
+    // client-provided filename or MIME type for a public upload path.
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ error: 'Unsupported file type. (Only JPG, PNG, GIF, and WebP are supported)' }, { status: 400 });
     }
 
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const detectedType = detectImageMagic(buffer, { maxDecodedBytes: maxSize });
+    if (!detectedType || !allowedTypes.includes(detectedType.mime)) {
+      return NextResponse.json({ error: 'The uploaded file is not a valid supported image.' }, { status: 400 });
+    }
+
     // Generate filename (timestamp + random + extension)
     const timestamp = Date.now();
     const random = randomBytes(8).toString('hex');
-    const extension = file.name.split('.').pop();
-    const fileName = `${timestamp}_${random}.${extension}`;
+    const fileName = `${timestamp}_${random}${detectedType.extension}`;
 
     // Create upload directory
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'images');
@@ -49,8 +57,6 @@ export async function POST(request) {
     }
 
     // Save file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
     const filePath = join(uploadDir, fileName);
     
     await writeFile(filePath, buffer);

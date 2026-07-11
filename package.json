@@ -1,7 +1,7 @@
 {
   "name": "hanimo-webui",
   "version": "0.1.0",
-  "description": "hanimo-webui - Open-source self-hosted AI chat and agent platform",
+  "description": "hanimo-webui - Open-source self-hosted AI chat, admin runtime, and OpenAI-compatible API",
   "keywords": [
     "ai",
     "chat",
@@ -13,13 +13,13 @@
     "postgresql",
     "hanimo"
   ],
-  "homepage": "https://github.com/flykimjiwon/hanimo-webui#readme",
+  "homepage": "https://github.com/flykimjiwon/hanimo-webui-public#readme",
   "bugs": {
-    "url": "https://github.com/flykimjiwon/hanimo-webui/issues"
+    "url": "https://github.com/flykimjiwon/hanimo-webui-public/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flykimjiwon/hanimo-webui.git"
+    "url": "git+https://github.com/flykimjiwon/hanimo-webui-public.git"
   },
   "license": "Apache-2.0",
   "author": "Kim Jiwon (김지원) (https://github.com/flykimjiwon)",
@@ -39,7 +39,11 @@
     "doctor": "bash scripts/doctor.sh",
     "scan:public": "node scripts/scan-public-release.js --tracked",
     "export:public": "node scripts/prepare-public-export.js",
+    "verify:public": "node scripts/check-public-export.js",
     "lint": "eslint",
+    "audit:dependencies": "npm audit --audit-level=high",
+    "test:security": "node --test tests/security/*.test.mjs",
+    "test:parity": "node scripts/check-security-parity.mjs",
     "test:api-tokens": "node scripts/test-api-token-security.js",
     "test:api-tokens:db": "node scripts/test-api-token-db.js",
     "test:admin-policy": "node scripts/test-admin-policy.js",
@@ -48,6 +52,7 @@
     "test:ollama": "node scripts/test-ollama-endpoints.js",
     "smoke": "node scripts/smoke-routes.js",
     "check:production": "node scripts/check-production-install.js",
+    "test:docker-install": "node scripts/check-docker-install.js",
     "mock-ollama": "node scripts/mock-ollama.js",
     "create-admin": "node scripts/create-admin.js",
     "create-admin:interactive": "node scripts/create-admin.js --interactive",
@@ -71,7 +76,7 @@
     "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.542.0",
-    "next": "15.5.9",
+    "next": "15.5.20",
     "pg": "^8.16.3",
     "radix-ui": "^1.4.3",
     "react": "19.2.1",
@@ -92,8 +97,11 @@
     "cross-env": "^7.0.3",
     "dotenv": "^17.2.2",
     "eslint": "^9",
-    "eslint-config-next": "15.5.0",
+    "eslint-config-next": "15.5.20",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "postcss": "8.5.16"
   },
   "packageManager": "npm@10.8.2"
 }

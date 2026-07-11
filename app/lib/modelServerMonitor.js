@@ -1,5 +1,10 @@
 import logger from '@/lib/logger';
 import { query } from './postgres';
+import {
+  buildGeminiModelsUrl,
+  decryptProviderEndpoints,
+  decryptProviderSecret,
+} from './security/provider-credentials.mjs';
 
 // Docker environment detection function
 function isDockerEnvironment() {
@@ -64,7 +69,7 @@ export async function getModelServerEndpoints() {
         settingsResult.rows.length > 0 ? settingsResult.rows[0] : null;
 
       // Prefer customEndpoints; use legacy field if missing
-      const customEndpoints = settings?.custom_endpoints || null;
+      const customEndpoints = decryptProviderEndpoints(settings?.custom_endpoints || []);
       if (
         customEndpoints &&
         Array.isArray(customEndpoints) &&
@@ -178,7 +183,7 @@ export async function getAllEndpoints() {
     );
     const settings =
       settingsResult.rows.length > 0 ? settingsResult.rows[0] : null;
-    const customEndpoints = settings?.custom_endpoints || null;
+    const customEndpoints = decryptProviderEndpoints(settings?.custom_endpoints || []);
 
     // Collect inactive server URL list (from customEndpoints)
     const inactiveUrls = new Set();
@@ -302,7 +307,7 @@ async function getInactiveUrls() {
     );
     const settings =
       settingsResult.rows.length > 0 ? settingsResult.rows[0] : null;
-    const customEndpoints = settings?.custom_endpoints || null;
+    const customEndpoints = decryptProviderEndpoints(settings?.custom_endpoints || []);
 
     const inactiveUrls = new Set();
     if (customEndpoints && Array.isArray(customEndpoints)) {
@@ -613,7 +618,7 @@ export async function checkOpenAICompatibleHealth(endpoint) {
     );
     const settings =
       settingsResult.rows.length > 0 ? settingsResult.rows[0] : null;
-    const apiKey = settings?.openai_compat_api_key || '';
+    const apiKey = decryptProviderSecret(settings?.openai_compat_api_key || '');
 
     // Convert localhost to host.docker.internal in Docker environments
     const normalizedBaseUrl = normalizeEndpointUrl(endpoint.url);
@@ -763,7 +768,7 @@ export async function checkOpenAICompatibleHealth(endpoint) {
 
 /**
  * Check Gemini instance health
- * GET {base}/v1beta/models?key={apiKey}
+ * GET {base}/v1beta/models with x-goog-api-key
  */
 export async function checkGeminiHealth(endpoint) {
   const startAt = Date.now();
@@ -779,7 +784,9 @@ export async function checkGeminiHealth(endpoint) {
         ['general']
       );
       if (settingsResult.rows.length > 0) {
-        const customEndpoints = settingsResult.rows[0].custom_endpoints || [];
+        const customEndpoints = decryptProviderEndpoints(
+          settingsResult.rows[0].custom_endpoints || []
+        );
         const endpointConfig = customEndpoints.find(
           (e) => e.url && e.url.trim() === endpoint.url.trim()
         );
@@ -801,8 +808,11 @@ export async function checkGeminiHealth(endpoint) {
     const base =
       endpoint.url.replace(/\/+$/, '') ||
       'https://generativelanguage.googleapis.com';
-    const url = `${base}/v1beta/models?key=${apiKey}`;
-    const headers = { 'Content-Type': 'application/json' };
+    const url = buildGeminiModelsUrl(base);
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    };
 
     // Fallback for environments without AbortSignal.timeout support
     let signal;

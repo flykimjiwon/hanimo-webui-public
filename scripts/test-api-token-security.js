@@ -38,6 +38,9 @@ const tokenRoutes = [
 
 for (const route of tokenRoutes) {
   assertNotContains(route, [
+    "from 'jsonwebtoken'",
+    'JWT_SECRET',
+    'jwt.sign',
     'decryptToken',
     'encryptToken',
     'originalToken',
@@ -45,14 +48,29 @@ for (const route of tokenRoutes) {
     'encrypted_token',
     /\.substring\(0,\s*16\)/,
   ]);
-  assertContains(route, ['hashApiToken(token)']);
+  assertContains(route, ['generateApiToken()', 'hashApiToken(token)']);
 }
 
 assertContains('app/lib/apiTokenUtils.js', [
   'export function hashApiToken',
   'export function legacyHashApiToken',
-  'ORDER BY LENGTH(token_hash) DESC',
+  'export function generateApiToken',
+  "from '@/lib/security/tokens.mjs'",
+  'INNER JOIN users ON users.id = api_tokens.user_id',
+  'WHERE api_tokens.token_hash IN',
+  'ORDER BY LENGTH(api_tokens.token_hash) DESC',
   'UPDATE api_tokens SET last_used_at',
+]);
+
+assertNotContains('app/lib/apiTokenUtils.js', [
+  "from 'jsonwebtoken'",
+  "from 'crypto'",
+  'JWT_SECRET',
+  'jwt.verify',
+  'jwt.decode',
+  'TokenExpiredError',
+  'JsonWebTokenError',
+  'tokenPayload',
 ]);
 
 for (const route of [

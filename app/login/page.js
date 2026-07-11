@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import HanimoMark from '@/components/brand/HanimoMark';
 
 function LoginPageContent() {
   const router = useRouter();
@@ -73,19 +74,23 @@ function LoginPageContent() {
 
     if (!isSupported) {
       const message = isChromium
-        ? `${browserName} ${browserVersion || 'unknown'} may not be fully supported. ${browserName} 111 or newer is recommended.`
-        : 'Your browser may not fully support all features. Chrome/Edge 111 or newer is recommended.';
+        ? t('auth.browser_limited', {
+            browser: browserName,
+            version: browserVersion || 'unknown',
+          })
+        : t('auth.browser_unsupported');
       setBrowserBlockedMessage(message);
       setBrowserAllowed(true);
       setBrowserInfoMessage('');
     } else {
       setBrowserBlockedMessage('');
       setBrowserAllowed(true);
-      setBrowserInfoMessage(
-        `You are currently using ${browserName} ${browserVersion}.`
-      );
+      setBrowserInfoMessage(t('auth.browser_current', {
+        browser: browserName,
+        version: browserVersion,
+      }));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -161,48 +166,34 @@ function LoginPageContent() {
           style={{
             width: '40%',
             minHeight: '100vh',
-            background: 'linear-gradient(160deg, var(--hn-primary-soft) 0%, var(--hn-surface-2) 100%)',
+            background: 'linear-gradient(160deg, var(--hn-surface) 0%, var(--hn-surface-2) 100%)',
             borderRight: '1px solid var(--hn-border)',
             padding: 'var(--hn-pad, 40px)',
           }}
         >
           <div>
-            {/* Logo glyph + brand name */}
+            {/* Canonical Hanimo lockup */}
             <div className='flex items-center gap-3 mb-10'>
-              <div
-                aria-hidden='true'
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  background: 'var(--hn-primary)',
-                  position: 'relative',
-                  flexShrink: 0,
-                  boxShadow: '0 6px 18px -6px rgba(245,166,35,.5)',
-                }}
-              >
-                <span style={{ position: 'absolute', left: 8, right: 8, top: 12, height: 3, background: 'var(--hn-primary-fg)', borderRadius: 2 }} />
-                <span style={{ position: 'absolute', left: 8, right: 8, top: 21, height: 3, background: 'var(--hn-primary-fg)', borderRadius: 2, opacity: 0.55 }} />
-              </div>
-              <span className='font-bold text-xl' style={{ color: 'var(--hn-fg)' }}>hanimo</span>
+              <HanimoMark size={40} />
+              <span className='font-bold text-xl' style={{ color: 'var(--hn-fg)' }}>Hanimo</span>
             </div>
 
             {/* Eyebrow */}
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--hn-fg-muted)', marginBottom: 12 }}>
-              셀프호스팅 AI 워크스페이스
+              {t('auth.brand_kicker')}
             </p>
 
             {/* H1 */}
             <h1 className='font-bold mb-8' style={{ fontSize: 26, lineHeight: 1.3, letterSpacing: '-0.02em', color: 'var(--hn-fg)' }}>
-              팀이 함께 쓰는 AI,<br />하나의 안전한 자리에.
+              <span className='whitespace-pre-line'>{t('auth.brand_title')}</span>
             </h1>
 
             {/* Feature bullets */}
             <ul className='flex flex-col gap-3'>
               {[
-                'Ollama와 OpenAI 호환 모델을 한 곳에서',
-                'API 토큰과 권한 관리를 안전하게',
-                '팀 프롬프트 공유로 반복 작업 절감',
+                t('auth.brand_feature_models'),
+                t('auth.brand_feature_gateway'),
+                t('auth.brand_feature_workspace'),
               ].map((text, i) => (
                 <li key={i} className='flex items-start gap-2.5'>
                   <span
@@ -213,13 +204,13 @@ function LoginPageContent() {
                       width: 18,
                       height: 18,
                       borderRadius: '50%',
-                      background: 'var(--hn-primary)',
+                      background: 'var(--hn-surface-3)',
                       flexShrink: 0,
                       marginTop: 1,
                     }}
                   >
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 5l2.5 2.5L8 3" stroke="var(--hn-primary-fg)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2 5l2.5 2.5L8 3" stroke="var(--hn-fg-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </span>
                   <span className='text-sm' style={{ color: 'var(--hn-fg-muted)' }}>{text}</span>
@@ -229,7 +220,7 @@ function LoginPageContent() {
           </div>
 
           {/* Footer copyright */}
-          <p className='text-xs' style={{ color: 'var(--hn-fg-muted)' }}>© 2025 hanimo</p>
+          <p className='text-xs' style={{ color: 'var(--hn-fg-muted)' }}>© 2026 Hanimo</p>
         </div>
 
         {/* Right: form area */}
@@ -239,43 +230,7 @@ function LoginPageContent() {
           </div>
           <div className='w-full max-w-md'>
             <div className='text-center mb-8'>
-              {/* hanimo mark — 자체 글리프, 외부 아이콘 세트 미사용 */}
-              <div
-                aria-hidden='true'
-                className='mx-auto mb-5'
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  background: 'var(--hn-primary)',
-                  position: 'relative',
-                  boxShadow: '0 8px 24px -8px rgba(245,166,35,.45)',
-                }}
-              >
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: 9,
-                    right: 9,
-                    top: 13,
-                    height: 3,
-                    background: 'var(--hn-primary-fg)',
-                    borderRadius: 2,
-                  }}
-                />
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: 9,
-                    right: 9,
-                    top: 22,
-                    height: 3,
-                    background: 'var(--hn-primary-fg)',
-                    borderRadius: 2,
-                    opacity: 0.55,
-                  }}
-                />
-              </div>
+              <HanimoMark size={44} className='mx-auto mb-5' />
               <h1
                 id='login-title'
                 data-testid='login-title'
