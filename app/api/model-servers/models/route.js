@@ -8,6 +8,7 @@ import {
   decryptProviderEndpoints,
   decryptProviderSecret,
 } from '@/lib/security/provider-credentials.mjs';
+import { buildOpenAiEndpoint } from '@/lib/openai-gateway.mjs';
 
 export async function GET(request) {
   // Hoisted to function scope so the catch block can reference them
@@ -343,8 +344,7 @@ export async function GET(request) {
       );
 
       const base = (endpointParam || modelServerUrl).replace(/\/+$/, '');
-      const path = /\/v1(\/|$)/.test(base) ? '/models' : '/v1/models';
-      const target = `${base}${path}`;
+      const target = buildOpenAiEndpoint(base, '/models');
       const headers = { 'Content-Type': 'application/json' };
       if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 

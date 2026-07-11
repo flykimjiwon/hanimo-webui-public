@@ -3,7 +3,7 @@
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
   "sourceCommit": "de42e18be5cd6aa19a1e8b6e9051f4ee7977b0d6",
-  "dirty": false,
+  "dirty": true,
   "files": [
     {
       "path": ".dockerignore",
@@ -147,7 +147,7 @@
     },
     {
       "path": "app/admin/providers/page.js",
-      "sha256": "9d205b9e2e8b7fd0ddafd44c2399fa4a3f572ec257c41bf08f84643b3655dec1"
+      "sha256": "e5fd5b8dc0e5d0abb153814da923e68965c4453f37d8658204c519b89c24662b"
     },
     {
       "path": "app/admin/settings/page.js",
@@ -275,7 +275,7 @@
     },
     {
       "path": "app/api/admin/get-local-models/route.js",
-      "sha256": "4714f6946522c0568942e083458b9fd74ada19e7ae435d04baa072bbb5705b53"
+      "sha256": "41d7d9f93386b96100da772dd20aa250a7e73ba38bc3ac4bcb25cc3d9e381666"
     },
     {
       "path": "app/api/admin/init-schema/route.js",
@@ -431,7 +431,7 @@
     },
     {
       "path": "app/api/model-servers/models/route.js",
-      "sha256": "f9f296cc7569839f69616c254324da52140e845f41a0c4014843dc9895737410"
+      "sha256": "846bcdf9ab1e9002c1a68751f3c5ddf04082caef4984206c8cb389cd4665094e"
     },
     {
       "path": "app/api/models/route.js",
@@ -1070,6 +1070,10 @@
       "sha256": "67ba7117a496e58171d74bbe4946b3c4d269ce79bee476edb58ebeb2c34caf3a"
     },
     {
+      "path": "app/lib/provider-catalog.mjs",
+      "sha256": "6ff327a52279f96b7f3077d7296b2b70a755bf4384ae61d8547edfc1d750079b"
+    },
+    {
       "path": "app/lib/qaLogger.js",
       "sha256": "537477b804fb6bc80e142d8c4c3a7abae44d2be362b841cf1a971cbab678f0aa"
     },
@@ -1540,6 +1544,10 @@
     {
       "path": "tests/security/outbound-policy.test.mjs",
       "sha256": "65233abe9a263eb7d7200a739507245fa7eb6756035b7c2cbeb3603b81c83fe8"
+    },
+    {
+      "path": "tests/security/provider-catalog.test.mjs",
+      "sha256": "20fc804ca917ffcc4144ec31f0790db03d4a4953df7744e01b82c14dab75bcdb"
     },
     {
       "path": "tests/security/provider-regressions.test.mjs",

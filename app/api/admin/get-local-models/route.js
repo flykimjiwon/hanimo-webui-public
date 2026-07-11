@@ -7,6 +7,7 @@ import {
   decryptProviderEndpoints,
   decryptProviderSecret,
 } from '@/lib/security/provider-credentials.mjs';
+import { buildOpenAiEndpoint } from '@/lib/openai-gateway.mjs';
 
 export async function GET(request) {
   try {
@@ -124,8 +125,7 @@ export async function GET(request) {
         } else if (provider === 'openai-compatible') {
           // OpenAI-compatible API: /v1/models
           const base = endpoint.url.replace(/\/+$/, '');
-          const path = /\/v1(\/|$)/.test(base) ? '/models' : '/v1/models';
-          const url = `${base}${path}`;
+          const url = buildOpenAiEndpoint(base, '/models');
           const headers = { 'Content-Type': 'application/json' };
           const apiKey =
             endpointApiKeys.get(endpoint.url.trim().replace(/\/+$/, '')) ||

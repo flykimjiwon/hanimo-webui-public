@@ -11,6 +11,7 @@ import {
   Loader2,
   Plus,
   RefreshCw,
+  Search,
   Server,
   Trash2,
 } from 'lucide-react';
@@ -22,72 +23,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAlert } from '@/contexts/AlertContext';
 import { useTranslation } from '@/hooks/useTranslation';
+import { PROVIDER_CATEGORIES, PROVIDER_CATALOG, searchProviderCatalog } from '@/lib/provider-catalog.mjs';
 
-const PROVIDER_PRESETS = [
-  {
-    id: 'ollama',
-    name: 'Ollama',
-    url: 'http://localhost:11434',
-    provider: 'ollama',
-    icon: Laptop,
-    requiresKey: false,
-    descriptionKey: 'admin_providers.preset_ollama',
-  },
-  {
-    id: 'novita',
-    name: 'Novita AI',
-    url: 'https://api.novita.ai/v3/openai',
-    provider: 'openai-compatible',
-    icon: Cloud,
-    requiresKey: true,
-    descriptionKey: 'admin_providers.preset_novita',
-  },
-  {
-    id: 'openrouter',
-    name: 'OpenRouter',
-    url: 'https://openrouter.ai/api/v1',
-    provider: 'openai-compatible',
-    icon: Cloud,
-    requiresKey: true,
-    descriptionKey: 'admin_providers.preset_openrouter',
-  },
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    url: 'https://api.openai.com/v1',
-    provider: 'openai-compatible',
-    icon: Cloud,
-    requiresKey: true,
-    descriptionKey: 'admin_providers.preset_openai',
-  },
-  {
-    id: 'deepseek',
-    name: 'DeepSeek',
-    url: 'https://api.deepseek.com/v1',
-    provider: 'openai-compatible',
-    icon: Cloud,
-    requiresKey: true,
-    descriptionKey: 'admin_providers.preset_deepseek',
-  },
-  {
-    id: 'gemini',
-    name: 'Google Gemini',
-    url: 'https://generativelanguage.googleapis.com',
-    provider: 'gemini',
-    icon: Cloud,
-    requiresKey: true,
-    descriptionKey: 'admin_providers.preset_gemini',
-  },
-  {
-    id: 'custom',
-    name: '',
-    url: '',
-    provider: 'openai-compatible',
-    icon: Server,
-    requiresKey: false,
-    descriptionKey: 'admin_providers.preset_custom',
-  },
-];
+const CATEGORY_LABELS = { all: 'All', local: 'Local', gateway: 'Gateways', cloud: 'Cloud', custom: 'Custom' };
+const CATEGORY_ICONS = { local: Laptop, gateway: Server, cloud: Cloud, custom: Server };
 
 function normalizeUrl(value) {
   return String(value || '').trim().replace(/\/+$/, '');
@@ -111,10 +50,16 @@ export default function ProvidersPage() {
   const [url, setUrl] = useState('http://localhost:11434');
   const [provider, setProvider] = useState('ollama');
   const [apiKey, setApiKey] = useState('');
+  const [catalogQuery, setCatalogQuery] = useState('');
+  const [catalogCategory, setCatalogCategory] = useState('all');
 
   const preset = useMemo(
-    () => PROVIDER_PRESETS.find((item) => item.id === selectedPreset),
+    () => PROVIDER_CATALOG.find((item) => item.id === selectedPreset),
     [selectedPreset]
+  );
+  const visiblePresets = useMemo(
+    () => searchProviderCatalog(catalogQuery, catalogCategory),
+    [catalogQuery, catalogCategory]
   );
 
   const loadEndpoints = useCallback(async () => {
@@ -151,7 +96,7 @@ export default function ProvidersPage() {
   }, [loadEndpoints]);
 
   const selectPreset = (presetId) => {
-    const next = PROVIDER_PRESETS.find((item) => item.id === presetId);
+    const next = PROVIDER_CATALOG.find((item) => item.id === presetId);
     if (!next) return;
     setSelectedPreset(next.id);
     setName(next.name);
@@ -281,9 +226,24 @@ export default function ProvidersPage() {
           </div>
 
           <div className='space-y-5 p-5'>
-            <div className='grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7'>
-              {PROVIDER_PRESETS.map((item) => {
-                const Icon = item.icon;
+            <div className='flex flex-col gap-3 lg:flex-row lg:items-center'>
+              <div className='relative min-w-0 flex-1'>
+                <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                <Input value={catalogQuery} onChange={(event) => setCatalogQuery(event.target.value)} placeholder='Search providers, gateways, and local engines' className='pl-9' aria-label='Search provider catalog' />
+              </div>
+              <div className='flex gap-1 overflow-x-auto pb-1 lg:pb-0' aria-label='Provider categories'>
+                {PROVIDER_CATEGORIES.map((category) => (
+                  <Button key={category} type='button' size='sm' variant={catalogCategory === category ? 'default' : 'outline'} onClick={() => setCatalogCategory(category)}>
+                    {CATEGORY_LABELS[category]}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className='max-h-[340px] overflow-y-auto rounded-[var(--hn-radius)] border border-border p-2'>
+              <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5'>
+              {visiblePresets.map((item) => {
+                const Icon = CATEGORY_ICONS[item.category] || Cloud;
                 const active = selectedPreset === item.id;
                 return (
                   <button
@@ -300,13 +260,20 @@ export default function ProvidersPage() {
                     <span className='mt-3 text-xs font-semibold text-foreground'>
                       {item.id === 'custom' ? t('admin_providers.custom') : item.name}
                     </span>
+                    <span className='mt-1 text-[9px] uppercase tracking-wide text-muted-foreground'>{CATEGORY_LABELS[item.category]}</span>
                   </button>
                 );
               })}
+              </div>
+              {visiblePresets.length === 0 && <p className='py-10 text-center text-sm text-muted-foreground'>No matching providers.</p>}
             </div>
 
             <p className='text-xs text-muted-foreground'>
-              {preset ? t(preset.descriptionKey) : ''}
+              {preset?.discovery === 'limited'
+                ? 'Model discovery is provider-specific. Save the connection, then enter an exact model ID if listing is unavailable.'
+                : preset?.category === 'local'
+                  ? 'Local engine compatibility depends on its version, loaded model, chat template, and tool parser.'
+                  : 'This preset uses Hanimo’s existing OpenAI-compatible, Gemini, or Ollama transport. Available capabilities remain model-specific.'}
             </p>
 
             <div className='grid gap-4 md:grid-cols-2'>
