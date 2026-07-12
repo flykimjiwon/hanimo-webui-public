@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "9206fce3b607be309181d729dff97de3a0927953",
+  "sourceCommit": "8b30d02118bfabbafa287471cb9d4d553cc80a3c",
   "dirty": false,
   "files": [
     {
@@ -1290,8 +1290,20 @@
       "sha256": "64f9535d1e42c2426d3dfc66da0c0ef2e9cce55a20bdf3c54c1d12481d8ddbf5"
     },
     {
+      "path": "design-prototypes/ANALYSIS.md",
+      "sha256": "4f5cd182e374c6b9f245ff157fda51932c3cdef99387863b333c9b29733dc573"
+    },
+    {
+      "path": "design-prototypes/open-source-hub.html",
+      "sha256": "8c6e40e3d8148802bf18a670ba6ec27476ac738c09ebce5b80caf96c659131ce"
+    },
+    {
+      "path": "design-prototypes/README.md",
+      "sha256": "c9ea9a5b543aacc7e4271352f92461b6bf20e02e8107929df26874cb5e6cabbb"
+    },
+    {
       "path": "DESIGN.md",
-      "sha256": "4f9b799fe88d138a56cdc7a57401f569cd9df9be87b37dfc0fcf211494815981"
+      "sha256": "cd09fa4ca130b1ff1812f353bef229c62e55d9aff681872ffe997d443d3f245f"
     },
     {
       "path": "docker-compose.dev.yml",

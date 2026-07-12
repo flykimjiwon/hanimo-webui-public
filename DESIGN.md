@@ -160,3 +160,58 @@ Depth is mixed but restrained: tonal surface shifts first, 1px borders second, s
 - Page sections should be unframed layouts or full-width bands.
 - Use cards only for repeated list items, modal content, or truly framed tools.
 - Do not nest cards inside cards; use dividers or tonal shifts inside panels.
+
+## 8. Open-source hub prototype extension
+
+This extension applies only to the standalone open-source public-page
+prototype. It does not change the operational product UI.
+
+### Intent
+
+- **Human**: a self-hosting adopter or technical maintainer who has just
+  inspected the GitHub repository and is deciding whether the project is safe
+  and maintainable enough to install.
+- **Task**: verify license, provenance, release integrity, support boundaries,
+  and recovery guidance before starting the first install.
+- **Feeling**: a warm technical dossier: calm like archival paper, precise like
+  a release terminal, and clearly maintained by a real person.
+
+### Domain and color world
+
+- Domain concepts: release ledger, checksum, provenance chain, local stack,
+  maintainer signature, bilingual manual, recovery point.
+- Color world: amber wax seal, cream paper, graphite terminal, muted brass,
+  moss-green verification, clay-red warning.
+
+### Signature
+
+The signature component is the **trust rail**: a vertical amber line connecting
+license, provenance, operations, and security evidence. It appears beside a
+release ledger that uses real repository facts rather than generic product
+claims.
+
+### Defaults rejected
+
+- Generic centered SaaS hero → offset editorial copy beside a release ledger.
+- Three equal feature cards → a connected trust rail with unequal evidence rows.
+- Purple/blue AI glow → warm paper, graphite, and amber command focus.
+- Decorative logo wall → maintainer identity, source revision, and policy links.
+
+### Prototype primitives
+
+- `release-ledger`: layered graphite terminal sheet with status rows and copy
+  feedback.
+- `trust-rail`: connected evidence timeline with current and planned states.
+- `language-switch`: compact KO/EN segmented control with visible focus.
+- `maintainer-signature`: factual creator/contact block, not a testimonial.
+- `doc-matrix`: bilingual documentation coverage table with horizontal overflow
+  containment on mobile.
+
+### Accessibility and motion
+
+- Minimum 44px touch targets for primary controls.
+- Amber never carries status without text or icon support.
+- Entry motion is limited to opacity and translate, and is removed under
+  `prefers-reduced-motion`.
+- The standalone page keeps a skip link, semantic landmarks, visible focus,
+  readable Korean line breaking, and no essential hover-only content.

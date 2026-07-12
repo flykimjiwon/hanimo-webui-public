@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Hanimo WebUI open-source trust and onboarding prototype"
+    />
+    <title>Hanimo WebUI · open-source prototype</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23fae6bd'/%3E%3Cpath d='M11 9h10M11 16h10M11 23h10' stroke='%23c87b13' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f7f1e7;
+        --paper-deep: #eee3d2;
+        --sheet: #fffdf8;
+        --ink: #1c1713;
+        --ink-soft: #51483f;
+        --muted: #7d7165;
+        --line: #dcd0bf;
+        --amber: #f5a623;
+        --amber-deep: #c87b13;
+        --amber-wash: #fae6bd;
+        --graphite: #1d1a17;
+        --graphite-2: #27221e;
+        --terminal-ink: #f3eadc;
+        --terminal-muted: #aaa094;
+        --good: #537d59;
+        --warn: #a95f43;
+        --radius-sm: 0.5rem;
+        --radius-md: 0.875rem;
+        --radius-lg: 1.25rem;
+        --shadow-paper: 0 1px 0 rgba(72, 51, 30, 0.06),
+          0 24px 70px -48px rgba(62, 38, 16, 0.45);
+        --shadow-ledger: 0 34px 80px -38px rgba(32, 22, 13, 0.72);
+        --content: 74rem;
+        --ease: cubic-bezier(0.3, 0.7, 0.4, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 82% 4%, rgba(245, 166, 35, 0.18), transparent 28rem),
+          linear-gradient(180deg, var(--paper) 0%, #f9f5ed 54%, var(--paper-deep) 100%);
+        color: var(--ink);
+        font-family: "Pretendard Variable", "Pretendard", "Noto Sans KR", sans-serif;
+        line-height: 1.55;
+        word-break: keep-all;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+        content: "";
+        opacity: 0.08;
+        pointer-events: none;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :focus-visible {
+        outline: 3px solid rgba(245, 166, 35, 0.62);
+        outline-offset: 3px;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 20;
+        top: 0.75rem;
+        left: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-sm);
+        background: var(--graphite);
+        color: white;
+        transform: translateY(-150%);
+        transition: transform 160ms ease-out;
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .shell {
+        width: min(calc(100% - 2rem), var(--content));
+        margin-inline: auto;
+      }
+
+      .topbar {
+        display: flex;
+        min-height: 4.75rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid rgba(125, 113, 101, 0.22);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: var(--ink);
+        font-size: 0.9rem;
+        font-weight: 720;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 2.15rem;
+        height: 2.15rem;
+        place-items: center;
+        border: 1px solid rgba(200, 123, 19, 0.32);
+        border-radius: 0.65rem;
+        background: var(--amber-wash);
+        box-shadow: inset 0 1px rgba(255, 255, 255, 0.78);
+      }
+
+      .brand-mark svg {
+        width: 1.18rem;
+        color: var(--amber-deep);
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      .language-switch {
+        display: inline-flex;
+        padding: 0.2rem;
+        border: 1px solid var(--line);
+        border-radius: 0.65rem;
+        background: rgba(255, 253, 248, 0.72);
+      }
+
+      .language-switch button {
+        min-width: 2.65rem;
+        min-height: 2.75rem;
+        border: 0;
+        border-radius: 0.46rem;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font: 700 0.7rem/1 ui-monospace, "SFMono-Regular", monospace;
+        transition: background 160ms ease-out, color 160ms ease-out;
+      }
+
+      .language-switch button[aria-pressed="true"] {
+        background: var(--graphite);
+        color: var(--terminal-ink);
+      }
+
+      .github-link {
+        display: inline-flex;
+        min-height: 2.8rem;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0 0.95rem;
+        border: 1px solid var(--ink);
+        border-radius: 0.65rem;
+        background: var(--ink);
+        color: white;
+        font-size: 0.82rem;
+        font-weight: 680;
+        text-decoration: none;
+        transition: transform 180ms var(--ease), background 180ms ease-out;
+      }
+
+      .github-link:hover {
+        background: var(--graphite-2);
+        transform: translateY(-1px);
+      }
+
+      .github-link:active {
+        transform: translateY(1px);
+      }
+
+      .hero {
+        display: grid;
+        min-height: calc(100dvh - 4.75rem);
+        align-items: center;
+        gap: clamp(3rem, 8vw, 7rem);
+        padding: clamp(4rem, 8vw, 7rem) 0 clamp(5rem, 10vw, 8rem);
+        grid-template-columns: minmax(0, 0.92fr) minmax(25rem, 1.08fr);
+      }
+
+      .hero-copy {
+        align-self: center;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.58rem;
+        margin: 0 0 1.35rem;
+        color: var(--ink-soft);
+        font: 700 0.72rem/1.2 ui-monospace, "SFMono-Regular", monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        width: 1.6rem;
+        height: 0.15rem;
+        background: var(--amber);
+        content: "";
+      }
+
+      h1 {
+        max-width: 11ch;
+        margin: 0;
+        font-size: clamp(3.25rem, 7.4vw, 6.8rem);
+        font-weight: 760;
+        letter-spacing: -0.072em;
+        line-height: 0.94;
+        text-wrap: balance;
+      }
+
+      .hero-lede {
+        max-width: 36rem;
+        margin: 1.8rem 0 0;
+        color: var(--ink-soft);
+        font-size: clamp(1.02rem, 1.5vw, 1.18rem);
+        line-height: 1.72;
+        text-wrap: pretty;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.85rem 1.2rem;
+        margin-top: 2.2rem;
+      }
+
+      .primary-action {
+        display: inline-flex;
+        min-height: 3.1rem;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0 1.15rem;
+        border: 1px solid var(--amber-deep);
+        border-radius: 0.7rem;
+        background: var(--amber);
+        box-shadow: inset 0 1px rgba(255, 255, 255, 0.58),
+          0 12px 24px -18px rgba(124, 70, 0, 0.85);
+        color: #261707;
+        font-weight: 740;
+        text-decoration: none;
+        transition: transform 180ms var(--ease), filter 180ms ease-out;
+      }
+
+      .primary-action:hover {
+        filter: saturate(0.92) brightness(1.03);
+        transform: translateY(-2px);
+      }
+
+      .text-action {
+        display: inline-flex;
+        min-height: 2.75rem;
+        align-items: center;
+        color: var(--ink-soft);
+        font-size: 0.9rem;
+        font-weight: 650;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.28rem;
+      }
+
+      .proof-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem 1.1rem;
+        margin: 2.15rem 0 0;
+        padding: 0;
+        color: var(--muted);
+        font: 600 0.72rem/1.5 ui-monospace, "SFMono-Regular", monospace;
+        list-style: none;
+      }
+
+      .proof-line li {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+
+      .proof-line li::before {
+        width: 0.42rem;
+        height: 0.42rem;
+        border-radius: 50%;
+        background: var(--good);
+        box-shadow: 0 0 0 0.2rem rgba(83, 125, 89, 0.12);
+        content: "";
+      }
+
+      .release-ledger {
+        position: relative;
+        align-self: center;
+        min-width: 0;
+        padding: 1rem;
+        border: 1px solid rgba(63, 47, 34, 0.28);
+        border-radius: var(--radius-lg);
+        background: linear-gradient(145deg, #302821, #191613 72%);
+        box-shadow:
+          -0.8rem 0.85rem 0 -0.08rem #d8c8b2,
+          -1.55rem 1.55rem 0 -0.12rem #302821,
+          var(--shadow-ledger),
+          inset 0 1px rgba(255, 255, 255, 0.09);
+        color: var(--terminal-ink);
+        transform: rotate(1.1deg);
+      }
+
+      .release-ledger::before {
+        display: none;
+      }
+
+      .ledger-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.45rem 0.55rem 1rem;
+        border-bottom: 1px solid rgba(243, 234, 220, 0.12);
+        font: 600 0.74rem/1.2 ui-monospace, "SFMono-Regular", monospace;
+      }
+
+      .ledger-dots {
+        display: flex;
+        gap: 0.36rem;
+      }
+
+      .ledger-dots i {
+        display: block;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background: #71675e;
+      }
+
+      .ledger-dots i:first-child {
+        background: var(--amber);
+      }
+
+      .ledger-rows {
+        display: grid;
+        padding: 0.8rem 0.2rem 0.25rem;
+      }
+
+      .ledger-row {
+        display: grid;
+        min-height: 4.7rem;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem 0.5rem;
+        border-bottom: 1px solid rgba(243, 234, 220, 0.08);
+        grid-template-columns: 2.1rem minmax(0, 1fr) auto;
+      }
+
+      .ledger-row:last-child {
+        border-bottom: 0;
+      }
+
+      .ledger-index {
+        color: var(--amber);
+        font: 700 0.7rem/1 ui-monospace, "SFMono-Regular", monospace;
+      }
+
+      .ledger-row strong,
+      .ledger-row span {
+        display: block;
+      }
+
+      .ledger-row strong {
+        font-size: 0.9rem;
+        font-weight: 650;
+      }
+
+      .ledger-row span {
+        margin-top: 0.2rem;
+        color: var(--terminal-muted);
+        font: 500 0.7rem/1.4 ui-monospace, "SFMono-Regular", monospace;
+      }
+
+      .ledger-state {
+        padding: 0.38rem 0.5rem;
+        border: 1px solid rgba(114, 169, 119, 0.25);
+        border-radius: 0.35rem;
+        background: rgba(83, 125, 89, 0.15);
+        color: #a9d3ad;
+        font: 700 0.64rem/1 ui-monospace, "SFMono-Regular", monospace;
+      }
+
+      .command {
+        display: grid;
+        gap: 0.65rem;
+        margin-top: 0.8rem;
+        padding: 1rem;
+        border-radius: 0.68rem;
+        background: rgba(0, 0, 0, 0.22);
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .command code {
+        overflow: hidden;
+        color: var(--terminal-ink);
+        font: 500 0.74rem/1.5 ui-monospace, "SFMono-Regular", monospace;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .copy-button {
+        min-width: 3.4rem;
+        min-height: 2.75rem;
+        border: 1px solid rgba(243, 234, 220, 0.18);
+        border-radius: 0.45rem;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--terminal-ink);
+        cursor: pointer;
+        font: 700 0.66rem/1 ui-monospace, "SFMono-Regular", monospace;
+      }
+
+      .band {
+        border-block: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.45);
+      }
+
+      .band-inner {
+        display: grid;
+        gap: 2rem;
+        padding: 2.1rem 0;
+        grid-template-columns: 1fr 1fr 1fr 1.45fr;
+      }
+
+      .metric {
+        padding-right: 1rem;
+        border-right: 1px solid var(--line);
+      }
+
+      .metric:last-child {
+        padding-right: 0;
+        border-right: 0;
+      }
+
+      .metric span,
+      .metric strong {
+        display: block;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font: 650 0.68rem/1.3 ui-monospace, "SFMono-Regular", monospace;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .metric strong {
+        margin-top: 0.45rem;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .section {
+        padding: clamp(5rem, 10vw, 9rem) 0;
+      }
+
+      .section-grid {
+        display: grid;
+        align-items: start;
+        gap: clamp(3rem, 8vw, 7rem);
+        grid-template-columns: minmax(16rem, 0.72fr) minmax(0, 1.28fr);
+      }
+
+      .section-kicker {
+        margin: 0 0 1rem;
+        color: var(--amber-deep);
+        font: 720 0.72rem/1.3 ui-monospace, "SFMono-Regular", monospace;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        max-width: 13ch;
+        margin: 0;
+        font-size: clamp(2.3rem, 4.6vw, 4.45rem);
+        font-weight: 740;
+        letter-spacing: -0.058em;
+        line-height: 1;
+        text-wrap: balance;
+      }
+
+      .section-intro {
+        max-width: 32rem;
+        margin: 1.35rem 0 0;
+        color: var(--ink-soft);
+        line-height: 1.72;
+        text-wrap: pretty;
+      }
+
+      .trust-rail {
+        position: relative;
+        display: grid;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .trust-rail::before {
+        position: absolute;
+        top: 1.2rem;
+        bottom: 1.2rem;
+        left: 1rem;
+        width: 1px;
+        background: linear-gradient(var(--amber), rgba(245, 166, 35, 0.14));
+        content: "";
+      }
+
+      .trust-item {
+        position: relative;
+        display: grid;
+        gap: 1.4rem;
+        padding: 0 0 2.4rem 3.8rem;
+        grid-template-columns: minmax(8rem, 0.55fr) minmax(0, 1fr);
+      }
+
+      .trust-item::before {
+        position: absolute;
+        top: 0.35rem;
+        left: 0.63rem;
+        width: 0.78rem;
+        height: 0.78rem;
+        border: 0.28rem solid var(--paper);
+        border-radius: 50%;
+        background: var(--amber);
+        box-shadow: 0 0 0 1px var(--amber-deep);
+        content: "";
+      }
+
+      .trust-item h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 720;
+      }
+
+      .trust-item p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 0.92rem;
+        line-height: 1.68;
+      }
+
+      .trust-link {
+        display: inline-block;
+        margin-top: 0.65rem;
+        color: var(--amber-deep);
+        font-size: 0.78rem;
+        font-weight: 720;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.25rem;
+      }
+
+      .docs-section {
+        background: var(--graphite);
+        color: var(--terminal-ink);
+      }
+
+      .docs-section .section-kicker {
+        color: var(--amber);
+      }
+
+      .docs-section .section-intro {
+        color: var(--terminal-muted);
+      }
+
+      .doc-wrap {
+        overflow-x: auto;
+        border: 1px solid rgba(243, 234, 220, 0.12);
+        border-radius: var(--radius-md);
+      }
+
+      .doc-matrix {
+        width: 100%;
+        min-width: 38rem;
+        border-collapse: collapse;
+      }
+
+      .doc-matrix th,
+      .doc-matrix td {
+        padding: 1rem 1.15rem;
+        border-bottom: 1px solid rgba(243, 234, 220, 0.1);
+        text-align: left;
+      }
+
+      .doc-matrix th {
+        color: var(--terminal-muted);
+        font: 650 0.68rem/1.3 ui-monospace, "SFMono-Regular", monospace;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .doc-matrix td {
+        font-size: 0.87rem;
+      }
+
+      .doc-matrix tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .coverage {
+        color: #a9d3ad;
+        font: 700 0.7rem/1 ui-monospace, "SFMono-Regular", monospace;
+      }
+
+      .maintainer {
+        display: grid;
+        gap: clamp(2.5rem, 7vw, 6rem);
+        padding: clamp(4rem, 8vw, 7rem) 0;
+        grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+      }
+
+      .signature-line {
+        width: min(100%, 18rem);
+        margin: 2.4rem 0 1rem;
+        border-top: 1px solid var(--line);
+      }
+
+      .signature-name {
+        margin: 0;
+        font-size: clamp(1.7rem, 3vw, 2.7rem);
+        font-weight: 700;
+        letter-spacing: -0.04em;
+      }
+
+      .signature-meta {
+        margin: 0.4rem 0 0;
+        color: var(--muted);
+        font: 550 0.76rem/1.55 ui-monospace, "SFMono-Regular", monospace;
+      }
+
+      .policy-list {
+        display: grid;
+        gap: 0.7rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .policy-list a {
+        display: flex;
+        min-height: 3.15rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0 1rem;
+        border-bottom: 1px solid var(--line);
+        color: var(--ink-soft);
+        font-size: 0.88rem;
+        font-weight: 650;
+        text-decoration: none;
+        transition: color 160ms ease-out, transform 160ms var(--ease);
+      }
+
+      .policy-list a:hover {
+        color: var(--amber-deep);
+        transform: translateX(0.22rem);
+      }
+
+      footer {
+        padding: 1.6rem 0 2.2rem;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      [data-lang="en"] {
+        display: none;
+      }
+
+      html[lang="en"] [data-lang="ko"] {
+        display: none;
+      }
+
+      html[lang="en"] [data-lang="en"] {
+        display: initial;
+      }
+
+      .reveal {
+        animation: rise 620ms var(--ease) both;
+      }
+
+      .release-ledger.reveal {
+        animation-delay: 100ms;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(1rem);
+        }
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .section-grid,
+        .maintainer {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          min-height: auto;
+        }
+
+        .hero-copy {
+          max-width: 43rem;
+        }
+
+        .release-ledger {
+          width: min(100%, 40rem);
+          justify-self: center;
+        }
+
+        .band-inner {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .metric:nth-child(2) {
+          border-right: 0;
+        }
+
+        .trust-item {
+          grid-template-columns: 1fr;
+          gap: 0.45rem;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .shell {
+          width: min(calc(100% - 1.25rem), var(--content));
+        }
+
+        .topbar {
+          min-height: 4.25rem;
+        }
+
+        .brand span:last-child,
+        .github-link span {
+          display: none;
+        }
+
+        .github-link {
+          min-width: 2.8rem;
+          justify-content: center;
+          padding: 0;
+        }
+
+        .hero {
+          gap: 3.5rem;
+          padding-top: 3.5rem;
+        }
+
+        h1 {
+          font-size: clamp(3rem, 15vw, 4.7rem);
+        }
+
+        .release-ledger {
+          padding: 0.7rem;
+          transform: none;
+        }
+
+        .release-ledger::before {
+          display: none;
+        }
+
+        .ledger-row {
+          grid-template-columns: 1.6rem minmax(0, 1fr);
+        }
+
+        .ledger-state {
+          display: none;
+        }
+
+        .command {
+          grid-template-columns: 1fr;
+        }
+
+        .command code {
+          white-space: normal;
+          word-break: break-all;
+        }
+
+        .band-inner {
+          gap: 1.4rem;
+        }
+
+        .metric {
+          padding-right: 0;
+          border-right: 0;
+        }
+
+        .trust-item {
+          padding-left: 3rem;
+        }
+
+        .footer-inner {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+    <header class="shell">
+      <nav class="topbar" aria-label="Primary navigation">
+        <a class="brand" href="#content" aria-label="Hanimo WebUI home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M7 5.5h10M7 12h10M7 18.5h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span>Hanimo WebUI</span>
+        </a>
+        <div class="nav-actions">
+          <div class="language-switch" aria-label="Language">
+            <button type="button" data-set-lang="ko" aria-pressed="true">KO</button>
+            <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+          </div>
+          <a class="github-link" href="https://github.com/flykimjiwon/hanimo-webui-public">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M8.5 20c-4.5 1.4-4.5-2.2-6.3-2.7m12.6 5.4v-3.5c0-1 .1-1.4-.5-2 3-.3 6.1-1.5 6.1-6.6a5.2 5.2 0 0 0-1.4-3.6 4.8 4.8 0 0 0-.1-3.6s-1.1-.4-3.7 1.4a12.7 12.7 0 0 0-6.7 0C5.9 3 4.8 3.4 4.8 3.4A4.8 4.8 0 0 0 4.7 7a5.2 5.2 0 0 0-1.4 3.6c0 5.1 3.1 6.3 6.1 6.6-.5.4-.6 1-.6 2v3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>View source</span>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="content">
+      <section class="hero shell" aria-labelledby="hero-title">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">
+            <span data-lang="ko">검증 가능한 셀프호스팅</span>
+            <span data-lang="en">Verifiable self-hosting</span>
+          </p>
+          <h1 id="hero-title">
+            <span data-lang="ko">내 서버에 두는 AI 작업대.</span>
+            <span data-lang="en">An AI workbench on your server.</span>
+          </h1>
+          <p class="hero-lede">
+            <span data-lang="ko">설치 명령보다 먼저 라이선스, 출처, 보안 경계와 복구 절차를 보여줍니다. Hanimo WebUI는 OpenAI 호환 API와 관리자 런타임을 하나의 로컬 스택으로 제공합니다.</span>
+            <span data-lang="en">Before the install command, see the license, provenance, security boundary, and recovery path. Hanimo WebUI packages an OpenAI-compatible API and admin runtime into one local stack.</span>
+          </p>
+          <div class="hero-actions">
+            <a class="primary-action" href="#install">
+              <span data-lang="ko">설치 경로 확인</span>
+              <span data-lang="en">Review install path</span>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+            <a class="text-action" href="#trust">
+              <span data-lang="ko">신뢰 근거부터 보기</span>
+              <span data-lang="en">See trust evidence first</span>
+            </a>
+          </div>
+          <ul class="proof-line" aria-label="Release facts">
+            <li>Apache-2.0</li>
+            <li>KO / EN</li>
+            <li>Docker Compose</li>
+          </ul>
+        </div>
+
+        <aside class="release-ledger reveal" id="install" aria-label="Release ledger">
+          <div class="ledger-head">
+            <span>release-ledger / public</span>
+            <span class="ledger-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
+          <div class="ledger-rows">
+            <div class="ledger-row">
+              <span class="ledger-index">01</span>
+              <div><strong>License scope</strong><span>Apache-2.0 · NOTICE · AUTHORS</span></div>
+              <b class="ledger-state">READY</b>
+            </div>
+            <div class="ledger-row">
+              <span class="ledger-index">02</span>
+              <div><strong>Public parity</strong><span>canonical → public export gate</span></div>
+              <b class="ledger-state">PASS</b>
+            </div>
+            <div class="ledger-row">
+              <span class="ledger-index">03</span>
+              <div><strong>Operations</strong><span>backup · restore · update · rollback</span></div>
+              <b class="ledger-state">DOCS</b>
+            </div>
+            <div class="ledger-row">
+              <span class="ledger-index">04</span>
+              <div><strong>Security boundary</strong><span>Stable Core · Labs isolated by default</span></div>
+              <b class="ledger-state">SCOPED</b>
+            </div>
+          </div>
+          <div class="command">
+            <code id="install-command">git clone https://github.com/flykimjiwon/hanimo-webui-public.git</code>
+            <button class="copy-button" type="button" data-copy="#install-command">COPY</button>
+          </div>
+        </aside>
+      </section>
+
+      <div class="band">
+        <div class="band-inner shell" aria-label="Project facts">
+          <div class="metric"><span>Runtime</span><strong>Next.js + PostgreSQL</strong></div>
+          <div class="metric"><span>Gateway</span><strong>OpenAI-compatible</strong></div>
+          <div class="metric"><span>Install</span><strong>Docker Compose</strong></div>
+          <div class="metric"><span>Maintainer</span><strong>Kim Jiwon · 김지원</strong></div>
+        </div>
+      </div>
+
+      <section class="section shell" id="trust" aria-labelledby="trust-title">
+        <div class="section-grid">
+          <div>
+            <p class="section-kicker">Trust rail</p>
+            <h2 id="trust-title">
+              <span data-lang="ko">오픈소스는 근거까지 공개합니다.</span>
+              <span data-lang="en">Open source includes the evidence.</span>
+            </h2>
+            <p class="section-intro">
+              <span data-lang="ko">기능 목록 대신 실제로 확인할 수 있는 문서와 운영 경계를 한 흐름으로 연결했습니다.</span>
+              <span data-lang="en">Instead of a generic feature grid, follow the documents and operating boundaries you can inspect.</span>
+            </p>
+          </div>
+          <ol class="trust-rail">
+            <li class="trust-item">
+              <h3><span data-lang="ko">권리와 기여</span><span data-lang="en">Rights and contributions</span></h3>
+              <div><p><span data-lang="ko">최초 창작자, 외부 기여자, 제3자 구성요소의 권리를 구분하고 Apache-2.0 기여 조건을 명시합니다.</span><span data-lang="en">Separate original authorship, external contributions, and third-party rights under clear Apache-2.0 terms.</span></p><a class="trust-link" href="../COPYRIGHT_POLICY.md">COPYRIGHT_POLICY.md</a></div>
+            </li>
+            <li class="trust-item">
+              <h3><span data-lang="ko">출처와 의존성</span><span data-lang="en">Provenance and dependencies</span></h3>
+              <div><p><span data-lang="ko">직접·간접 라이선스와 폰트·아이콘 출처를 기록하고 SBOM 자동화를 다음 릴리스 게이트로 둡니다.</span><span data-lang="en">Record dependency and asset licenses, with automated SBOM generation as the next release gate.</span></p><a class="trust-link" href="../THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a></div>
+            </li>
+            <li class="trust-item">
+              <h3><span data-lang="ko">운영과 복구</span><span data-lang="en">Operations and recovery</span></h3>
+              <div><p><span data-lang="ko">백업, 복구, 업데이트, 롤백과 데이터 보존 종료를 설치 가이드와 같은 수준으로 다룹니다.</span><span data-lang="en">Treat backup, restore, update, rollback, and data-preserving shutdown as first-class install concerns.</span></p><a class="trust-link" href="../docs/OPERATIONS.md">OPERATIONS.md</a></div>
+            </li>
+            <li class="trust-item">
+              <h3><span data-lang="ko">보안과 지원 범위</span><span data-lang="en">Security and support scope</span></h3>
+              <div><p><span data-lang="ko">Stable Core와 Labs를 구분하고 취약점은 공개 이슈가 아닌 비공개 경로로 접수합니다.</span><span data-lang="en">Separate Stable Core from Labs and route vulnerabilities through private reporting.</span></p><a class="trust-link" href="../SECURITY.md">SECURITY.md</a></div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section docs-section" aria-labelledby="docs-title">
+        <div class="shell section-grid">
+          <div>
+            <p class="section-kicker">KO / EN manual</p>
+            <h2 id="docs-title">
+              <span data-lang="ko">언어가 달라도 운영 계약은 같습니다.</span>
+              <span data-lang="en">The operating contract stays the same.</span>
+            </h2>
+            <p class="section-intro">
+              <span data-lang="ko">한국어와 영어 사용자가 설치·보안·복구에서 서로 다른 정보를 받지 않도록 문서 동등성을 제품 기능으로 취급합니다.</span>
+              <span data-lang="en">Documentation parity is a product feature, so Korean and English operators receive the same installation, security, and recovery guidance.</span>
+            </p>
+          </div>
+          <div class="doc-wrap" tabindex="0" aria-label="Bilingual documentation coverage">
+            <table class="doc-matrix">
+              <thead><tr><th>Guide</th><th>한국어</th><th>English</th><th>Evidence</th></tr></thead>
+              <tbody>
+                <tr><td>Quick start</td><td class="coverage">READY</td><td class="coverage">READY</td><td>README</td></tr>
+                <tr><td>Docker QA</td><td class="coverage">READY</td><td class="coverage">READY</td><td>Manual gate</td></tr>
+                <tr><td>Operations</td><td class="coverage">READY</td><td>Planned parity</td><td>Backup / restore</td></tr>
+                <tr><td>Governance</td><td class="coverage">READY</td><td class="coverage">READY</td><td>Policy set</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="maintainer shell" aria-labelledby="maintainer-title">
+        <div>
+          <p class="section-kicker">Maintainer signature</p>
+          <h2 id="maintainer-title">
+            <span data-lang="ko">프로젝트 뒤에 있는 사람을 숨기지 않습니다.</span>
+            <span data-lang="en">The person behind the project is visible.</span>
+          </h2>
+          <div class="signature-line"></div>
+          <p class="signature-name">김지원 <span lang="en">Kim Jiwon</span></p>
+          <p class="signature-meta">github.com/flykimjiwon<br />flykimjiwun@naver.com</p>
+        </div>
+        <ul class="policy-list" aria-label="Project policies">
+          <li><a href="../LICENSE"><span>Apache License 2.0</span><span aria-hidden="true">↗</span></a></li>
+          <li><a href="../NOTICE"><span>NOTICE / AUTHORS</span><span aria-hidden="true">↗</span></a></li>
+          <li><a href="../TRADEMARKS.md"><span>Trademark policy</span><span aria-hidden="true">↗</span></a></li>
+          <li><a href="../SUPPORT.md"><span>Support policy</span><span aria-hidden="true">↗</span></a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-inner shell">
+        <span>Copyright © 2025–2026 Kim Jiwon (김지원)</span>
+        <span>Standalone design prototype · not a shipped product surface</span>
+      </div>
+    </footer>
+
+    <script>
+      const root = document.documentElement;
+      const languageButtons = document.querySelectorAll("[data-set-lang]");
+
+      function setLanguage(language) {
+        root.lang = language;
+        languageButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.setLang === language));
+        });
+        document.querySelector(".skip-link").textContent =
+          language === "ko" ? "본문으로 건너뛰기" : "Skip to content";
+      }
+
+      languageButtons.forEach((button) => {
+        button.addEventListener("click", () => setLanguage(button.dataset.setLang));
+      });
+
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const target = document.querySelector(button.dataset.copy);
+          if (!target) return;
+          try {
+            await navigator.clipboard.writeText(target.textContent.trim());
+            button.textContent = "COPIED";
+            window.setTimeout(() => {
+              button.textContent = "COPY";
+            }, 1400);
+          } catch {
+            button.textContent = "SELECT";
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(target);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
