@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 REPOSITORY_URL="${HANIMO_REPOSITORY_URL:-https://github.com/flykimjiwon/hanimo-webui-public.git}"
-PINNED_REF="${HANIMO_REF:-8e273b7bfa4a28e1b7a924db9a87be89caf91909}"
+PINNED_REF="${HANIMO_REF:-cffe3cfa230796cf871980118af2de54825e0c47}"
 INSTALL_DIR="${HANIMO_INSTALL_DIR:-${HOME}/hanimo-webui}"
 
 usage() {

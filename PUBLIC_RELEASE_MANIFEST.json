@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "cecb59aeeb9269b1c734de901906eabcd25bd0eb",
-  "dirty": true,
+  "sourceCommit": "e6e81973c84f36e8d699a42b1c86392fbb9a8b37",
+  "dirty": false,
   "files": [
     {
       "path": ".dockerignore",
@@ -1323,7 +1323,7 @@
     },
     {
       "path": "docs/OPERATIONS.md",
-      "sha256": "c00127738743656e6f2707457414b1d31b645fde2e30ae9c68ef5887f839610f"
+      "sha256": "313d25eebb65c9ad84664b4033fd5272f7f8f55913ecc963c6bd9b905553d284"
     },
     {
       "path": "docs/PROJECT_AUDIT.md",
@@ -1427,7 +1427,7 @@
     },
     {
       "path": "scripts/bootstrap.sh",
-      "sha256": "89261ce1034bf0e70867fa8dfe6da25bd4814e1957628365575337f10526a4b8"
+      "sha256": "67a7ff932df0602a380b9483e35d6ad3c60bcd784d0d172bb817a13c4d85bd38"
     },
     {
       "path": "scripts/check-docker-install.js",
