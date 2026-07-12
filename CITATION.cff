@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use Hanimo WebUI, please cite the project using this metadata."
+title: "Hanimo WebUI"
+type: software
+authors:
+  - family-names: "Kim"
+    given-names: "Jiwon"
+    alias: "김지원"
+    email: "flykimjiwun@naver.com"
+    website: "https://github.com/flykimjiwon"
+repository-code: "https://github.com/flykimjiwon/hanimo-webui-public"
+url: "https://github.com/flykimjiwon/hanimo-webui-public"
+license: "Apache-2.0"
+date-released: "2026-07-12"

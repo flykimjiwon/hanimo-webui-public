@@ -1,49 +1,26 @@
-hanimo-webui (하니모 웹UI)
-Copyright 2025-2026 Kim Jiwon (김지원). All rights reserved.
+Hanimo WebUI (하니모 웹UI)
+Copyright 2025-2026 Kim Jiwon (김지원)
 
-This project was originally created and developed by Kim Jiwon (김지원)
-as a personal open-source project. This is NOT a work-for-hire product.
+Original creator and lead maintainer:
+  Kim Jiwon (김지원)
+  GitHub: https://github.com/flykimjiwon
+  Email: flykimjiwun@naver.com
 
-ORIGIN & LINEAGE
-================
-hanimo-webui is part of the hanimo open-source ecosystem, all created
-by the same author, Kim Jiwon.
+Hanimo WebUI originated as Kim Jiwon's personal open-source project and is
+part of the Hanimo ecosystem. The Hanimo-specific original implementation is
+licensed under Apache License 2.0. Third-party packages, assets, standards,
+and contributions remain subject to their respective copyrights and licenses.
 
-  - hanimo-code (TUI + Desktop IDE):  https://github.com/flykimjiwon/hanimo
-  - hanimo-webui (browser AI chat):   https://github.com/flykimjiwon/hanimo-webui  ← this repo
-  - hanimo-rag (PostgreSQL RAG):      https://github.com/flykimjiwon/hanimo-rag
-  - hanimo-community (community):     https://github.com/flykimjiwon/hanimo-community
-  - hanimo-toy-coffee (toy/demo):     https://github.com/flykimjiwon/hanimo-toy-coffee
+Hanimo WebUI는 김지원의 개인 오픈소스 프로젝트로 시작된 Hanimo 생태계의
+구성요소입니다. Hanimo 고유 원본 구현은 Apache License 2.0으로 배포됩니다.
+제3자 패키지·자산·표준 및 외부 기여물에는 각 저작권과 라이선스가 적용됩니다.
 
-hanimo-webui was conceived, designed, and implemented solely by Kim Jiwon
-during personal time, using personal equipment, outside the scope of any
-employment agreement.
+Project links:
+  - Hanimo Code:      https://github.com/flykimjiwon/hanimo
+  - Hanimo WebUI:     https://github.com/flykimjiwon/hanimo-webui-public
+  - Hanimo RAG:       https://github.com/flykimjiwon/hanimo-rag
+  - Hanimo Community: https://github.com/flykimjiwon/hanimo-community
 
-AUTHOR DECLARATION
-==================
-I, Kim Jiwon (김지원), hereby declare that:
-  1. I am the sole original author of this software.
-  2. Development began in 2025 as a personal project.
-  3. All architectural decisions, code, and design are my own work.
-  4. This software was not created as part of any employment obligation.
-  5. No employer resources (hardware, software, time) were used in creation.
-  6. Git commit history serves as timestamped proof of authorship.
-
-COMPONENTS
-==========
-  - Next.js 15 frontend
-  - Multi-model AI chat (Ollama / OpenAI-compat / Gemini)
-  - Agent system + Custom Instructions + Draw (HTML canvas)
-  - OpenAI-compatible API server
-  - Admin panel + DB viewer + PII detection
-  - Community (board / DM / notices) + i18n (ko/en) + theming
-
-Licensed under the Apache License, Version 2.0.
-See LICENSE file for full license text.
-
-TRADEMARK NOTICE
-================
-The names "hanimo" / "hanimo-webui" and the hanimo logo are unregistered
-marks of Kim Jiwon. The Apache 2.0 license does not grant trademark
-rights — see Section 6 of the License. Forks must use a distinct product
-name and may not place "hanimo" in their product title.
+See LICENSE for Apache License 2.0, AUTHORS for attribution,
+THIRD_PARTY_NOTICES.md for dependency and asset notices, and TRADEMARKS.md for
+the Hanimo name and logo policy.

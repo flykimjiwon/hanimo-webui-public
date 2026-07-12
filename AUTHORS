@@ -1,9 +1,26 @@
-# Authors
+# Authors and contributors / 저작자와 기여자
 
-This file lists the authors of this project for copyright purposes.
+## Original creator and lead maintainer / 최초 창작자 및 대표 유지관리자
 
-Kim Jiwon (김지원) <flykimjiwun@naver.com>  — original author, sole creator
+Kim Jiwon (김지원)
 
-All code, architecture, and design in this repository were created by the
-above author. See NOTICE for the full authorship declaration and git commit
-history for timestamped provenance.
+- GitHub: https://github.com/flykimjiwon
+- Email: flykimjiwun@naver.com
+
+Kim Jiwon created the original Hanimo WebUI project and its Hanimo-specific
+architecture, product direction, and implementation. Third-party packages,
+assets, standards, and later contributions retain their respective ownership
+and licenses.
+
+김지원은 Hanimo WebUI 원 프로젝트와 Hanimo 고유 아키텍처, 제품 방향 및
+구현의 최초 창작자입니다. 제3자 패키지·자산·표준과 이후 기여물의 권리 및
+라이선스는 각 권리자와 기여자에게 유지됩니다.
+
+## Contributors / 기여자
+
+Contributors are recorded in the Git history. Unless a separate written
+agreement applies, intentionally submitted contributions are accepted under
+Apache License 2.0 section 5.
+
+기여자는 Git 이력에 기록됩니다. 별도 서면 계약이 없는 한, 프로젝트에
+의도적으로 제출된 기여물에는 Apache License 2.0 제5조가 적용됩니다.

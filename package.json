@@ -22,7 +22,7 @@
     "url": "git+https://github.com/flykimjiwon/hanimo-webui-public.git"
   },
   "license": "Apache-2.0",
-  "author": "Kim Jiwon (김지원) (https://github.com/flykimjiwon)",
+  "author": "Kim Jiwon (김지원) <flykimjiwun@naver.com> (https://github.com/flykimjiwon)",
   "private": false,
   "scripts": {
     "dev": "node scripts/dev-safe.js",

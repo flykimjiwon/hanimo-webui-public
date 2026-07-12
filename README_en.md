@@ -351,8 +351,19 @@ SKIP_DB_CONNECTION=true npm run build
 
 ## Contributing
 
-See `CONTRIBUTING.md`.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SUPPORT.md`](SUPPORT.md), and the
+[`copyright and contribution policy`](COPYRIGHT_POLICY.md).
+
+## Author
+
+**Kim Jiwon (김지원)** — [@flykimjiwon](https://github.com/flykimjiwon) ·
+`flykimjiwun@naver.com`
 
 ## License
 
-Apache 2.0. See `LICENSE`.
+Copyright © 2025–2026 **Kim Jiwon (김지원)**.
+
+Apache 2.0. See [`LICENSE`](LICENSE). Also see
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md),
+[`TRADEMARKS.md`](TRADEMARKS.md), and the
+[`open-source productization roadmap`](docs/OPEN_SOURCE_PRODUCTIZATION.md).

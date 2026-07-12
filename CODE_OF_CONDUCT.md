@@ -34,7 +34,14 @@ This Code of Conduct applies within all community spaces, and also applies when 
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by opening a GitHub issue or contacting the project maintainers. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior must not
+be reported in a public issue. Send a private report to
+Kim Jiwon (김지원) at `flykimjiwun@naver.com` with relevant links and context.
+Reporters' privacy will be respected to the extent reasonably possible.
+
+행동강령 위반은 공개 이슈로 신고하지 마세요. 관련 링크와 맥락을 포함해
+김지원에게 `flykimjiwun@naver.com`으로 비공개 신고해 주세요. 합리적으로
+가능한 범위에서 신고자의 개인정보를 보호합니다.
 
 ## Attribution
 

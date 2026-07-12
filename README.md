@@ -360,16 +360,22 @@ SKIP_DB_CONNECTION=true npm run build
 
 ## 기여
 
-`CONTRIBUTING.md`를 참고하세요.
+[`CONTRIBUTING.md`](CONTRIBUTING.md)를 참고하세요. 지원 범위와 문의 경로는
+[`SUPPORT.md`](SUPPORT.md), 저작권·기여 조건은
+[`COPYRIGHT_POLICY.md`](COPYRIGHT_POLICY.md)를 확인하세요.
 
 ## 저작자 / Author
 
-**김지원 (Kim Jiwon)** — [@flykimjiwon](https://github.com/flykimjiwon)
+**김지원 (Kim Jiwon)** — [@flykimjiwon](https://github.com/flykimjiwon) ·
+`flykimjiwun@naver.com`
 
 hanimo 오픈소스 생태계의 제작자입니다. 제작 내력·생태계 링크는 [`NOTICE`](NOTICE)를 참고하세요.
 
 ## 라이선스
 
-Copyright © 2025–2026 **김지원 (Kim Jiwon)**. All rights reserved.
+Copyright © 2025–2026 **김지원 (Kim Jiwon)**.
 
 Apache License 2.0 — 자세한 내용은 [`LICENSE`](LICENSE)를 참고하세요.
+제3자 고지는 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), Hanimo 이름과
+로고 정책은 [`TRADEMARKS.md`](TRADEMARKS.md), 다음 제품화 작업은
+[`오픈소스 제품화 로드맵`](docs/OPEN_SOURCE_PRODUCTIZATION.md)을 참고하세요.
