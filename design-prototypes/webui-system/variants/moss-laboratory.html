@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Hanimo WebUI Warm Command Deck product-shell prototype" />
-    <title>Hanimo WebUI · Warm Command Deck</title>
-    <link rel="icon" href="assets/favicon-v2.svg" />
+    <meta name="description" content="Hanimo WebUI Moss Laboratory product-shell prototype" />
+    <title>Hanimo WebUI · Moss Laboratory</title>
+    <link rel="icon" href="../assets/favicon-v2.svg" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
     <style>
@@ -239,22 +239,23 @@
         *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
       }
     </style>
-    <link rel="stylesheet" href="variants/theme-lab.css" />
+    <link rel="stylesheet" href="moss-laboratory.css" />
+    <link rel="stylesheet" href="theme-lab.css" />
   </head>
   <body>
     <a class="skip" href="#messages">본문으로 건너뛰기</a>
     <div class="app" id="app">
       <nav class="rail" aria-label="Workspace navigation">
         <div class="rail-stack">
-          <button class="brand-button" type="button" aria-label="Hanimo home"><img src="assets/hanimo-mark-v2.svg" alt="" /></button>
-          <button class="rail-button" type="button" aria-current="page" data-tip="Chat"><svg class="icon"><use href="assets/icon-sprite.svg#i-chat" /></svg></button>
-          <button class="rail-button" type="button" data-tip="New chat"><svg class="icon"><use href="assets/icon-sprite.svg#i-plus" /></svg></button>
-          <button class="rail-button" type="button" data-tip="Workspace"><svg class="icon"><use href="assets/icon-sprite.svg#i-grid" /></svg></button>
-          <button class="rail-button" type="button" data-tip="Notifications"><svg class="icon"><use href="assets/icon-sprite.svg#i-bell" /></svg></button>
+          <button class="brand-button" type="button" aria-label="Hanimo home"><img src="../assets/hanimo-mark-v2.svg" alt="" /></button>
+          <button class="rail-button" type="button" aria-current="page" data-tip="Chat"><svg class="icon"><use href="../assets/icon-sprite.svg#i-chat" /></svg></button>
+          <button class="rail-button" type="button" data-tip="New chat"><svg class="icon"><use href="../assets/icon-sprite.svg#i-plus" /></svg></button>
+          <button class="rail-button" type="button" data-tip="Workspace"><svg class="icon"><use href="../assets/icon-sprite.svg#i-grid" /></svg></button>
+          <button class="rail-button" type="button" data-tip="Notifications"><svg class="icon"><use href="../assets/icon-sprite.svg#i-bell" /></svg></button>
         </div>
         <div class="rail-stack">
-          <button class="rail-button" type="button" id="themeToggle" data-tip="Theme"><svg class="icon"><use href="assets/icon-sprite.svg#i-moon" /></svg></button>
-          <button class="rail-button" type="button" data-tip="Settings"><svg class="icon"><use href="assets/icon-sprite.svg#i-settings" /></svg></button>
+          <button class="rail-button" type="button" id="themeToggle" data-tip="Theme"><svg class="icon"><use href="../assets/icon-sprite.svg#i-moon" /></svg></button>
+          <button class="rail-button" type="button" data-tip="Settings"><svg class="icon"><use href="../assets/icon-sprite.svg#i-settings" /></svg></button>
           <div class="avatar" aria-label="Kim Jiwon">KJ</div>
         </div>
       </nav>
@@ -262,52 +263,52 @@
       <aside class="drawer" id="drawer">
         <div class="drawer-head">
           <div class="wordmark"><strong>Hanimo</strong><span>Self-hosted AI workbench</span></div>
-          <button class="icon-button" type="button" aria-label="New conversation"><svg class="icon"><use href="assets/icon-sprite.svg#i-plus" /></svg></button>
+          <button class="icon-button" type="button" aria-label="New conversation"><svg class="icon"><use href="../assets/icon-sprite.svg#i-plus" /></svg></button>
         </div>
-        <label class="drawer-search"><svg class="icon"><use href="assets/icon-sprite.svg#i-search" /></svg><input type="search" placeholder="대화 검색" aria-label="대화 검색" /><kbd>⌘K</kbd></label>
+        <label class="drawer-search"><svg class="icon"><use href="../assets/icon-sprite.svg#i-search" /></svg><input type="search" placeholder="대화 검색" aria-label="대화 검색" /><kbd>⌘K</kbd></label>
         <div class="chat-list">
           <p class="group-label">Today</p>
-          <button class="chat-row active" type="button"><span class="mini-icon"><svg class="icon"><use href="assets/icon-sprite.svg#i-chat" /></svg></span><span><strong>오픈소스 릴리스 점검</strong><small>방금 전 · GLM-5</small></span></button>
-          <button class="chat-row" type="button"><span class="mini-icon"><svg class="icon"><use href="assets/icon-sprite.svg#i-code" /></svg></span><span><strong>API 토큰 미들웨어 검토</strong><small>42분 전 · Qwen</small></span></button>
+          <button class="chat-row active" type="button"><span class="mini-icon"><svg class="icon"><use href="../assets/icon-sprite.svg#i-chat" /></svg></span><span><strong>오픈소스 릴리스 점검</strong><small>방금 전 · GLM-5</small></span></button>
+          <button class="chat-row" type="button"><span class="mini-icon"><svg class="icon"><use href="../assets/icon-sprite.svg#i-code" /></svg></span><span><strong>API 토큰 미들웨어 검토</strong><small>42분 전 · Qwen</small></span></button>
           <p class="group-label">This week</p>
-          <button class="chat-row" type="button"><span class="mini-icon"><svg class="icon"><use href="assets/icon-sprite.svg#i-file" /></svg></span><span><strong>Docker 운영 가이드</strong><small>7월 11일 · DeepSeek</small></span></button>
-          <button class="chat-row" type="button"><span class="mini-icon"><svg class="icon"><use href="assets/icon-sprite.svg#i-image" /></svg></span><span><strong>WebUI 디자인 방향</strong><small>7월 10일 · Gemini</small></span></button>
-          <button class="chat-row" type="button"><span class="mini-icon"><svg class="icon"><use href="assets/icon-sprite.svg#i-memory" /></svg></span><span><strong>공급사 연결 정책</strong><small>7월 8일 · Ollama</small></span></button>
+          <button class="chat-row" type="button"><span class="mini-icon"><svg class="icon"><use href="../assets/icon-sprite.svg#i-file" /></svg></span><span><strong>Docker 운영 가이드</strong><small>7월 11일 · DeepSeek</small></span></button>
+          <button class="chat-row" type="button"><span class="mini-icon"><svg class="icon"><use href="../assets/icon-sprite.svg#i-image" /></svg></span><span><strong>WebUI 디자인 방향</strong><small>7월 10일 · Gemini</small></span></button>
+          <button class="chat-row" type="button"><span class="mini-icon"><svg class="icon"><use href="../assets/icon-sprite.svg#i-memory" /></svg></span><span><strong>공급사 연결 정책</strong><small>7월 8일 · Ollama</small></span></button>
         </div>
         <div class="drawer-foot"><div class="upgrade-note"><strong>Local stack healthy</strong><span>PostgreSQL · app · gateway connected</span></div></div>
       </aside>
 
       <main class="workspace">
         <header class="workspace-head">
-          <button class="icon-button mobile-menu" id="mobileMenu" type="button" aria-label="Open navigation"><svg class="icon"><use href="assets/icon-sprite.svg#i-menu" /></svg></button>
+          <button class="icon-button mobile-menu" id="mobileMenu" type="button" aria-label="Open navigation"><svg class="icon"><use href="../assets/icon-sprite.svg#i-menu" /></svg></button>
           <div class="conversation-title"><strong><span data-lang="ko">오픈소스 릴리스 점검</span><span data-lang="en">Open-source release review</span></strong><span>12 messages · updated now</span></div>
           <div class="runtime-rail" aria-label="Runtime status">
             <span class="runtime-item"><i class="status-dot"></i>OpenRouter</span>
-            <button class="runtime-item" type="button" id="headerModel">GLM-5 <svg class="icon"><use href="assets/icon-sprite.svg#i-chevron" /></svg></button>
+            <button class="runtime-item" type="button" id="headerModel">GLM-5 <svg class="icon"><use href="../assets/icon-sprite.svg#i-chevron" /></svg></button>
             <span class="runtime-item context">18.4k / 128k</span>
             <button class="icon-button" id="languageToggle" type="button" aria-label="Change language">KO</button>
-            <button class="icon-button" id="inspectorToggle" type="button" aria-label="Toggle context inspector" aria-expanded="true"><svg class="icon"><use href="assets/icon-sprite.svg#i-panel" /></svg></button>
+            <button class="icon-button" id="inspectorToggle" type="button" aria-label="Toggle context inspector" aria-expanded="true"><svg class="icon"><use href="../assets/icon-sprite.svg#i-panel" /></svg></button>
           </div>
         </header>
 
         <section class="messages" id="messages" aria-label="Conversation messages">
           <div class="message-column">
             <article class="message">
-              <div class="speaker"><svg class="icon"><use href="assets/icon-sprite.svg#i-user" /></svg></div>
+              <div class="speaker"><svg class="icon"><use href="../assets/icon-sprite.svg#i-user" /></svg></div>
               <div class="message-body"><div class="message-meta"><strong>김지원</strong><span>19:18</span></div><div class="user-sheet message-copy"><span data-lang="ko">현재 공개 릴리스에서 사용자가 가장 먼저 확인해야 할 위험과 개선 순서를 정리해줘.</span><span data-lang="en">Summarize the first risks a user should verify in the public release and the improvement order.</span></div></div>
             </article>
             <article class="message">
-              <div class="speaker hanimo"><svg class="icon"><use href="assets/icon-sprite.svg#i-spark" /></svg></div>
+              <div class="speaker hanimo"><svg class="icon"><use href="../assets/icon-sprite.svg#i-spark" /></svg></div>
               <div class="message-body">
                 <div class="message-meta"><strong>Hanimo</strong><span>GLM-5 · 4.8s</span></div>
                 <div class="message-copy">
                   <p data-lang="ko">공개 릴리스의 첫 판단 기준은 기능 수가 아니라 <strong>복구 가능성, 권리 관계, 인증 경계</strong>입니다. 아래 순서로 확인하는 것이 안전합니다.</p>
                   <p data-lang="en">The first release criteria are not feature count but <strong>recoverability, rights clarity, and authentication boundaries</strong>. Verify them in this order.</p>
                   <div class="tool-result">
-                    <div class="tool-head"><strong><svg class="icon"><use href="assets/icon-sprite.svg#i-file" /></svg>Referenced project files</strong><span>3 SOURCES</span></div>
-                    <div class="source-row"><svg class="icon"><use href="assets/icon-sprite.svg#i-file" /></svg><span><strong>SECURITY.md</strong><small>Stable Core and private disclosure boundary</small></span></div>
-                    <div class="source-row"><svg class="icon"><use href="assets/icon-sprite.svg#i-file" /></svg><span><strong>OPERATIONS.md</strong><small>Backup, restore, update, rollback</small></span></div>
-                    <div class="source-row"><svg class="icon"><use href="assets/icon-sprite.svg#i-file" /></svg><span><strong>THIRD_PARTY_NOTICES.md</strong><small>Dependency and asset provenance</small></span></div>
+                    <div class="tool-head"><strong><svg class="icon"><use href="../assets/icon-sprite.svg#i-file" /></svg>Referenced project files</strong><span>3 SOURCES</span></div>
+                    <div class="source-row"><svg class="icon"><use href="../assets/icon-sprite.svg#i-file" /></svg><span><strong>SECURITY.md</strong><small>Stable Core and private disclosure boundary</small></span></div>
+                    <div class="source-row"><svg class="icon"><use href="../assets/icon-sprite.svg#i-file" /></svg><span><strong>OPERATIONS.md</strong><small>Backup, restore, update, rollback</small></span></div>
+                    <div class="source-row"><svg class="icon"><use href="../assets/icon-sprite.svg#i-file" /></svg><span><strong>THIRD_PARTY_NOTICES.md</strong><small>Dependency and asset provenance</small></span></div>
                   </div>
                 </div>
               </div>
@@ -316,24 +317,24 @@
         </section>
 
         <section class="composer-zone" aria-label="Message composer">
-          <div class="attachment-line" id="attachmentLine"><span class="file-chip"><svg class="icon"><use href="assets/icon-sprite.svg#i-file" /></svg>release-checklist.md <button type="button" aria-label="Remove attachment">×</button></span></div>
+          <div class="attachment-line" id="attachmentLine"><span class="file-chip"><svg class="icon"><use href="../assets/icon-sprite.svg#i-file" /></svg>release-checklist.md <button type="button" aria-label="Remove attachment">×</button></span></div>
           <div class="command-dock">
             <div class="input-wrap"><textarea id="promptInput" aria-label="Message" placeholder="Hanimo에게 요청하세요"></textarea></div>
             <div class="dock-actions">
               <div class="dock-left">
-                <button class="dock-control" type="button" id="attachButton"><svg class="icon"><use href="assets/icon-sprite.svg#i-paperclip" /></svg><span class="label">첨부</span></button>
-                <button class="dock-control" type="button" id="toolsButton" aria-expanded="false"><svg class="icon"><use href="assets/icon-sprite.svg#i-tools" /></svg><span class="label">도구</span></button>
+                <button class="dock-control" type="button" id="attachButton"><svg class="icon"><use href="../assets/icon-sprite.svg#i-paperclip" /></svg><span class="label">첨부</span></button>
+                <button class="dock-control" type="button" id="toolsButton" aria-expanded="false"><svg class="icon"><use href="../assets/icon-sprite.svg#i-tools" /></svg><span class="label">도구</span></button>
               </div>
               <div class="dock-right">
-                <button class="dock-control model" type="button" id="modelButton" aria-expanded="false"><i class="status-dot"></i><span>GLM-5</span><svg class="icon"><use href="assets/icon-sprite.svg#i-chevron" /></svg></button>
-                <button class="send" type="button" id="sendButton" aria-label="Send message"><svg class="icon"><use href="assets/icon-sprite.svg#i-send" /></svg></button>
+                <button class="dock-control model" type="button" id="modelButton" aria-expanded="false"><i class="status-dot"></i><span>GLM-5</span><svg class="icon"><use href="../assets/icon-sprite.svg#i-chevron" /></svg></button>
+                <button class="send" type="button" id="sendButton" aria-label="Send message"><svg class="icon"><use href="../assets/icon-sprite.svg#i-send" /></svg></button>
               </div>
             </div>
             <div class="tool-tray" id="toolTray">
-              <button class="tool-option" type="button"><svg class="icon"><use href="assets/icon-sprite.svg#i-image" /></svg><span><strong>이미지 분석</strong><small>첨부 이미지를 읽기</small></span></button>
-              <button class="tool-option" type="button"><svg class="icon"><use href="assets/icon-sprite.svg#i-code" /></svg><span><strong>Draw</strong><small>HTML 시각화</small></span></button>
-              <button class="tool-option" type="button"><svg class="icon"><use href="assets/icon-sprite.svg#i-memory" /></svg><span><strong>Memory</strong><small>사용자 문맥 적용</small></span></button>
-              <button class="tool-option" type="button"><svg class="icon"><use href="assets/icon-sprite.svg#i-spark" /></svg><span><strong>Instruction</strong><small>맞춤 지침</small></span></button>
+              <button class="tool-option" type="button"><svg class="icon"><use href="../assets/icon-sprite.svg#i-image" /></svg><span><strong>이미지 분석</strong><small>첨부 이미지를 읽기</small></span></button>
+              <button class="tool-option" type="button"><svg class="icon"><use href="../assets/icon-sprite.svg#i-code" /></svg><span><strong>Draw</strong><small>HTML 시각화</small></span></button>
+              <button class="tool-option" type="button"><svg class="icon"><use href="../assets/icon-sprite.svg#i-memory" /></svg><span><strong>Memory</strong><small>사용자 문맥 적용</small></span></button>
+              <button class="tool-option" type="button"><svg class="icon"><use href="../assets/icon-sprite.svg#i-spark" /></svg><span><strong>Instruction</strong><small>맞춤 지침</small></span></button>
             </div>
             <div class="popover" id="modelPopover" role="dialog" aria-label="Select model">
               <p class="popover-label">Available models</p>
@@ -438,6 +439,6 @@
         if (!event.target.closest("#modelButton") && !event.target.closest("#modelPopover") && !event.target.closest("#headerModel")) closeTransient();
       });
     </script>
-    <script src="variants/theme-lab.js"></script>
+    <script src="theme-lab.js"></script>
   </body>
 </html>

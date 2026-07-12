@@ -3,6 +3,33 @@
 Each phase should be independently reviewable and revertible. Do not combine the
 complete shell migration with backend or message-parsing changes.
 
+## Phase A — appearance contract and migration
+
+- define a validated appearance preference contract
+- migrate the existing `ThemeDrawer` instead of adding a parallel drawer
+- preserve `theme` and `hanimo-webui-theme` reads during one release migration
+- add `skin`, `typeScale`, and `density` with safe defaults
+- apply cached root attributes in the pre-paint script
+
+Gate: old stored preferences migrate without FOUC or hydration warnings.
+
+## Phase B — shared skin registry
+
+- add a registry of supported skin IDs and localized labels
+- load skin CSS through one root attribute contract
+- move common shell geometry into base semantic component styles
+- keep only visual overrides in individual skin files
+
+Gate: switching skin does not remount chat state, refetch rooms, or clear input.
+
+## Phase C — appearance drawer
+
+- add skin preview, palette, custom HEX, mode, type scale, and density controls
+- expose reset-to-site-default and reset-to-product-default separately
+- announce applied changes accessibly and preserve keyboard focus
+
+Gate: every setting is keyboard operable, localized, persistent, and reversible.
+
 ## Phase 0 — lock behavior and showcase primitives
 
 Deliverables:

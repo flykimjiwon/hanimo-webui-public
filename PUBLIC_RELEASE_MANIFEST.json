@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "cc30626d25580ac488a8a345497cdf470a43269f",
+  "sourceCommit": "4a0ab45623c15d00427b843169e5c2e4ca915c60",
   "dirty": false,
   "files": [
     {
@@ -1303,7 +1303,7 @@
     },
     {
       "path": "design-prototypes/webui-system/ANALYSIS.md",
-      "sha256": "73df994a2fd3f39728e041b8abc2854dbbd95c21a1469a29a4c4611e72fe363b"
+      "sha256": "9a32ce2ae06b74230956b8fb101fe267b6717278b5d4bcfdf3a496eaa29a86dc"
     },
     {
       "path": "design-prototypes/webui-system/assets/favicon-v2.svg",
@@ -1339,19 +1339,23 @@
     },
     {
       "path": "design-prototypes/webui-system/nextjs-handoff/IMPLEMENTATION_PLAN.md",
-      "sha256": "081d8170c93642b26ca5a063e2a17fa66c558e2780fc5607bf8e3574a8f29b78"
+      "sha256": "aacbb6c8019fb524fa19c7bb0b6620fffeeb293e232b5aba1580844a67f77dcb"
     },
     {
       "path": "design-prototypes/webui-system/nextjs-handoff/QA_CHECKLIST.md",
-      "sha256": "f269d292c7a45a0057207dd9919f33889661730cc9814ccab28b632377c87051"
+      "sha256": "c37a22604f28cc5abb3dd88d010c7990c71f1d614b137c3ddc09f14f9e42ddf9"
     },
     {
       "path": "design-prototypes/webui-system/nextjs-handoff/README.md",
-      "sha256": "a51ea24dc3004ead40625c57e52f81396e34cb76df1a386f92f7ab3836dcd327"
+      "sha256": "f1c183f51201dad4592c58895b7c8b56b7ba843f94481aec1bdf992fd56fc41b"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/SKIN_ARCHITECTURE.md",
+      "sha256": "ddafae3b31a861399b89d822eee506057e1574bf5db3fb029e148de8a11d4467"
     },
     {
       "path": "design-prototypes/webui-system/nextjs-handoff/THEME_I18N.md",
-      "sha256": "955512c820c5d857ae5c8f2fbe5f11e6b523be54a35bbf698b0784072527db03"
+      "sha256": "25852b2a3820a8b9bf2af346cbf57521110b03cebc0508501b8efe0a868fc00a"
     },
     {
       "path": "design-prototypes/webui-system/variants/aurora-glass.css",
@@ -1359,7 +1363,7 @@
     },
     {
       "path": "design-prototypes/webui-system/variants/aurora-glass.html",
-      "sha256": "1df714a6865827a063c583f54597dc58826bf98ee0d9939819fc4e8915f786af"
+      "sha256": "bddf9ff41fc89f74188347ba7ce536bcc1da8caf030cde2fef429ada98db594c"
     },
     {
       "path": "design-prototypes/webui-system/variants/cobalt-studio.css",
@@ -1367,7 +1371,7 @@
     },
     {
       "path": "design-prototypes/webui-system/variants/cobalt-studio.html",
-      "sha256": "f1242876778caeb61edc3368367a409a3694745f49a7e985271fc321697a869f"
+      "sha256": "c55fdc472d4739a264ab63d02c588043ced1dcf9bdcda94ff89ccf64a8860bd3"
     },
     {
       "path": "design-prototypes/webui-system/variants/graphite-terminal.css",
@@ -1375,7 +1379,7 @@
     },
     {
       "path": "design-prototypes/webui-system/variants/graphite-terminal.html",
-      "sha256": "5ed49fe9b4782329e3d072fca949129d633db08fbd0e805dd94b9c7f772b7d98"
+      "sha256": "c2ca8bc264708f61c03e851974fb917c5825b28a25cbbe2639c698c9b8ef59df"
     },
     {
       "path": "design-prototypes/webui-system/variants/honeycomb-focus.css",
@@ -1383,11 +1387,27 @@
     },
     {
       "path": "design-prototypes/webui-system/variants/honeycomb-focus.html",
-      "sha256": "76e226725971ccc78eaf81a0da1c208facc5faef31a4a37584f988c691cad5b1"
+      "sha256": "53c1673230fc85afcdefe3fd77a7a908f06bd885fc898f3b1e7af9079f080d39"
     },
     {
       "path": "design-prototypes/webui-system/variants/index.html",
-      "sha256": "fac58da38eb28c46bc1e8f5eced29c44d1260e8b11ec02465f02984312c46274"
+      "sha256": "2ced77296264effcdc481ed8f470da636a96219a3fad6ea7a78cc0dda1ac89fa"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/mono-atelier.css",
+      "sha256": "be5c614b7b459981364164e182a9397c5104280401a39c853f596ab35ac1a682"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/mono-atelier.html",
+      "sha256": "f9e3cbdb15737c4263b2b5f4f9e18af8f40407c0ebdfc5249bad3090f8a970b9"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/moss-laboratory.css",
+      "sha256": "2701490b6ec5c276ce8aa68aa46f7152decac4c4415c04d66e486c704103feb0"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/moss-laboratory.html",
+      "sha256": "0ef7490d288b0706842c05db9415976a86f8c2f70128d534208e3158f576ed9b"
     },
     {
       "path": "design-prototypes/webui-system/variants/paper-ledger.css",
@@ -1395,19 +1415,35 @@
     },
     {
       "path": "design-prototypes/webui-system/variants/paper-ledger.html",
-      "sha256": "10726c94d271e5f60ffaed6118e3a605a7bf4142120de57608b1dfecb7b7ff75"
+      "sha256": "8e797875855ee8c77614e5c1971c754a173ad79d8555e2ef880a5f0ad81ab795"
     },
     {
       "path": "design-prototypes/webui-system/variants/README.md",
-      "sha256": "4b7da75981b67fffc2cf0963be723889937481599ac5f66a363e7cb75be44008"
+      "sha256": "c0253afc0587d44a0a0c115d382571e0d453ce9a5d695a07639834f0c996978b"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/signal-orange.css",
+      "sha256": "0ba423262f7ca9da48340dae2f8cac6ca2b11846c162f0a28a9b8c4bbe0c7979"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/signal-orange.html",
+      "sha256": "ae835d88ae01a6ea1b5b9f38bff8780579948c1c634859afdeee87c081f2d56f"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/theme-lab.css",
+      "sha256": "1e3e167ce4cf9528ec9b24bfa60019f8d0cd8f22d756fab4d08bc152f848d79d"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/theme-lab.js",
+      "sha256": "75aed52fb51b7a3daae0231d3bc319ddf40471081b91ea8938ca41db75ad3940"
     },
     {
       "path": "design-prototypes/webui-system/warm-command-deck.html",
-      "sha256": "424e023f85b5b012026ad23eeb4e8fabd3026049e8cd1e11469bfec1f90b669e"
+      "sha256": "e50597b48fdd76a267eff965f0dc09971de3c56c94d12f24a478d2d7ce2ac9c3"
     },
     {
       "path": "DESIGN.md",
-      "sha256": "476dd825ebd8e2a6640ce2f1b457a909a4848e95bd7712d107fdf02adeba18dc"
+      "sha256": "73baa19584dba22cc985b943d801e93e5623bddd4fc78b6646d53a5fc6620437"
     },
     {
       "path": "docker-compose.dev.yml",

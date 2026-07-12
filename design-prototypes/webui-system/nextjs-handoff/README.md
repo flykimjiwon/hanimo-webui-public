@@ -30,6 +30,7 @@ pixel truth.
 | `DESIGN_TOKENS.md` | Token bridge for Tailwind 4 and customizable themes |
 | `THEME_I18N.md` | Palette, light/dark, custom HEX, Korean/English preservation |
 | `ASSET_INTEGRATION.md` | Mark, favicon, sprite, and React icon strategy |
+| `SKIN_ARCHITECTURE.md` | Reusable skin/palette/type/density architecture |
 | `IMPLEMENTATION_PLAN.md` | Mergeable phases, file-level work, rollback boundaries |
 | `QA_CHECKLIST.md` | Functional, responsive, accessibility, visual, release gates |
 
@@ -41,6 +42,7 @@ pixel truth.
   `hanimo-webui-lang`, and `hanimo-webui-sidebar-mode`.
 - Keep all six presets, custom primary HEX, separate light/dark variables, and
   administrator-supplied theme colors.
+- Treat skin, palette, mode, type scale, and density as independent preferences.
 - Keep Korean and English dictionaries. No visible prototype string may remain
   hard-coded in a production component.
 - Keep image attachment, paste/drop, draw mode, custom instructions, memory,

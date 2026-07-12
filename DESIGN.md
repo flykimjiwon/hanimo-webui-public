@@ -263,3 +263,37 @@ actual Hanimo WebUI product shell. It does not replace production components.
   prototype navigation and composer controls.
 - Raster imagery is limited to optional empty-state or onboarding atmosphere;
   core controls and brand marks remain deterministic SVG.
+
+## 10. Reusable WebUI appearance system
+
+The product shell uses one semantic DOM and interaction contract. Visual skins
+are token and component-treatment layers, not forks of chat components.
+
+### Independent appearance axes
+
+- `skin`: material, geometry, and visual rhythm
+- `palette`: action/selection/focus color family
+- `mode`: light, dark, or system preference
+- `type-scale`: 85%, 100%, 115%, or 125%
+- `density`: compact, cozy, or relaxed spacing
+
+Changing one axis must not silently change another. Skins cannot redefine
+semantic success, warning, error, focus visibility, translation, or behavior.
+
+### Skin contract
+
+- All skins render the same rail, drawer, runtime rail, messages, command dock,
+  model selector, and context inspector markup.
+- A skin may override surface tokens, radii, depth recipes, optical icon
+  treatment, and stable semantic component selectors.
+- A skin may not add API calls, local component state, duplicated controls, or
+  provider/model behavior.
+- Unknown persisted skin values fall back to `warm-command-deck`.
+- User-supplied CSS and arbitrary stylesheet URLs are never accepted.
+
+### Accessibility invariants
+
+- Text and controls remain readable at 125% type scale and compact density.
+- Palette changes preserve semantic status colors and visible focus.
+- Every skin supports Korean and English, light and dark, keyboard navigation,
+  reduced motion, and mobile composer access.

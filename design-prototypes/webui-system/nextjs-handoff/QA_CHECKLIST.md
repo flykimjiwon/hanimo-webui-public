@@ -57,6 +57,12 @@
 - [ ] No hard-coded visible Korean or English remains in migrated components
 - [ ] `<html lang>` updates correctly
 - [ ] 125% type scale produces no clipped controls
+- [ ] Every registered skin renders in light and dark mode
+- [ ] Skin changes preserve the draft input, selected room, and selected model
+- [ ] Skin changes do not trigger room/model network refetches
+- [ ] Compact at 125% and relaxed at 85% remain usable
+- [ ] Invalid persisted skin/palette/density values fall back safely
+- [ ] Custom HEX is normalized and cannot inject arbitrary CSS
 
 ## Accessibility
 

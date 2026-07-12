@@ -63,9 +63,27 @@ namespace additions:
     "files": "Files",
     "runs": "Runs",
     "local_stack_healthy": "Local stack healthy"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "skin": "Skin",
+    "palette": "Palette",
+    "custom_primary": "Custom primary",
+    "mode": "Mode",
+    "type_scale": "Type scale",
+    "density": "Density",
+    "compact": "Compact",
+    "cozy": "Cozy",
+    "relaxed": "Relaxed",
+    "reset_site_default": "Reset to site default",
+    "reset_product_default": "Reset to product default"
   }
 }
 ```
+
+Add one localized label and short description per registered skin. Skin IDs are
+stable technical values and remain untranslated; labels and descriptions use
+dictionary keys.
 
 Korean must be authored naturally rather than mechanically transliterated. Keep
 button text short and move explanation to descriptions/tooltips where needed.

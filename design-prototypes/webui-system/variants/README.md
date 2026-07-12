@@ -1,8 +1,9 @@
 # Hanimo WebUI alternative design directions
 
-All five variants preserve the content structure and interaction script of
-`../warm-command-deck.html`. They explore product character rather than five
-simple palette swaps.
+Eight variants and the baseline preserve one content and interaction contract.
+They explore product character rather than simple palette swaps. Every full
+screen exposes the shared Design settings panel for skin, palette, custom HEX,
+light/dark/system mode, type scale, and density.
 
 | Direction | Strongest quality | Best fit | Main trade-off |
 | --- | --- | --- | --- |
@@ -11,6 +12,9 @@ simple palette swaps.
 | Paper Ledger | long-form reading and provenance | research, review, compliance | less conventional chat styling |
 | Cobalt Studio | clear operational navigation | mixed admin/chat work | weaker amber-only brand recognition |
 | Honeycomb Focus | strongest Hanimo identity | flagship default shell | geometric motifs require restraint |
+| Mono Atelier | extreme information clarity | editorial and review work | intentionally austere |
+| Moss Laboratory | calm local-first character | research and self-hosting | softer operational urgency |
+| Signal Orange | unmistakable execution state | admin and incident work | high contrast needs restraint |
 
 ## Recommendation
 
@@ -34,6 +38,10 @@ than blended into the default light experience.
 - model selector and model change
 - mobile conversation drawer
 - Enter-to-send prototype behavior
+- shared skin selector and persisted appearance settings
+- six production-compatible palettes plus custom primary HEX
+- 85%, 100%, 115%, and 125% type scale
+- compact, cozy, and relaxed density
 
 Open `index.html` for the comparison gallery or open each file directly for the
 full interactive canvas.

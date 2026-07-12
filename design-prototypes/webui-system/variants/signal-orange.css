@@ -1,0 +1,22 @@
+:root { --deck:#f3f0ea;--deck-2:#e6e1d8;--sheet:#fffefa;--sheet-2:#f1ede5;--ink:#191714;--ink-2:#49443d;--muted:#797168;--line:#ddd5ca;--line-strong:#c1b5a6;--amber:#ff8a1f;--amber-deep:#a94d00;--amber-soft:#ffe0be;--graphite:#16191e;--graphite-2:#22262e;--good:#4d8a67;--info:#536fa8;--radius-sm:.35rem;--radius-md:.48rem;--radius-lg:.65rem;--drawer:17rem;--inspector:19rem;--shadow:0 14px 40px -34px #27170b;--shadow-dock:0 26px 62px -34px rgba(80,36,5,.38); }
+html[data-theme="dark"] { --deck:#111214;--deck-2:#181a1e;--sheet:#1c1e22;--sheet-2:#24272d;--ink:#f7f3ec;--ink-2:#d0cbc2;--muted:#918a82;--line:#34373d;--line-strong:#4b4f57;--amber-soft:#462816;--graphite:#090b0e; }
+.rail { color:#f3f3f1;background:var(--graphite);border:0; }
+.rail-button { color:#818791; }
+.rail-button:hover,.rail-button[aria-current="page"] { color:white;background:#2a2f38;box-shadow:none; }
+.rail-button[aria-current="page"]::before { width:.34rem;height:2rem;background:var(--amber); }
+.drawer-head { border-bottom:.35rem solid var(--amber); }
+.wordmark strong { letter-spacing:.04em;text-transform:uppercase; }
+.chat-row.active { color:var(--sheet);background:var(--graphite); }
+.chat-row.active small { color:#aeb2bb; }
+.chat-row.active .mini-icon { color:var(--amber);background:#2a2f38; }
+.workspace-head { border-bottom:2px solid var(--graphite); }
+.runtime-item:first-child { color:white;background:var(--graphite);border-color:var(--graphite); }
+.speaker.hanimo { color:#1c1207;background:var(--amber); }
+.user-sheet { border-right:4px solid var(--amber); }
+.tool-result { border-top:4px solid var(--amber); }
+.source-row { background:transparent; }
+.command-dock { border:2px solid var(--graphite); }
+.command-dock:focus-within { border-color:var(--amber); }
+.send { border-color:var(--graphite);border-radius:.25rem;box-shadow:4px 4px 0 var(--graphite); }
+.inspector-head { color:white;background:var(--graphite);border-bottom:.35rem solid var(--amber); }
+.inspector-tabs button.active { color:var(--graphite);background:var(--amber); }
