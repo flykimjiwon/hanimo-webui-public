@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Hanimo command mark</title>
+  <desc id="desc">Three command lines and an execution node on an amber rounded square.</desc>
+  <defs>
+    <linearGradient id="amber" x1="10" y1="8" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffc65d"/>
+      <stop offset="1" stop-color="#e58b14"/>
+    </linearGradient>
+  </defs>
+  <rect x="3" y="3" width="58" height="58" rx="17" fill="url(#amber)"/>
+  <rect x="3.75" y="3.75" width="56.5" height="56.5" rx="16.25" fill="none" stroke="#9f5d08" stroke-opacity=".32" stroke-width="1.5"/>
+  <path d="M18 20h28M18 30h20M18 40h13" fill="none" stroke="#29190a" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="44" cy="42" r="6" fill="#29190a"/>
+  <path d="m41.5 42 2 2 4-4.5" fill="none" stroke="#ffd996" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

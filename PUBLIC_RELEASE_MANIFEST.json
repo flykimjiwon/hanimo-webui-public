@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "8b30d02118bfabbafa287471cb9d4d553cc80a3c",
+  "sourceCommit": "817c1013f3c3668273d5166dc5cdd115766f424a",
   "dirty": false,
   "files": [
     {
@@ -1302,8 +1302,28 @@
       "sha256": "c9ea9a5b543aacc7e4271352f92461b6bf20e02e8107929df26874cb5e6cabbb"
     },
     {
+      "path": "design-prototypes/webui-system/ANALYSIS.md",
+      "sha256": "c970d6321e438e9b11fb5eb6e7bdd1bfa8175b434b9c3d6ab09f473794977db8"
+    },
+    {
+      "path": "design-prototypes/webui-system/assets/favicon-v2.svg",
+      "sha256": "0e35b7f95d3739f6238f8ef30f870ff3b980ce61637c6d25f6a83adaebe42536"
+    },
+    {
+      "path": "design-prototypes/webui-system/assets/hanimo-mark-v2.svg",
+      "sha256": "02da770c97573e7b70f6191e627ce1ffd0612a49d7eaddd2c6e5f533cd7fed1a"
+    },
+    {
+      "path": "design-prototypes/webui-system/assets/icon-sprite.svg",
+      "sha256": "7e56617769027b87b79f54fae4092e743151e43fc940d39fa125bd7d7e4d3145"
+    },
+    {
+      "path": "design-prototypes/webui-system/warm-command-deck.html",
+      "sha256": "424e023f85b5b012026ad23eeb4e8fabd3026049e8cd1e11469bfec1f90b669e"
+    },
+    {
       "path": "DESIGN.md",
-      "sha256": "cd09fa4ca130b1ff1812f353bef229c62e55d9aff681872ffe997d443d3f245f"
+      "sha256": "476dd825ebd8e2a6640ce2f1b457a909a4848e95bd7712d107fdf02adeba18dc"
     },
     {
       "path": "docker-compose.dev.yml",

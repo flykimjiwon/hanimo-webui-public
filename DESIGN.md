@@ -215,3 +215,51 @@ claims.
   `prefers-reduced-motion`.
 - The standalone page keeps a skip link, semantic landmarks, visible focus,
   readable Korean line breaking, and no essential hover-only content.
+
+## 9. WebUI product-shell prototype extension
+
+This extension defines the standalone `Warm Command Deck` exploration for the
+actual Hanimo WebUI product shell. It does not replace production components.
+
+### Product diagnosis
+
+- The composer owns many capabilities but exposes them at nearly equal visual
+  weight, increasing decision cost before typing.
+- Rail, drawer, header, model selector, and composer mix icon families and
+  density rules, weakening the sense of one operating surface.
+- The current compact amber mark is functional but lacks a distinctive favicon
+  silhouette at 16–32px.
+- Provider/model state is separated from the moment of composition, so users
+  must infer which runtime will receive the prompt.
+
+### Direction comparison
+
+1. **Warm Command Deck — selected**: light paper work surface, graphite message
+   layer, amber command focus, progressive composer tools, visible runtime rail.
+2. **Graphite Studio — rejected for default**: strong focus and code readability,
+   but too dark and operationally heavy as the only product identity.
+3. **Honeycomb Canvas — rejected**: highly brandable but risks decorative card
+   geometry and competes with long-form chat content.
+
+### Signature and primitives
+
+- **Signature**: the composer is a command dock with a single amber send key;
+  tool capability expands from one `Tools` control instead of a permanent row
+  of equally loud buttons.
+- `workspace-rail`: 64px navigation with a precise active notch and tooltips.
+- `conversation-drawer`: search-first recent conversation list with time groups.
+- `runtime-rail`: provider, model, context, and connection state in one line.
+- `message-sheet`: content-first messages with avatars only at speaker changes.
+- `command-dock`: multiline input, compact attachments, progressive tool tray,
+  model switch, keyboard hint, and deterministic send state.
+- `context-inspector`: optional right panel for sources, files, and run metadata.
+
+### Asset rules
+
+- `hanimo-mark-v2.svg` is the product-shell exploration mark: three horizontal
+  command lines and a lower-right execution node inside a rounded amber field.
+- `favicon-v2.svg` simplifies the same geometry for 16–32px recognition.
+- `icon-sprite.svg` is a consistent 1.75px round-cap technical icon family for
+  prototype navigation and composer controls.
+- Raster imagery is limited to optional empty-state or onboarding atmosphere;
+  core controls and brand marks remain deterministic SVG.
