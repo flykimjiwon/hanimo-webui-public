@@ -71,6 +71,8 @@ The public core promise is chat, model server settings, user/admin management, A
 
 The only prerequisite is **Docker Desktop**. You do not need to install PostgreSQL locally.
 
+For a first clean-machine verification, follow the [manual Docker QA guide](docs/MANUAL_DOCKER_QA.md). It covers installer integrity, browser login, `hmo_` API-key boundaries, logs, and data-preserving shutdown.
+
 ```bash
 git clone https://github.com/flykimjiwon/hanimo-webui-public.git hanimo-webui
 cd hanimo-webui

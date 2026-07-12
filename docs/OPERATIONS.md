@@ -1,5 +1,7 @@
 # Hanimo 운영 가이드
 
+새로운 macOS Apple Silicon 환경에서 Docker Desktop 설치부터 로그인, `hmo_` API Key, 모델 조회까지 직접 확인하려면 [수동 Docker QA 가이드](MANUAL_DOCKER_QA.md)를 따르세요.
+
 ## 검증된 revision으로 설치
 
 원격 bootstrap은 기본적으로 변경되지 않는 commit을 사용합니다. 검토되지 않은 branch 이름을 `HANIMO_REF`로 전달하지 마세요.

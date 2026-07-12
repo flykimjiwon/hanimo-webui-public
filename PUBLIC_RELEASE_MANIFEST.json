@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "e6e81973c84f36e8d699a42b1c86392fbb9a8b37",
+  "sourceCommit": "f67de5e6142a7ae70880f0a21d21701627875b51",
   "dirty": false,
   "files": [
     {
@@ -1322,8 +1322,12 @@
       "sha256": "292e8a0f0b57c1500639ae19be4fca2fcc05e7fded16801b61bb5895a9ad7990"
     },
     {
+      "path": "docs/MANUAL_DOCKER_QA.md",
+      "sha256": "90b20bb75b6e708dc2929edba6395e280b2032338e32923ec9a4056dd91366ef"
+    },
+    {
       "path": "docs/OPERATIONS.md",
-      "sha256": "313d25eebb65c9ad84664b4033fd5272f7f8f55913ecc963c6bd9b905553d284"
+      "sha256": "27eaf5e7a799a84cc1b50368789cbd6d94dbe2d466fdf6bfaf1a45a655b39737"
     },
     {
       "path": "docs/PROJECT_AUDIT.md",
@@ -1411,11 +1415,11 @@
     },
     {
       "path": "README_en.md",
-      "sha256": "50c6113b3b5fc4548e83b90fc2fa19cdfcc19447f816e135f6e80f503e618295"
+      "sha256": "733245183ddf189599eb1cc1e6b38a50d7bd018dfbdafd2fcca0ed1dea22a20d"
     },
     {
       "path": "README.md",
-      "sha256": "6395ad3b3dd1d7a13faa7e3940f40fb88139e19e11700e5e0c4e2e8f209f493a"
+      "sha256": "b66653adb3e3adbac7b691a16bb9b6e8d6ed73807ff09f0d36ffa309f4ce2c07"
     },
     {
       "path": "reports/webui-v2-login-smoke.png",
