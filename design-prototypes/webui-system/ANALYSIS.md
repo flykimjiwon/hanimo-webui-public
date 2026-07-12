@@ -71,6 +71,17 @@ turning dense chat and admin work into decorative card layouts.
 - Light/dark theme, KO/EN labels, keyboard focus, reduced motion
 - New brand mark, favicon, and unified SVG icon sprite
 
+## Visual artifacts
+
+- Interactive prototype: `warm-command-deck.html`
+- Generated product concept: `generated/warm-command-deck-concept.png`
+- Brand assets: `assets/hanimo-mark-v2.svg`, `assets/favicon-v2.svg`
+- Interface icon system: `assets/icon-sprite.svg`
+
+The generated concept is a directional reference, not a production screenshot.
+The interactive HTML remains the source of truth for responsive behavior,
+keyboard interaction, light/dark themes, and Korean/English labels.
+
 ## Production candidates
 
 1. Adopt the SVG mark/favicons after 16px and monochrome tests.

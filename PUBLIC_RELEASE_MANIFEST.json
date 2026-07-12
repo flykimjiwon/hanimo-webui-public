@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "817c1013f3c3668273d5166dc5cdd115766f424a",
+  "sourceCommit": "d1a80851b35fc263577be5582719e825dfb3e18b",
   "dirty": false,
   "files": [
     {
@@ -1303,7 +1303,7 @@
     },
     {
       "path": "design-prototypes/webui-system/ANALYSIS.md",
-      "sha256": "c970d6321e438e9b11fb5eb6e7bdd1bfa8175b434b9c3d6ab09f473794977db8"
+      "sha256": "982047b17e2e24fd917ef72dceeda591294938cb555b265bc78bda76129664f4"
     },
     {
       "path": "design-prototypes/webui-system/assets/favicon-v2.svg",
@@ -1316,6 +1316,10 @@
     {
       "path": "design-prototypes/webui-system/assets/icon-sprite.svg",
       "sha256": "7e56617769027b87b79f54fae4092e743151e43fc940d39fa125bd7d7e4d3145"
+    },
+    {
+      "path": "design-prototypes/webui-system/generated/warm-command-deck-concept.png",
+      "sha256": "c00650781b89f36688ad6fbae286c08a0ed779b835c91f3d950ee40e63178055"
     },
     {
       "path": "design-prototypes/webui-system/warm-command-deck.html",
