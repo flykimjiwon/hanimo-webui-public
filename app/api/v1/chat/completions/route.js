@@ -18,6 +18,7 @@ import { getClientIP } from '@/lib/ip';
 import { verifyApiToken } from '@/lib/apiTokenUtils';
 import { buildOpenAiEndpoint } from '@/lib/openai-gateway.mjs';
 import { buildProxyHeaders } from '@/lib/security/proxy-headers.mjs';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
 import {
   MODEL_SERVER_TIMEOUT_STREAM,
   MODEL_SERVER_TIMEOUT_NORMAL,
@@ -723,7 +724,7 @@ export async function POST(request) {
       const startAt = Date.now();
       let manualRes;
       try {
-        manualRes = await fetch(manualUrl, requestOptions);
+        manualRes = await fetchWithProviderPolicy(manualUrl, requestOptions, { provider });
       } catch (error) {
         return NextResponse.json(
           {
@@ -1454,7 +1455,7 @@ export async function POST(request) {
           signal: controller.signal,
         };
 
-        const response = await fetch(url, fetchOptions);
+        const response = await fetchWithProviderPolicy(url, fetchOptions, { provider });
 
         // Clear timeout on success
         clearTimeout(timeoutId);

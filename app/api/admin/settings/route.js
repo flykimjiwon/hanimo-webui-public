@@ -16,6 +16,7 @@ import {
   encryptProviderEndpoints,
   encryptProviderSecret,
 } from '@/lib/security/provider-credentials.mjs';
+import { validateProviderEndpoint } from '@/lib/security/provider-outbound.mjs';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -741,21 +742,10 @@ export async function PUT(request) {
         }
         seenNames.add(normalizedName);
         try {
-          const u = new URL(url);
-          if (!/^https?:$/.test(u.protocol)) {
-            return createValidationError(`Invalid URL protocol: ${url}`);
-          }
-          if (!u.host) {
-            return createValidationError(`Invalid URL format: ${url}`);
-          }
-          if (u.username || u.password) {
-            return createValidationError(
-              'Model server URLs must not contain credentials.'
-            );
-          }
+          await validateProviderEndpoint(url, { provider });
         } catch (error) {
           logger.warn('[Catch] Error occurred:', error.message);
-          return createValidationError(`Not a valid URL: ${url}`);
+          return createValidationError(error.message);
         }
         const isActive =
           item.isActive !== undefined ? Boolean(item.isActive) : true; // Default is active

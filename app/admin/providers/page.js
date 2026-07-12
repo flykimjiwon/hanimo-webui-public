@@ -231,7 +231,7 @@ export default function ProvidersPage() {
                 <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
                 <Input value={catalogQuery} onChange={(event) => setCatalogQuery(event.target.value)} placeholder='Search providers, gateways, and local engines' className='pl-9' aria-label='Search provider catalog' />
               </div>
-              <div className='flex gap-1 overflow-x-auto pb-1 lg:pb-0' aria-label='Provider categories'>
+              <div className='flex flex-wrap gap-1 pb-1 lg:pb-0' aria-label='Provider categories'>
                 {PROVIDER_CATEGORIES.map((category) => (
                   <Button key={category} type='button' size='sm' variant={catalogCategory === category ? 'default' : 'outline'} onClick={() => setCatalogCategory(category)}>
                     {CATEGORY_LABELS[category]}

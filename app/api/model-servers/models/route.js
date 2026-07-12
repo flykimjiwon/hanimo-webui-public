@@ -9,6 +9,7 @@ import {
   decryptProviderSecret,
 } from '@/lib/security/provider-credentials.mjs';
 import { buildOpenAiEndpoint } from '@/lib/openai-gateway.mjs';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
 
 export async function GET(request) {
   // Hoisted to function scope so the catch block can reference them
@@ -213,11 +214,11 @@ export async function GET(request) {
 
       let res;
       try {
-        res = await fetch(target, {
+        res = await fetchWithProviderPolicy(target, {
           method: 'GET',
           headers,
           signal,
-        });
+        }, { provider });
       } finally {
          // Clear timeout (both success and failure)
         if (timeoutId) {
@@ -377,11 +378,11 @@ export async function GET(request) {
 
       let res;
       try {
-        res = await fetch(target, {
+        res = await fetchWithProviderPolicy(target, {
           method: 'GET',
           headers,
           signal,
-        });
+        }, { provider });
       } finally {
          // Clear timeout (both success and failure)
         if (timeoutId) {
@@ -511,13 +512,13 @@ export async function GET(request) {
         const { signal, timeoutId } = createAbortSignal();
         timeoutId1 = timeoutId;
 
-        const res = await fetch(`${primaryUrl}/api/tags`, {
+        const res = await fetchWithProviderPolicy(`${primaryUrl}/api/tags`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
           signal,
-        });
+        }, { provider: 'model-server' });
 
         // Clear timeout
         if (timeoutId) {
@@ -552,13 +553,13 @@ export async function GET(request) {
           const { signal, timeoutId } = createAbortSignal();
           timeoutId2 = timeoutId;
 
-          const res = await fetch(`${fallback}/api/tags`, {
+          const res = await fetchWithProviderPolicy(`${fallback}/api/tags`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
             },
             signal,
-          });
+          }, { provider: 'model-server' });
 
            // Clear timeout
           if (timeoutId) {

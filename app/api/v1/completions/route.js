@@ -10,6 +10,7 @@ import {
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { getClientIP } from '@/lib/ip';
 import { verifyApiToken } from '@/lib/apiTokenUtils';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
 
 // OpenAI-compatible legacy Completions API (FIM / Autocomplete only)
 // IDE extensions like Continue request this route when useLegacyCompletionsEndpoint: true is set
@@ -437,7 +438,7 @@ export async function POST(request) {
 
         let chatRes;
         try {
-          chatRes = await fetch(manualUrl, {
+          chatRes = await fetchWithProviderPolicy(manualUrl, {
             method: 'POST',
             headers: chatHeaders,
             body: JSON.stringify(chatBody),
@@ -566,7 +567,7 @@ export async function POST(request) {
 
       let manualRes;
       try {
-        manualRes = await fetch(manualUrl, {
+        manualRes = await fetchWithProviderPolicy(manualUrl, {
           ...requestOptions,
           signal: AbortSignal.timeout(60000),
         });
@@ -683,7 +684,7 @@ export async function POST(request) {
       const headers = { 'Content-Type': 'application/json' };
       if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
-      const response = await fetch(targetUrl, {
+      const response = await fetchWithProviderPolicy(targetUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify({ ...body, model: resolvedModel }),
@@ -763,7 +764,7 @@ export async function POST(request) {
 
     // Streaming response
     if (isStream) {
-      const ollamaRes = await fetch(targetUrl, {
+      const ollamaRes = await fetchWithProviderPolicy(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ollamaBody),
@@ -815,7 +816,7 @@ export async function POST(request) {
     }
 
     // Non-streaming response
-    const ollamaRes = await fetch(targetUrl, {
+    const ollamaRes = await fetchWithProviderPolicy(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(ollamaBody),

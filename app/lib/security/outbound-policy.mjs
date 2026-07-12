@@ -150,6 +150,18 @@ export function isBlockedIpAddress(address) {
   return false;
 }
 
+export function isLinkLocalIpAddress(address) {
+  const normalized = normalizeHostname(address);
+  if (net.isIP(normalized) === 4) return normalized.startsWith('169.254.');
+  if (net.isIP(normalized) !== 6) return false;
+  const parsed = parseIpv6(normalized);
+  if (!parsed) return true;
+  if (parsed.mappedIpv4) return isLinkLocalIpAddress(parsed.mappedIpv4);
+  if ((parsed[0] & 0xffc0) === 0xfe80) return true;
+  const mapped = parsed.slice(0, 5).every((group) => group === 0) && parsed[5] === 0xffff;
+  return mapped && (parsed[6] >> 8) === 169 && (parsed[6] & 0xff) === 254;
+}
+
 async function defaultResolveHostname(hostname) {
   return lookup(hostname, { all: true, verbatim: true });
 }
@@ -161,7 +173,9 @@ async function fetchPinned(rawUrl, init = {}, options = {}) {
   let family = net.isIP(address);
   if (family === 0) {
     const records = await resolveHostname(address);
-    const record = records?.find((item) => item?.address && !isBlockedIpAddress(item.address));
+    const record = records?.find((item) => item?.address && (
+      !isBlockedIpAddress(item.address) || options.isTrustedPrivateAddress?.(parsed.hostname, item.address)
+    ));
     if (!record) throw new OutboundSecurityError('custom endpoint DNS did not resolve to a public address.', 403);
     address = record.address;
     family = net.isIP(address);
@@ -219,11 +233,12 @@ export async function assertAllowedOutboundUrl(rawUrl, options = {}) {
   }
 
   const hostname = normalizeHostname(parsed.hostname);
+  const trustsPrivateAddress = (address) => options.isTrustedPrivateAddress?.(hostname, address) === true;
   const allowlist = parseAllowlist(options.allowlist ?? env.HANIMO_SCREEN_ENDPOINT_ALLOWLIST);
   if (!hostnameMatchesAllowlist(hostname, allowlist)) {
     throw new OutboundSecurityError(options.allowlistMessage || '허용된 custom endpoint 호스트가 아닙니다.', 403);
   }
-  if (isBlockedHostname(hostname) || isBlockedIpAddress(hostname)) {
+  if ((isBlockedHostname(hostname) || isBlockedIpAddress(hostname)) && !trustsPrivateAddress(hostname)) {
     throw new OutboundSecurityError(options.privateNetworkMessage || '비공개 네트워크 또는 로컬 custom endpoint는 허용되지 않습니다.', 403);
   }
 
@@ -237,7 +252,9 @@ export async function assertAllowedOutboundUrl(rawUrl, options = {}) {
     if (!Array.isArray(records) || records.length === 0) {
       throw new OutboundSecurityError(options.dnsFailureMessage || 'custom endpoint DNS 조회에 실패했습니다.');
     }
-    if (records.some((record) => !record?.address || isBlockedIpAddress(record.address))) {
+    if (records.some((record) => !record?.address || (
+      isBlockedIpAddress(record.address) && !trustsPrivateAddress(record.address)
+    ))) {
       throw new OutboundSecurityError(options.privateDnsMessage || '비공개 네트워크로 해석되는 custom endpoint는 허용되지 않습니다.', 403);
     }
   }
@@ -368,7 +385,14 @@ export async function fetchWithOutboundPolicy(rawUrl, init = {}, options = {}) {
     }
     if (new URL(nextUrl).origin !== new URL(currentUrl).origin) {
       const headers = new Headers(requestInit.headers || {});
-      for (const name of ['authorization', 'cookie', 'proxy-authorization']) headers.delete(name);
+      for (const name of [
+        'authorization',
+        'cookie',
+        'proxy-authorization',
+        'x-goog-api-key',
+        'x-api-key',
+        'api-key',
+      ]) headers.delete(name);
       requestInit = { ...requestInit, headers };
     }
     currentUrl = nextUrl;

@@ -3,7 +3,7 @@
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
   "sourceCommit": "cecb59aeeb9269b1c734de901906eabcd25bd0eb",
-  "dirty": false,
+  "dirty": true,
   "files": [
     {
       "path": ".dockerignore",
@@ -147,7 +147,7 @@
     },
     {
       "path": "app/admin/providers/page.js",
-      "sha256": "e5fd5b8dc0e5d0abb153814da923e68965c4453f37d8658204c519b89c24662b"
+      "sha256": "6e9e517f26d1e75b1682261e664265b9b617464c656f409ba808e34c2b2d0b31"
     },
     {
       "path": "app/admin/settings/page.js",
@@ -319,7 +319,7 @@
     },
     {
       "path": "app/api/admin/settings/route.js",
-      "sha256": "7931f5c7e12f95b784d6cfe9d3f90360667a542491eac3b7914c3ce7bdf8bff6"
+      "sha256": "7be4f28d3ecdcbc2b9fa99f9057d2cc677ac67a26d10bf0357fa70a4b2312c3d"
     },
     {
       "path": "app/api/admin/sso-logs/route.js",
@@ -431,7 +431,7 @@
     },
     {
       "path": "app/api/model-servers/models/route.js",
-      "sha256": "846bcdf9ab1e9002c1a68751f3c5ddf04082caef4984206c8cb389cd4665094e"
+      "sha256": "4ba603092e48965bb5f6cd571d2749ec8ee78b2b26230819708ec9a72f037599"
     },
     {
       "path": "app/api/models/route.js",
@@ -495,23 +495,23 @@
     },
     {
       "path": "app/api/v1/chat/completions/route.js",
-      "sha256": "c758a9e799dca49fee1137ffe42e2001b795cab2ebabcd9f69a287f4ca92b5f8"
+      "sha256": "4424cc47e7d9cc3b928eb2f66a18ac644f9a6d3a33ebc7fc34282bb13747260b"
     },
     {
       "path": "app/api/v1/completions/route.js",
-      "sha256": "08c240edf4a41cf49722d5bb3621ef42b9545ccea5f6b418573eb638dff7a2f4"
+      "sha256": "13815d53d408ccfaefb157890bc328fb483ee2e85d8eb5d46164fcfc593cea53"
     },
     {
       "path": "app/api/v1/embeddings/route.js",
-      "sha256": "1606d0a5569cc6219b5c46fcb8050ad24465ede60279bc4994cbdbf32e746f45"
+      "sha256": "4eef71431a9b81bc506ee86550b1f8985cd1ef8589c8244eb085ec4bdbffb834"
     },
     {
       "path": "app/api/v1/models/route.js",
-      "sha256": "a22b4fbf802a228debbdf45d26ac7c9fb5c398a81d1895e1e90e4e1b225e01bb"
+      "sha256": "df87fd751af96c39f5fd4035bddb5a03f3ca31d7da16fb7a5f0ead5beb4ac499"
     },
     {
       "path": "app/api/v1/rerank/route.js",
-      "sha256": "0956e2e818f47935884bb59976002b08e261599c27030965f2c8c10ad02618ba"
+      "sha256": "72bce1797a8fb2edf295a27b170d91add186a903fd582dac6f04767c7c5507d4"
     },
     {
       "path": "app/api/webapp-chat/feedback/[messageId]/route.js",
@@ -1090,6 +1090,10 @@
       "sha256": "bdc93899ed195de91710f961d503f9c836e729129ea488d321faa3e769281ca6"
     },
     {
+      "path": "app/lib/security/auth-boundary.mjs",
+      "sha256": "3bd9e79ee13537acf143feae85a36a6e8a6c0b34ccbc613b6bc8708dbae33b07"
+    },
+    {
       "path": "app/lib/security/image-magic.mjs",
       "sha256": "7b56eba2b0cacc145255caed96e57432f698a1bbfcfff87aaeacd7e248233576"
     },
@@ -1103,7 +1107,7 @@
     },
     {
       "path": "app/lib/security/outbound-policy.mjs",
-      "sha256": "6bc2675d1dc438528cf587f923fb63c6b936653fc4e14d2a8cc200c63483ad49"
+      "sha256": "0b531712eb7deec213ed02553241ad17fa624ad467f9c63e4dcbc42774c8b345"
     },
     {
       "path": "app/lib/security/outbound-request.mjs",
@@ -1112,6 +1116,10 @@
     {
       "path": "app/lib/security/provider-credentials.mjs",
       "sha256": "588ba922521af909c7c72a8c867d46cc0f200184b6374c302757f3db0c571311"
+    },
+    {
+      "path": "app/lib/security/provider-outbound.mjs",
+      "sha256": "2c999a74e2ec247bb2e726f49d88096a993495a94938ccf15ea2d6908725c82e"
     },
     {
       "path": "app/lib/security/proxy-headers.mjs",
@@ -1314,6 +1322,10 @@
       "sha256": "292e8a0f0b57c1500639ae19be4fca2fcc05e7fded16801b61bb5895a9ad7990"
     },
     {
+      "path": "docs/OPERATIONS.md",
+      "sha256": "c00127738743656e6f2707457414b1d31b645fde2e30ae9c68ef5887f839610f"
+    },
+    {
       "path": "docs/PROJECT_AUDIT.md",
       "sha256": "741898e4f93611cf7c69bc46e7fe12077ef00231012155ea8a2e4f4629f2dcb6"
     },
@@ -1355,7 +1367,7 @@
     },
     {
       "path": "middleware.js",
-      "sha256": "5cc8867f6887ec5b249e0ebd69ad538fafdf5251363b3a7ee779d23c0eaa8631"
+      "sha256": "62ae0811a049b742f16fed94e098c5b02b89b7aa4b6e777e9b5abd4f097c59d3"
     },
     {
       "path": "next.config.mjs",
@@ -1403,7 +1415,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "92f30679b342eb74d28ff5169a638ae8721e2bd8398924e18a8376316b42d55d"
+      "sha256": "6395ad3b3dd1d7a13faa7e3940f40fb88139e19e11700e5e0c4e2e8f209f493a"
     },
     {
       "path": "reports/webui-v2-login-smoke.png",
@@ -1412,6 +1424,10 @@
     {
       "path": "reports/webui-v2-signup-smoke.png",
       "sha256": "535c879b01c4842f7f7c56508e84d7a5cf91841c217e5cf2bc50473926c2e2e5"
+    },
+    {
+      "path": "scripts/bootstrap.sh",
+      "sha256": "89261ce1034bf0e70867fa8dfe6da25bd4814e1957628365575337f10526a4b8"
     },
     {
       "path": "scripts/check-docker-install.js",
@@ -1460,6 +1476,10 @@
     {
       "path": "scripts/lib/api-token-db-model-server.js",
       "sha256": "e9183506d4ef795113598dcf981df8cd135ecf707b28d4ee08864c59bff17600"
+    },
+    {
+      "path": "scripts/manage.sh",
+      "sha256": "a723480c55b6c1868ec3671fcee85200a406502f632a35505c2771d28fa0e98e"
     },
     {
       "path": "scripts/migrate-console-to-logger.js",
@@ -1542,12 +1562,20 @@
       "sha256": "cbabf8cad0a410d42e27cc0259f875e8c3b566ab3ae5ab7609d0ae3a023b0ec6"
     },
     {
+      "path": "tests/security/middleware-api-token-boundary.test.mjs",
+      "sha256": "d3ec673fcebfcec5977ab23de6d3640b3c5dfdba33ced2c72fa96e0993e947b6"
+    },
+    {
       "path": "tests/security/outbound-policy.test.mjs",
       "sha256": "65233abe9a263eb7d7200a739507245fa7eb6756035b7c2cbeb3603b81c83fe8"
     },
     {
       "path": "tests/security/provider-catalog.test.mjs",
       "sha256": "20fc804ca917ffcc4144ec31f0790db03d4a4953df7744e01b82c14dab75bcdb"
+    },
+    {
+      "path": "tests/security/provider-outbound.test.mjs",
+      "sha256": "57b3a27e354054b9cf58fe09f3c66ffe9fdb958ff0575810db963c99b0aa4895"
     },
     {
       "path": "tests/security/provider-regressions.test.mjs",

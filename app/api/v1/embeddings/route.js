@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { verifyApiToken, resolveEndpoint, buildOpenAiUrl, getValueByPath, applyTemplate, findModelRecord } from '@/lib/apiTokenUtils';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
 
 function getCorsHeaders(request) {
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim()) || [];
@@ -128,7 +129,7 @@ export async function POST(request) {
 
       let manualRes;
       try {
-        manualRes = await fetch(manualUrl, {
+        manualRes = await fetchWithProviderPolicy(manualUrl, {
           ...requestOptions,
           signal: AbortSignal.timeout(30000),
         });
@@ -218,7 +219,7 @@ export async function POST(request) {
       if (apiKey) {
         headers.Authorization = `Bearer ${apiKey}`;
       }
-      const response = await fetch(targetUrl, {
+      const response = await fetchWithProviderPolicy(targetUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify({ ...body, model: resolvedModel }),
@@ -290,7 +291,7 @@ export async function POST(request) {
         );
       }
 
-      const response = await fetch(targetUrl, {
+      const response = await fetchWithProviderPolicy(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

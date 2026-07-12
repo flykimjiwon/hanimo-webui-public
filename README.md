@@ -80,6 +80,8 @@ hanimo-webui는 Next.js 15 기반의 **오픈소스 셀프호스팅 AI 챗 + 관
 
 사전 요구사항은 **Docker Desktop** 하나입니다. 로컬 PostgreSQL 설치는 필요 없습니다.
 
+검증된 revision을 내려받아 설치하는 원격 bootstrap과 백업·복구·업데이트 절차는 [운영 가이드](docs/OPERATIONS.md)를 참고하세요.
+
 ```bash
 git clone https://github.com/flykimjiwon/hanimo-webui-public.git hanimo-webui
 cd hanimo-webui

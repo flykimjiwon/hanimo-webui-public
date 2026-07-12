@@ -15,6 +15,7 @@
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose/jwt/verify';
 import { areLabsEnabled, isLabsPath } from '@/lib/release-surface.mjs';
+import { bypassesSessionJwt } from '@/lib/security/auth-boundary.mjs';
 import { isSameOriginRequest, isUnsafeMethod } from '@/lib/security/request-origin.mjs';
 
 function getJwtSecretError() {
@@ -118,6 +119,10 @@ export async function middleware(request) {
 
   // PUBLIC 경로 통과
   if (isPublic(pathname)) {
+    return NextResponse.next();
+  }
+
+  if (bypassesSessionJwt(pathname)) {
     return NextResponse.next();
   }
 

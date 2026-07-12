@@ -6,6 +6,7 @@ import {
   buildModelsUpstreamRequest,
   normalizeModelsResponse,
 } from '@/lib/openai-gateway.mjs';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
 
 export const runtime = 'nodejs';
 
@@ -74,11 +75,11 @@ export async function GET(request) {
       `[OpenAI Models] Fetching ${provider} model list: ${redactEndpoint(upstream.url)}`
     );
 
-    const res = await fetch(upstream.url, {
+    const res = await fetchWithProviderPolicy(upstream.url, {
       method: 'GET',
       headers: upstream.headers,
       signal: AbortSignal.timeout(30000),
-    });
+    }, { provider });
 
     if (!res.ok) {
       logger.error(
