@@ -77,6 +77,7 @@ turning dense chat and admin work into decorative card layouts.
 - Generated product concept: `generated/warm-command-deck-concept.png`
 - Brand assets: `assets/hanimo-mark-v2.svg`, `assets/favicon-v2.svg`
 - Interface icon system: `assets/icon-sprite.svg`
+- Next.js implementation handoff: `nextjs-handoff/README.md`
 
 The generated concept is a directional reference, not a production screenshot.
 The interactive HTML remains the source of truth for responsive behavior,

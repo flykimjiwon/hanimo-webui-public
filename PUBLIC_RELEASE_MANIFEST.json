@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "d1a80851b35fc263577be5582719e825dfb3e18b",
+  "sourceCommit": "c7c6c12b5a8da2f342336975b1047afdc81540d3",
   "dirty": false,
   "files": [
     {
@@ -1303,7 +1303,7 @@
     },
     {
       "path": "design-prototypes/webui-system/ANALYSIS.md",
-      "sha256": "982047b17e2e24fd917ef72dceeda591294938cb555b265bc78bda76129664f4"
+      "sha256": "baaff3c310b70d28ffba80d32112fe04262159e7a869d3fd710dbd88a85f1c72"
     },
     {
       "path": "design-prototypes/webui-system/assets/favicon-v2.svg",
@@ -1320,6 +1320,38 @@
     {
       "path": "design-prototypes/webui-system/generated/warm-command-deck-concept.png",
       "sha256": "c00650781b89f36688ad6fbae286c08a0ed779b835c91f3d950ee40e63178055"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/ARCHITECTURE.md",
+      "sha256": "a77d81662d57460497de0e1eebfd7886a307167800848f96f4d3bd189d86e7e0"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/ASSET_INTEGRATION.md",
+      "sha256": "4baad4bb0bfcfbadcf77bac741e64826d664e1733b922ce6d504956914d8359c"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/COMPONENT_MAPPING.md",
+      "sha256": "216b80a920296a2d76895a8766d97a78ed01182f7b9fcd53747f152181ea4655"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/DESIGN_TOKENS.md",
+      "sha256": "57b7120c8c7071f4fdee0191495a7fbec7650607f17f8cb044a6766a938c226c"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/IMPLEMENTATION_PLAN.md",
+      "sha256": "081d8170c93642b26ca5a063e2a17fa66c558e2780fc5607bf8e3574a8f29b78"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/QA_CHECKLIST.md",
+      "sha256": "f269d292c7a45a0057207dd9919f33889661730cc9814ccab28b632377c87051"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/README.md",
+      "sha256": "a51ea24dc3004ead40625c57e52f81396e34cb76df1a386f92f7ab3836dcd327"
+    },
+    {
+      "path": "design-prototypes/webui-system/nextjs-handoff/THEME_I18N.md",
+      "sha256": "955512c820c5d857ae5c8f2fbe5f11e6b523be54a35bbf698b0784072527db03"
     },
     {
       "path": "design-prototypes/webui-system/warm-command-deck.html",
