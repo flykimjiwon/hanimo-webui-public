@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "c7c6c12b5a8da2f342336975b1047afdc81540d3",
+  "sourceCommit": "cc30626d25580ac488a8a345497cdf470a43269f",
   "dirty": false,
   "files": [
     {
@@ -1303,7 +1303,7 @@
     },
     {
       "path": "design-prototypes/webui-system/ANALYSIS.md",
-      "sha256": "baaff3c310b70d28ffba80d32112fe04262159e7a869d3fd710dbd88a85f1c72"
+      "sha256": "73df994a2fd3f39728e041b8abc2854dbbd95c21a1469a29a4c4611e72fe363b"
     },
     {
       "path": "design-prototypes/webui-system/assets/favicon-v2.svg",
@@ -1352,6 +1352,54 @@
     {
       "path": "design-prototypes/webui-system/nextjs-handoff/THEME_I18N.md",
       "sha256": "955512c820c5d857ae5c8f2fbe5f11e6b523be54a35bbf698b0784072527db03"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/aurora-glass.css",
+      "sha256": "80fa6a7ffdf75608dab2d61d775d69ea883e9860a97cb8fcf8296655d844e7f6"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/aurora-glass.html",
+      "sha256": "1df714a6865827a063c583f54597dc58826bf98ee0d9939819fc4e8915f786af"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/cobalt-studio.css",
+      "sha256": "49c8c5382cf7c7315a558c9367b75cd5015e3f19b5bc12473534f90857e595b0"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/cobalt-studio.html",
+      "sha256": "f1242876778caeb61edc3368367a409a3694745f49a7e985271fc321697a869f"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/graphite-terminal.css",
+      "sha256": "ffc9f64a37a52d80cc933e4e3c612a87982e797dede28f3f35e5c593b7c4e544"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/graphite-terminal.html",
+      "sha256": "5ed49fe9b4782329e3d072fca949129d633db08fbd0e805dd94b9c7f772b7d98"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/honeycomb-focus.css",
+      "sha256": "a5ed534f4f26cd6292f1835487d2f0f10487057acafd7bf049208f5f49cb22e6"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/honeycomb-focus.html",
+      "sha256": "76e226725971ccc78eaf81a0da1c208facc5faef31a4a37584f988c691cad5b1"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/index.html",
+      "sha256": "fac58da38eb28c46bc1e8f5eced29c44d1260e8b11ec02465f02984312c46274"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/paper-ledger.css",
+      "sha256": "d1362d62043d0c71b43498e9c197210d0c718c5e1e8a08a8b88b0939cf5d1739"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/paper-ledger.html",
+      "sha256": "10726c94d271e5f60ffaed6118e3a605a7bf4142120de57608b1dfecb7b7ff75"
+    },
+    {
+      "path": "design-prototypes/webui-system/variants/README.md",
+      "sha256": "4b7da75981b67fffc2cf0963be723889937481599ac5f66a363e7cb75be44008"
     },
     {
       "path": "design-prototypes/webui-system/warm-command-deck.html",

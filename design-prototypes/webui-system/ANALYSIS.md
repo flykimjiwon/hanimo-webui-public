@@ -78,6 +78,7 @@ turning dense chat and admin work into decorative card layouts.
 - Brand assets: `assets/hanimo-mark-v2.svg`, `assets/favicon-v2.svg`
 - Interface icon system: `assets/icon-sprite.svg`
 - Next.js implementation handoff: `nextjs-handoff/README.md`
+- Five-direction comparison gallery: `variants/index.html`
 
 The generated concept is a directional reference, not a production screenshot.
 The interactive HTML remains the source of truth for responsive behavior,

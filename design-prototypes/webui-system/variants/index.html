@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hanimo WebUI · Design directions</title>
+  <link rel="icon" href="../assets/favicon-v2.svg" />
+  <style>
+    :root{color-scheme:light;--bg:#eee9df;--paper:#faf8f3;--ink:#201b17;--muted:#746b62;--line:#d7cec1;--amber:#f5a623}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable","Noto Sans KR",sans-serif}a{color:inherit}
+    header{display:flex;align-items:end;justify-content:space-between;gap:2rem;padding:clamp(2rem,5vw,5rem) clamp(1rem,4vw,4rem) 2rem;border-bottom:1px solid var(--line)}
+    .kicker{margin:0 0 .6rem;color:#9d6207;font:700 .7rem/1 ui-monospace,monospace;letter-spacing:.1em}.title{margin:0;font-size:clamp(2rem,5vw,4.7rem);line-height:.94;letter-spacing:-.055em}.intro{max-width:34rem;margin:1rem 0 0;color:var(--muted);line-height:1.65}
+    .original{display:inline-flex;min-height:2.8rem;align-items:center;padding:0 1rem;border:1px solid var(--line);border-radius:.7rem;background:var(--paper);font-weight:700;text-decoration:none;white-space:nowrap}.original:hover{border-color:var(--amber)}
+    main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem;padding:1.25rem clamp(1rem,4vw,4rem) 4rem}.card{overflow:hidden;border:1px solid var(--line);border-radius:1rem;background:var(--paper);box-shadow:0 20px 50px -44px #47331d}.preview{position:relative;height:clamp(18rem,36vw,34rem);overflow:hidden;border-bottom:1px solid var(--line);background:white}.preview iframe{width:1440px;height:960px;border:0;transform:scale(.48);transform-origin:top left;pointer-events:none}.meta{display:flex;align-items:start;justify-content:space-between;gap:1rem;padding:1.1rem}.number{color:#aa6c0e;font:700 .65rem/1 ui-monospace,monospace}.meta h2{margin:.35rem 0 .25rem;font-size:1.05rem}.meta p{margin:0;color:var(--muted);font-size:.78rem;line-height:1.5}.open{display:inline-flex;min-height:2.35rem;align-items:center;padding:0 .8rem;border-radius:.55rem;background:var(--ink);color:white;font-size:.72rem;font-weight:700;text-decoration:none;white-space:nowrap}.open:hover{background:#9a5e09}
+    @media(max-width:850px){header{display:block}.original{margin-top:1.3rem}main{grid-template-columns:1fr}.preview{height:19rem}.preview iframe{transform:scale(.34)}}
+  </style>
+</head>
+<body>
+  <header>
+    <div><p class="kicker">HANIMO WEBUI / DIRECTION STUDY</p><h1 class="title">같은 기능,<br />다섯 개의 표정.</h1><p class="intro">Warm Command Deck의 정보 구조와 상호작용은 유지하면서 재질, 밀도, 브랜드 강조와 작업 리듬을 다르게 설계한 비교 시안입니다.</p></div>
+    <a class="original" href="../warm-command-deck.html">기준 시안 열기</a>
+  </header>
+  <main>
+    <article class="card"><div class="preview"><iframe title="Graphite Terminal preview" src="graphite-terminal.html" loading="lazy"></iframe></div><div class="meta"><div><span class="number">01</span><h2>Graphite Terminal</h2><p>개발자·운영자 중심의 고밀도 터미널 워크벤치</p></div><a class="open" href="graphite-terminal.html">전체 화면</a></div></article>
+    <article class="card"><div class="preview"><iframe title="Aurora Glass preview" src="aurora-glass.html" loading="lazy"></iframe></div><div class="meta"><div><span class="number">02</span><h2>Aurora Glass</h2><p>밝은 공간감과 투명 레이어를 활용한 부드러운 작업실</p></div><a class="open" href="aurora-glass.html">전체 화면</a></div></article>
+    <article class="card"><div class="preview"><iframe title="Paper Ledger preview" src="paper-ledger.html" loading="lazy"></iframe></div><div class="meta"><div><span class="number">03</span><h2>Paper Ledger</h2><p>기록과 출처 검토에 초점을 둔 편집 문서형 인터페이스</p></div><a class="open" href="paper-ledger.html">전체 화면</a></div></article>
+    <article class="card"><div class="preview"><iframe title="Cobalt Studio preview" src="cobalt-studio.html" loading="lazy"></iframe></div><div class="meta"><div><span class="number">04</span><h2>Cobalt Studio</h2><p>운영 탐색과 창작 캔버스를 분리한 선명한 스튜디오</p></div><a class="open" href="cobalt-studio.html">전체 화면</a></div></article>
+    <article class="card"><div class="preview"><iframe title="Honeycomb Focus preview" src="honeycomb-focus.html" loading="lazy"></iframe></div><div class="meta"><div><span class="number">05</span><h2>Honeycomb Focus</h2><p>Hanimo 고유 육각 리듬과 앰버 명령점을 강화한 방향</p></div><a class="open" href="honeycomb-focus.html">전체 화면</a></div></article>
+  </main>
+</body>
+</html>

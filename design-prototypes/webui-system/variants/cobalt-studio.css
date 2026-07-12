@@ -1,0 +1,28 @@
+:root {
+  --deck:#f2f4f8; --deck-2:#e7eaf1; --sheet:#ffffff; --sheet-2:#eef1f7;
+  --ink:#171b26; --ink-2:#3e4658; --muted:#737b8d; --line:#dde1e9;
+  --line-strong:#c5cbd7; --amber:#f1a928; --amber-deep:#a66300; --amber-soft:#ffebbd;
+  --graphite:#17213a; --graphite-2:#202d4c; --good:#438768; --info:#4169c1;
+  --shadow:0 18px 46px -38px #21335d; --shadow-dock:0 24px 64px -34px rgba(30,52,105,.34);
+  --radius-sm:.45rem; --radius-md:.65rem; --radius-lg:.85rem; --drawer:18rem;
+}
+html[data-theme="dark"] { --deck:#101521; --deck-2:#151c2b; --sheet:#192132; --sheet-2:#222c40; --ink:#f2f5fb; --ink-2:#c6cddd; --muted:#8791a7; --line:#2d384d; --line-strong:#42506a; --amber-soft:#3f321b; --graphite:#0b1120; }
+.rail { color:#dce5ff; background:linear-gradient(180deg,#14254b,#111a31 68%,#1b2540); border:0; }
+.rail-button { color:#8f9cb8; }
+.rail-button:hover, .rail-button[aria-current="page"] { color:white; background:rgba(255,255,255,.1); box-shadow:none; }
+.drawer { box-shadow:8px 0 34px -30px #1c315f; }
+.drawer-head { border-bottom:3px solid var(--graphite); }
+.chat-row.active { background:color-mix(in srgb,var(--info) 12%,var(--sheet)); box-shadow:inset 3px 0 var(--info); }
+.chat-row.active .mini-icon { color:var(--info); }
+.workspace-head { background:var(--sheet); }
+.runtime-item:first-child { color:white; background:var(--graphite); border-color:var(--graphite); }
+.runtime-item:first-child .status-dot { background:#7de1aa; }
+.message-column { width:min(100%,50rem); }
+.speaker.hanimo { color:white; background:var(--graphite); }
+.user-sheet { border-color:color-mix(in srgb,var(--info) 25%,var(--line)); background:color-mix(in srgb,var(--info) 5%,var(--sheet)); }
+.tool-result { border-top:3px solid var(--info); }
+.command-dock { border-color:color-mix(in srgb,var(--info) 40%,var(--line)); }
+.command-dock:focus-within { border-color:var(--info); box-shadow:0 0 0 3px color-mix(in srgb,var(--info) 12%,transparent),var(--shadow-dock); }
+.send { background:var(--amber); }
+.inspector-head { color:white; background:var(--graphite); border:0; }
+.inspector-head .icon-button:hover { background:rgba(255,255,255,.1); }

@@ -1,0 +1,27 @@
+:root {
+  --deck:#f1eadb; --deck-2:#e7dcc8; --sheet:#fbf7ec; --sheet-2:#f2eadb;
+  --ink:#29231d; --ink-2:#51483e; --muted:#83786a; --line:#d6c8b3;
+  --line-strong:#bba98e; --amber:#d99828; --amber-deep:#8d5b0e; --amber-soft:#f1ddb3;
+  --graphite:#28241f; --graphite-2:#353029; --good:#687f57; --shadow:0 12px 34px -30px #4b3b29;
+  --shadow-dock:0 18px 44px -30px #4b3b29; --radius-sm:.1rem; --radius-md:.16rem; --radius-lg:.2rem;
+  --drawer:19rem; --inspector:20rem;
+}
+html[data-theme="dark"] { --deck:#1d1915; --deck-2:#252019; --sheet:#29231c; --sheet-2:#322a21; --ink:#f1e8d8; --ink-2:#d2c5b3; --muted:#9f917e; --line:#493e31; --line-strong:#625341; --amber-soft:#44331c; }
+body { background-color:var(--deck); background-image:repeating-linear-gradient(0deg,transparent 0,transparent 27px,color-mix(in srgb,var(--line) 28%,transparent) 28px); }
+.rail { border-right:2px solid var(--ink); }
+.drawer { border-right:1px solid var(--ink); }
+.wordmark strong, .conversation-title strong, .message-meta strong, .inspector-head strong { font-family:Georgia,"Times New Roman",serif; letter-spacing:.01em; }
+.wordmark strong { font-size:1.05rem; }
+.group-label { border-bottom:1px solid var(--line-strong); padding-bottom:.35rem; }
+.chat-row.active { border-left:3px solid var(--amber-deep); background:transparent; }
+.runtime-item { border-width:0 0 1px; background:transparent; }
+.workspace-head { border-bottom:1px solid var(--ink); background:color-mix(in srgb,var(--deck) 92%,transparent); }
+.message-column { width:min(100%,52rem); }
+.message { padding-bottom:1.35rem; border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent); }
+.speaker { border-radius:0; box-shadow:none; border:1px solid var(--line-strong); }
+.user-sheet { border-width:0 0 1px; background:transparent; box-shadow:none; }
+.tool-result { border-left:3px solid var(--good); background:transparent; }
+.source-row { border-width:0 0 1px; background:transparent; }
+.command-dock { background:var(--sheet); box-shadow:8px 8px 0 color-mix(in srgb,var(--line) 72%,transparent); }
+.send { border-radius:.1rem; }
+.inspector-tabs button.active { border-bottom:2px solid var(--amber-deep); background:transparent; }
