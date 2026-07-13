@@ -4,6 +4,7 @@
 import logger from '@/lib/logger';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { TokenManager } from '@/lib/tokenManager';
 import { normalizeLabel } from '../model-utils';
 
 export function useRoundRobin({ modelConfig, editForm, editingModel, newModel, modelLabelRoundRobinMap }) {
@@ -23,7 +24,7 @@ export function useRoundRobin({ modelConfig, editForm, editingModel, newModel, m
     }
     setChecking(true);
     try {
-      const response = await fetch(
+      const response = await TokenManager.safeFetch(
         `/api/admin/check-round-robin?modelName=${encodeURIComponent(modelId)}`
       );
       if (response.ok) {

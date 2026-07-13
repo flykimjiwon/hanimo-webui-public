@@ -4,7 +4,7 @@
 import logger from '@/lib/logger';
 import PageHead from '@/components/admin/PageHead';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PenLine } from 'lucide-react';
 import { Upload, Save, RefreshCw, Globe, MessageCircle, Lightbulb, Trash2, ImageIcon, Code } from '@/components/icons';
 import { THEME_PRESETS } from '@/lib/themePresets';
@@ -81,11 +81,13 @@ export default function SettingsPage() {
   const [themeCustomPrimary, setThemeCustomPrimary] = useState('#e5a63b');
   const [ghostModeEnabled, setGhostModeEnabled] = useState(false);
   const [ghostBubbleEnabled, setGhostBubbleEnabled] = useState(true);
+  const fetchSettingsRef = useRef(null);
+  const fetchAvailableModelsRef = useRef(null);
 
   // 설정 로드
   useEffect(() => {
-    fetchSettings();
-    fetchAvailableModels();
+    fetchSettingsRef.current();
+    fetchAvailableModelsRef.current();
   }, []);
 
   // 사용 가능한 모델 목록 로드 (관리자 모델 설정 기준)
@@ -276,6 +278,9 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
+
+  fetchSettingsRef.current = fetchSettings;
+  fetchAvailableModelsRef.current = fetchAvailableModels;
 
   const saveDrawSettings = async () => {
     try {

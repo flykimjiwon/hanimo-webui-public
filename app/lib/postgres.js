@@ -1,5 +1,6 @@
 import logger from '@/lib/logger';
 import pg from 'pg';
+import { withSchemaMigrationLock } from '@/lib/schema-migration-lock.mjs';
 const { Pool } = pg;
 
 // PostgreSQL connection pool (singleton)
@@ -228,7 +229,18 @@ export async function query(text, params) {
 
   const start = Date.now();
   try {
-    const res = await pool.query(text, params);
+    const schemaMutation = /^\s*(?:CREATE\s+(?:TABLE|INDEX|UNIQUE\s+INDEX|EXTENSION)|ALTER\s+TABLE|DROP\s+(?:TABLE|INDEX)|REINDEX\b|TRUNCATE\b|DO\s+\$\$)/i.test(text);
+    let res;
+    if (schemaMutation) {
+      const client = await pool.connect();
+      try {
+        res = await withSchemaMigrationLock(client, () => client.query(text, params));
+      } finally {
+        client.release();
+      }
+    } else {
+      res = await pool.query(text, params);
+    }
     const duration = Date.now() - start;
     // Query logging disabled (uncomment if needed)
     // if (process.env.NODE_ENV === 'development') {

@@ -42,6 +42,7 @@ const {
 } = require('./db-utils');
 
 const POSTGRES_URI = process.env.POSTGRES_URI || process.env.DATABASE_URL;
+const SCHEMA_MIGRATION_LOCK = [1212239433, 1297040460];
 
 // Environment variable is required
 if (!POSTGRES_URI) {
@@ -148,6 +149,7 @@ async function createSchema() {
     // Start transaction - run all schema operations atomically
     console.log('🔄 Starting transaction...');
     await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock($1, $2)', SCHEMA_MIGRATION_LOCK);
     console.log('✅ Transaction started');
 
     // Enable UUID extension
@@ -165,17 +167,37 @@ async function createSchema() {
       CREATE TABLE users (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
+        password_hash VARCHAR(255),
         name VARCHAR(255),
         department VARCHAR(255),
         cell VARCHAR(255),
-        role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+        role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('user', 'admin', 'manager')),
+        auth_type VARCHAR(20) DEFAULT 'local',
         last_login_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `,
       '1. users table'
+    );
+
+    await createTableIfNotExists(
+      client,
+      'refresh_tokens',
+      `
+      CREATE TABLE refresh_tokens (
+        id BIGSERIAL PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token_hash VARCHAR(64) NOT NULL UNIQUE,
+        expires_at TIMESTAMP NOT NULL,
+        revoked BOOLEAN DEFAULT FALSE,
+        revoked_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ip_address VARCHAR(45),
+        user_agent TEXT
+      )
+    `,
+      '1-1. refresh_tokens table'
     );
 
     // 2. chat_rooms table
@@ -188,6 +210,8 @@ async function createSchema() {
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         name VARCHAR(255),
         message_count INTEGER DEFAULT 0,
+        custom_instruction TEXT DEFAULT '',
+        custom_instruction_active BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -209,6 +233,7 @@ async function createSchema() {
         model VARCHAR(255),
         file_references JSONB,
         feedback VARCHAR(50),
+        draw_mode BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `,
@@ -339,6 +364,8 @@ async function createSchema() {
         custom_endpoints JSONB,
         openai_compat_base VARCHAR(255),
         openai_compat_api_key TEXT,
+        draw_enabled BOOLEAN DEFAULT false,
+        draw_system_prompt TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -416,6 +443,8 @@ async function createSchema() {
         admin_only BOOLEAN DEFAULT false,
         system_prompt TEXT[],
         endpoint VARCHAR(500),
+        multi_turn_limit INTEGER,
+        multi_turn_unlimited BOOLEAN DEFAULT false,
         display_order INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -726,6 +755,7 @@ async function createSchema() {
         is_active BOOLEAN DEFAULT true,
         author_id UUID REFERENCES users(id) ON DELETE SET NULL,
         author_name VARCHAR(255),
+        views INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -898,6 +928,174 @@ async function createSchema() {
     `,
       '23. agent_permissions table (agent access permissions)'
     );
+
+    const additionalCoreTables = [
+      ['app_error_logs', `
+        CREATE TABLE app_error_logs (
+          id BIGSERIAL PRIMARY KEY,
+          source VARCHAR(20) NOT NULL,
+          level VARCHAR(10) NOT NULL,
+          message TEXT NOT NULL,
+          stack TEXT,
+          context JSONB,
+          user_id UUID,
+          user_email TEXT,
+          request_path TEXT,
+          method TEXT,
+          user_agent TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['board_posts', `
+        CREATE TABLE board_posts (
+          id BIGSERIAL PRIMARY KEY,
+          user_id UUID NOT NULL,
+          title VARCHAR(200) NOT NULL,
+          content TEXT NOT NULL,
+          is_notice BOOLEAN DEFAULT false,
+          views INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['board_comments', `
+        CREATE TABLE board_comments (
+          id BIGSERIAL PRIMARY KEY,
+          post_id BIGINT NOT NULL REFERENCES board_posts(id) ON DELETE CASCADE,
+          user_id UUID NOT NULL,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['user_change_logs', `
+        CREATE TABLE user_change_logs (
+          id BIGSERIAL PRIMARY KEY,
+          user_id UUID NOT NULL,
+          employee_no VARCHAR(20),
+          field_name VARCHAR(50) NOT NULL,
+          old_value TEXT,
+          new_value TEXT,
+          change_type VARCHAR(20) DEFAULT 'update',
+          change_source VARCHAR(20) DEFAULT 'sso',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['agent_settings', `
+        CREATE TABLE agent_settings (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          agent_id VARCHAR(50) NOT NULL UNIQUE,
+          selected_model_id VARCHAR(255),
+          default_slide_count INTEGER DEFAULT 8,
+          default_theme VARCHAR(20) DEFAULT 'light',
+          default_tone VARCHAR(20) DEFAULT 'business',
+          allow_user_model_override BOOLEAN DEFAULT false,
+          is_visible BOOLEAN DEFAULT true,
+          display_order INTEGER DEFAULT 0,
+          updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['user_settings', `
+        CREATE TABLE user_settings (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+          default_model_id VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['agent_history', `
+        CREATE TABLE agent_history (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          agent_id VARCHAR(50) NOT NULL,
+          entry_id VARCHAR(100) NOT NULL,
+          title VARCHAR(500),
+          input_data JSONB,
+          output_data JSONB,
+          output_text TEXT,
+          metadata JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(user_id, agent_id, entry_id)
+        )
+      `],
+      ['user_memories', `
+        CREATE TABLE user_memories (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+          memory TEXT DEFAULT '',
+          last_indexed_id UUID,
+          indexed_count INTEGER DEFAULT 0,
+          is_indexing BOOLEAN DEFAULT false,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['memory_settings', `
+        CREATE TABLE memory_settings (
+          id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+          model_id VARCHAR(255) DEFAULT '',
+          interval_minutes INTEGER DEFAULT 60,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['workflows', `
+        CREATE TABLE workflows (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          name VARCHAR(255) NOT NULL,
+          description TEXT DEFAULT '',
+          definition JSONB DEFAULT '{}'::jsonb,
+          input_schema JSONB DEFAULT '{}'::jsonb,
+          output_schema JSONB DEFAULT '{}'::jsonb,
+          version INTEGER DEFAULT 1,
+          status VARCHAR(20) DEFAULT 'draft',
+          is_published BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['workflow_endpoints', `
+        CREATE TABLE workflow_endpoints (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          workflow_id UUID REFERENCES workflows(id) ON DELETE CASCADE,
+          name VARCHAR(255),
+          endpoint_url TEXT,
+          api_key_encrypted TEXT,
+          provider_type VARCHAR(50),
+          model_name VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `],
+      ['workflow_executions', `
+        CREATE TABLE workflow_executions (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          workflow_id UUID REFERENCES workflows(id) ON DELETE CASCADE,
+          user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+          inputs JSONB DEFAULT '{}'::jsonb,
+          outputs JSONB,
+          node_states JSONB,
+          status VARCHAR(20) DEFAULT 'running',
+          source VARCHAR(20) DEFAULT 'manual',
+          total_tokens INTEGER,
+          execution_time INTEGER,
+          error TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          completed_at TIMESTAMP
+        )
+      `],
+    ];
+
+    for (const [tableName, createQuery] of additionalCoreTables) {
+      await createTableIfNotExists(
+        client,
+        tableName,
+        createQuery,
+        `${tableName} core table`
+      );
+    }
 
     await createTableIfNotExists(
       client,

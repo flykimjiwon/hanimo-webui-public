@@ -3,6 +3,11 @@
 
 import logger from '@/lib/logger';
 import { useEffect } from 'react';
+import {
+  APPEARANCE_RESET_EVENT_NAME,
+  APPEARANCE_STORAGE_KEY,
+  parseAppearance,
+} from '@/lib/appearance-contract.mjs';
 
 const BRANDING_EVENT_NAME = 'hanimo-webui-site-branding-updated';
 const THEME_EVENT_NAME = 'hanimo-webui-theme-updated';
@@ -23,6 +28,15 @@ const THEME_VARS = [
   '--sidebar-primary-foreground',
   '--sidebar-ring',
 ];
+const THEME_VALUE = /^#[0-9a-f]{6}$/i;
+
+function hasLocalAppearance() {
+  try {
+    return Boolean(parseAppearance(localStorage.getItem(APPEARANCE_STORAGE_KEY)));
+  } catch {
+    return false;
+  }
+}
 
 function applySiteBranding(payload = {}) {
   const siteTitle =
@@ -36,7 +50,7 @@ function applySiteBranding(payload = {}) {
   const faviconUrl =
     typeof payload.faviconUrl === 'string' && payload.faviconUrl.trim()
       ? payload.faviconUrl
-      : '/favicon.ico';
+      : '/icon.svg';
 
   document.title = siteTitle;
 
@@ -69,7 +83,7 @@ function applyThemeColors(themeColors) {
   // :root 변수 주입 (inline style — @supports oklch보다 specificity 높음)
   if (lightVars && typeof lightVars === 'object') {
     Object.entries(lightVars).forEach(([varName, value]) => {
-      if (varName.startsWith('--')) {
+      if (THEME_VARS.includes(varName) && typeof value === 'string' && THEME_VALUE.test(value)) {
         document.documentElement.style.setProperty(varName, value);
       }
     });
@@ -88,7 +102,7 @@ function applyThemeColors(themeColors) {
 
   if (darkVars && typeof darkVars === 'object') {
     const cssVars = Object.entries(darkVars)
-      .filter(([varName]) => varName.startsWith('--'))
+      .filter(([varName, value]) => THEME_VARS.includes(varName) && typeof value === 'string' && THEME_VALUE.test(value))
       .map(([varName, value]) => `  ${varName}: ${value};`)
       .join('\n');
     styleTag.textContent = `.dark {\n${cssVars}\n}`;
@@ -124,6 +138,8 @@ function resetThemeColors() {
 
 export default function SiteSettings() {
   useEffect(() => {
+    let cachedSiteThemeColors = null;
+
     const fetchSiteSettings = async () => {
       try {
         const response = await fetch('/api/public/settings', {
@@ -135,7 +151,13 @@ export default function SiteSettings() {
         if (response.ok) {
           const data = await response.json();
           applySiteBranding(data);
+          cachedSiteThemeColors = data.themeColors && Object.keys(data.themeColors).length > 0
+            ? data.themeColors
+            : null;
           // 테마 적용
+          if (hasLocalAppearance()) {
+            return;
+          }
           if (data.themeColors && Object.keys(data.themeColors).length > 0) {
             applyThemeColors(data.themeColors);
           } else {
@@ -153,8 +175,20 @@ export default function SiteSettings() {
 
     const handleThemeUpdated = (event) => {
       const { themeColors } = event?.detail || {};
+      cachedSiteThemeColors = themeColors && Object.keys(themeColors).length > 0
+        ? themeColors
+        : null;
+      if (hasLocalAppearance()) return;
       if (themeColors && Object.keys(themeColors).length > 0) {
         applyThemeColors(themeColors);
+      } else {
+        resetThemeColors();
+      }
+    };
+
+    const handleAppearanceReset = () => {
+      if (cachedSiteThemeColors) {
+        applyThemeColors(cachedSiteThemeColors);
       } else {
         resetThemeColors();
       }
@@ -164,10 +198,12 @@ export default function SiteSettings() {
 
     window.addEventListener(BRANDING_EVENT_NAME, handleBrandingUpdated);
     window.addEventListener(THEME_EVENT_NAME, handleThemeUpdated);
+    window.addEventListener(APPEARANCE_RESET_EVENT_NAME, handleAppearanceReset);
 
     return () => {
       window.removeEventListener(BRANDING_EVENT_NAME, handleBrandingUpdated);
       window.removeEventListener(THEME_EVENT_NAME, handleThemeUpdated);
+      window.removeEventListener(APPEARANCE_RESET_EVENT_NAME, handleAppearanceReset);
     };
   }, []);
 

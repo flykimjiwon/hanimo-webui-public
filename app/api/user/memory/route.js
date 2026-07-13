@@ -1,26 +1,36 @@
 import logger from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/postgres';
+import { getPostgresClient } from '@/lib/postgres';
+import { withSchemaMigrationLock } from '@/lib/schema-migration-lock.mjs';
 import { verifyTokenWithResult } from '@/lib/auth';
 import { createServerError } from '@/lib/errorHandler';
 import { getNextModelServerEndpointWithIndex } from '@/lib/modelServers';
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
 
 async function ensureMemoryTable() {
-  await query(`
-    CREATE TABLE IF NOT EXISTS user_memories (
-      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-      user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-      memory TEXT DEFAULT '',
-      last_indexed_id UUID,
-      indexed_count INTEGER DEFAULT 0,
-      is_indexing BOOLEAN DEFAULT false,
-      locked_at TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  await query('ALTER TABLE user_memories ADD COLUMN IF NOT EXISTS is_indexing BOOLEAN DEFAULT false').catch(() => {});
-  await query('ALTER TABLE user_memories ADD COLUMN IF NOT EXISTS locked_at TIMESTAMP').catch(() => {});
+  const client = await getPostgresClient();
+  if (!client) return;
+  try {
+    await withSchemaMigrationLock(client, async () => {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS user_memories (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+          memory TEXT DEFAULT '',
+          last_indexed_id UUID,
+          indexed_count INTEGER DEFAULT 0,
+          is_indexing BOOLEAN DEFAULT false,
+          locked_at TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query('ALTER TABLE user_memories ADD COLUMN IF NOT EXISTS is_indexing BOOLEAN DEFAULT false');
+      await client.query('ALTER TABLE user_memories ADD COLUMN IF NOT EXISTS locked_at TIMESTAMP');
+    });
+  } finally {
+    client.release();
+  }
 }
 
 const MEMORY_SYSTEM_PROMPT = `You are a memory summarizer. Output in Korean. Summarize user interests, projects, preferences, tech stack concisely. Merge new info with existing memory. Remove outdated info. Keep under 2000 characters. Use bullet points by category. Return ONLY the updated memory text.`;

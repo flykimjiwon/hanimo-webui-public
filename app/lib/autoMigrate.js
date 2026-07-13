@@ -8,6 +8,7 @@ import logger from '@/lib/logger';
  */
 
 import { query, getPostgresClient } from '@/lib/postgres';
+import { withSchemaMigrationLock } from '@/lib/schema-migration-lock.mjs';
 
 // ─────────────────────────────────────────────
 // 1. Create initial schema (tables)
@@ -465,15 +466,16 @@ const CORE_INDEXES = [
 // 2. Column migration (add to existing tables)
 // ─────────────────────────────────────────────
 
-async function runColumnMigrations() {
+async function runColumnMigrations(client) {
+  const execute = (...args) => client.query(...args);
   // chat_rooms table — custom_instruction 컬럼이 누락된 기존 DB 보완
-  await query(`
+  await execute(`
     ALTER TABLE chat_rooms
     ADD COLUMN IF NOT EXISTS custom_instruction TEXT DEFAULT '',
     ADD COLUMN IF NOT EXISTS custom_instruction_active BOOLEAN DEFAULT false
   `);
 
-  await query(`
+  await execute(`
     ALTER TABLE models
     ADD COLUMN IF NOT EXISTS category_id UUID,
     ADD COLUMN IF NOT EXISTS multi_turn_limit INTEGER,
@@ -483,7 +485,7 @@ async function runColumnMigrations() {
     ADD COLUMN IF NOT EXISTS visible BOOLEAN DEFAULT true
   `);
 
-  await query(`
+  await execute(`
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -499,7 +501,7 @@ async function runColumnMigrations() {
   `).catch(() => {});
 
   // settings table
-  await query(`
+  await execute(`
     ALTER TABLE settings
     ADD COLUMN IF NOT EXISTS max_images_per_message INTEGER DEFAULT 5,
     ADD COLUMN IF NOT EXISTS max_user_question_length INTEGER DEFAULT 300000,
@@ -531,7 +533,7 @@ async function runColumnMigrations() {
   `);
 
   // external_api_logs table
-  await query(`
+  await execute(`
     ALTER TABLE external_api_logs
     ADD COLUMN IF NOT EXISTS first_response_time INTEGER,
     ADD COLUMN IF NOT EXISTS final_response_time INTEGER,
@@ -575,7 +577,7 @@ async function runColumnMigrations() {
    `);
 
   // users table: SSO fields + security enhancement fields
-  await query(`
+  await execute(`
     ALTER TABLE users
     ADD COLUMN IF NOT EXISTS employee_no VARCHAR(20),
     ADD COLUMN IF NOT EXISTS employee_id VARCHAR(50),
@@ -602,37 +604,37 @@ async function runColumnMigrations() {
   `);
 
   // users.password_hash nullable
-  await query(`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`).catch(() => {});
+  await execute(`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`).catch(() => {});
 
   // notices/board_posts views column
-  await query(`ALTER TABLE notices ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0`).catch(() => {});
-  await query(`ALTER TABLE board_posts ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0`).catch(() => {});
+  await execute(`ALTER TABLE notices ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0`).catch(() => {});
+  await execute(`ALTER TABLE board_posts ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0`).catch(() => {});
 
    // Indexes
-   await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_employee_no ON users(employee_no) WHERE employee_no IS NOT NULL`).catch(() => {});
-   await query(`CREATE INDEX IF NOT EXISTS idx_models_endpoint ON models(endpoint)`).catch(() => {});
+   await execute(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_employee_no ON users(employee_no) WHERE employee_no IS NOT NULL`).catch(() => {});
+   await execute(`CREATE INDEX IF NOT EXISTS idx_models_endpoint ON models(endpoint)`).catch(() => {});
 
   // agent_settings: visibility and display order
-  await query(`
+  await execute(`
     ALTER TABLE agent_settings
     ADD COLUMN IF NOT EXISTS is_visible BOOLEAN DEFAULT true,
     ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0
   `).catch(() => {});
 
   // user_settings: custom instructions (multi-prompt)
-  await query(`
+  await execute(`
     ALTER TABLE user_settings
     ADD COLUMN IF NOT EXISTS custom_instructions JSONB DEFAULT '[]'::jsonb,
     ADD COLUMN IF NOT EXISTS ci_global_enabled BOOLEAN DEFAULT true
   `).catch(() => {});
 
   // memory_settings: seed default row
-  await query('INSERT INTO memory_settings (id) VALUES (1) ON CONFLICT DO NOTHING').catch(() => {});
+  await execute('INSERT INTO memory_settings (id) VALUES (1) ON CONFLICT DO NOTHING').catch(() => {});
 
   // users.role CHECK constraint update (add manager role)
   try {
-    await query(`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check`);
-    await query(`ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('user', 'admin', 'manager'))`);
+    await execute(`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check`);
+    await execute(`ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('user', 'admin', 'manager'))`);
     logger.info('[AutoMigrate] ✓ users_role_check constraint updated');
   } catch (e) {
     logger.warn('[AutoMigrate] users_role_check update failed:', e.message);
@@ -640,27 +642,27 @@ async function runColumnMigrations() {
 
    // messages.user_role CHECK constraint update (add manager role)
    try {
-     await query(`ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_user_role_check`);
-     await query(`ALTER TABLE messages ADD CONSTRAINT messages_user_role_check CHECK (user_role IN ('user', 'admin', 'manager'))`);
+     await execute(`ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_user_role_check`);
+     await execute(`ALTER TABLE messages ADD CONSTRAINT messages_user_role_check CHECK (user_role IN ('user', 'admin', 'manager'))`);
      logger.info('[AutoMigrate] ✓ messages_user_role_check constraint updated');
    } catch (e) {
      logger.warn('[AutoMigrate] messages_user_role_check update failed:', e.message);
    }
 
   // messages: soft-delete columns
-  await query(`
+  await execute(`
     ALTER TABLE messages
     ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false,
     ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP,
     ADD COLUMN IF NOT EXISTS deleted_by UUID
   `).catch(() => {});
 
-  await query(`
+  await execute(`
     ALTER TABLE chat_history
     ADD COLUMN IF NOT EXISTS draw_mode BOOLEAN DEFAULT false
   `).catch(() => {});
 
-  await query(`ALTER TABLE screens ALTER COLUMN user_id TYPE TEXT USING user_id::text`).catch(() => {});
+  await execute(`ALTER TABLE screens ALTER COLUMN user_id TYPE TEXT USING user_id::text`).catch(() => {});
 }
 
 // ─────────────────────────────────────────────
@@ -676,34 +678,38 @@ export async function runAutoMigration() {
 
   try {
     logger.info('[AutoMigrate] Starting...');
-    await client.query('BEGIN');
-    await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+    await withSchemaMigrationLock(client, async () => {
+      try {
+        await client.query('BEGIN');
+        try {
+          await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+          for (const table of CORE_TABLES) {
+            await client.query(table.sql);
+          }
+          for (const idx of CORE_INDEXES) {
+            await client.query(idx).catch(() => {});
+          }
+          await client.query('COMMIT');
+          logger.info('[AutoMigrate] ✓ Table/index creation completed');
+        } catch (error) {
+          await client.query('ROLLBACK').catch(() => {});
+          throw error;
+        }
+      } catch (err) {
+        logger.warn('[AutoMigrate] Error during table creation (partially ignored):', err.message);
+      }
 
-    // Create tables
-    for (const table of CORE_TABLES) {
-      await client.query(table.sql);
-    }
-
-    // Create indexes
-    for (const idx of CORE_INDEXES) {
-      await client.query(idx).catch(() => {});
-    }
-
-    await client.query('COMMIT');
-    logger.info('[AutoMigrate] ✓ Table/index creation completed');
+      try {
+        await runColumnMigrations(client);
+        logger.info('[AutoMigrate] ✓ Column migration completed');
+      } catch (err) {
+        logger.warn('[AutoMigrate] Error during column migration (partially ignored):', err.message);
+      }
+    });
   } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
-    logger.warn('[AutoMigrate] Error during table creation (partially ignored):', err.message);
+    logger.warn('[AutoMigrate] Schema lock failed:', err.message);
   } finally {
     client.release();
-  }
-
-  // Run column migrations individually outside transaction (error isolation)
-  try {
-    await runColumnMigrations();
-    logger.info('[AutoMigrate] ✓ Column migration completed');
-  } catch (err) {
-    logger.warn('[AutoMigrate] Error during column migration (partially ignored):', err.message);
   }
 
   logger.info('[AutoMigrate] Completed');

@@ -4,6 +4,11 @@ const net = require('net');
 const os = require('os');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
+const {
+  assertStaticComposeConfiguration,
+  buildDockerE2eContext,
+  findExecutableOnPath,
+} = require('./lib/docker-e2e-config');
 
 const rootDir = path.join(__dirname, '..');
 
@@ -107,6 +112,36 @@ function writePrivateEnv(directory, values) {
 }
 
 async function main() {
+  const validateOnly = process.argv.slice(2).includes('--validate-only');
+  const unknownArgs = process.argv.slice(2).filter((arg) => arg !== '--validate-only');
+  if (unknownArgs.length > 0) {
+    throw new Error(`Unknown argument: ${unknownArgs[0]}`);
+  }
+
+  const [appPort, mockPort] = await Promise.all([getFreePort(), getFreePort()]);
+  const suffix = crypto.randomBytes(4).toString('hex');
+  const context = buildDockerE2eContext({
+    appPort,
+    mockPort,
+    suffix,
+    processId: process.pid,
+    postgresPassword: crypto.randomBytes(24).toString('base64url'),
+    jwtSecret: crypto.randomBytes(32).toString('hex'),
+    credentialEncryptionKey: crypto.randomBytes(32).toString('hex'),
+    adminPassword: `Hmo-E2E-${crypto.randomBytes(18).toString('base64url')}!`,
+  });
+  const composeSource = fs.readFileSync(path.join(rootDir, 'docker-compose.yml'), 'utf8');
+  assertStaticComposeConfiguration(composeSource, context);
+
+  if (validateOnly) {
+    const cliStatus = findExecutableOnPath('docker')
+      ? 'Docker CLI available; it was not invoked.'
+      : 'Docker CLI unavailable; static validation remains available.';
+    console.log(`Static Docker E2E configuration validation passed: Origin=${context.requestOrigin}; PostgreSQL host ports=none.`);
+    console.log(`${cliStatus} Docker runtime NOT run.`);
+    return;
+  }
+
   if (!commandAvailable('docker', ['info'])) {
     console.error('Docker daemon is unavailable. Install/start Docker, then rerun `npm run test:docker-install`.');
     process.exit(127);
@@ -116,33 +151,19 @@ async function main() {
     process.exit(127);
   }
 
-  const [appPort, mockPort] = await Promise.all([getFreePort(), getFreePort()]);
-  const suffix = crypto.randomBytes(4).toString('hex');
-  const projectName = `hanimo-e2e-${process.pid}-${suffix}`;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hanimo-webui-e2e-'));
-  const adminEmail = `admin-${suffix}@hanimo.test`;
-  const adminPassword = `Hmo-E2E-${crypto.randomBytes(18).toString('base64url')}!`;
-  const envPath = writePrivateEnv(tempDir, {
-    PORT: appPort,
-    POSTGRES_USER: `hanimo_${suffix}`,
-    POSTGRES_PASSWORD: crypto.randomBytes(24).toString('base64url'),
-    POSTGRES_DB: `hanimo_${suffix}`,
-    JWT_SECRET: crypto.randomBytes(32).toString('hex'),
-    HANIMO_CREDENTIAL_ENCRYPTION_KEY: crypto.randomBytes(32).toString('hex'),
-    HANIMO_ADMIN_EMAIL: adminEmail,
-    HANIMO_ADMIN_PASSWORD: adminPassword,
-    HANIMO_ADMIN_NAME: 'Hanimo E2E Admin',
-    HANIMO_ENABLE_DESTRUCTIVE_ADMIN: 'false',
-    HANIMO_ENABLE_LABS: 'false',
-    OLLAMA_ENDPOINTS: `http://host.docker.internal:${mockPort}`,
-  });
+  const envPath = writePrivateEnv(tempDir, context.env);
 
-  const compose = ['compose', '-p', projectName, '--env-file', envPath];
+  const compose = ['compose', '-p', context.projectName, '--env-file', envPath];
   let mockServer = null;
   try {
     const config = run('docker', [...compose, 'config', '--format', 'json'], { capture: true });
     const parsedConfig = JSON.parse(config.stdout);
     assert(!parsedConfig.services?.db?.ports, 'PostgreSQL must not publish a host port by default.');
+    assert(
+      parsedConfig.services?.app?.environment?.HANIMO_PUBLIC_URL === context.baseUrl,
+      'Compose HANIMO_PUBLIC_URL must match the dynamic request Origin.'
+    );
 
     mockServer = start(process.execPath, ['scripts/mock-ollama.js', String(mockPort), 'docker-e2e'], {
       MOCK_HOST: '0.0.0.0',
@@ -151,7 +172,7 @@ async function main() {
     await waitFor(`http://127.0.0.1:${mockPort}/api/version`, 'mock model server', 15000);
 
     run('docker', [...compose, 'up', '--detach', '--build']);
-    const baseUrl = `http://127.0.0.1:${appPort}`;
+    const baseUrl = context.baseUrl;
     await waitFor(`${baseUrl}/api/public/settings`, 'Docker app');
 
     const labs = await fetch(`${baseUrl}/workflow`, { redirect: 'manual' });
@@ -159,8 +180,8 @@ async function main() {
 
     const login = await requestJson(`${baseUrl}/api/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: baseUrl },
-      body: JSON.stringify({ email: adminEmail, password: adminPassword }),
+      headers: { 'Content-Type': 'application/json', Origin: context.requestOrigin },
+      body: JSON.stringify({ email: context.adminEmail, password: context.adminPassword }),
     });
     assert(login.response.status === 200, `Admin login failed with ${login.response.status}.`);
     assert(login.body?.token, 'Admin login did not return an access token.');
@@ -170,7 +191,7 @@ async function main() {
       headers: {
         Authorization: `Bearer ${login.body.token}`,
         'Content-Type': 'application/json',
-        Origin: baseUrl,
+        Origin: context.requestOrigin,
       },
       body: JSON.stringify({ name: 'Docker E2E', expiresInDays: 1 }),
     });

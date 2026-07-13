@@ -66,7 +66,14 @@ const nextConfig = {
       './node_modules/tesseract.js/**/*.proto',
     ],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { dev, isServer }) => {
+    if (!dev) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'react-grab': false,
+        'react-scan': false,
+      };
+    }
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,

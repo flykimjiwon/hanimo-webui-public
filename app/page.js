@@ -316,7 +316,7 @@ export default function Home() {
 
   useEffect(() => {
     let isMounted = true;
-    fetch('/api/admin/settings')
+    TokenManager.safeFetch('/api/admin/settings')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || !isMounted) return;

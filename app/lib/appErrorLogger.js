@@ -1,5 +1,6 @@
 import logger from '@/lib/logger';
-import { query } from '@/lib/postgres';
+import { getPostgresClient, query } from '@/lib/postgres';
+import { withSchemaMigrationLock } from '@/lib/schema-migration-lock.mjs';
 
 const _recentErrors = new Map();
 const THROTTLE_WINDOW_MS = 60_000;
@@ -26,32 +27,34 @@ let tableEnsured = false;
 
 async function ensureErrorLogTable() {
   if (tableEnsured) return;
-  await query(`
-    CREATE TABLE IF NOT EXISTS app_error_logs (
-      id BIGSERIAL PRIMARY KEY,
-      source VARCHAR(20) NOT NULL,
-      level VARCHAR(10) NOT NULL,
-      message TEXT NOT NULL,
-      stack TEXT,
-      context JSONB,
-      user_id UUID,
-      user_email TEXT,
-      request_path TEXT,
-      method TEXT,
-      user_agent TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  await query(
-    `CREATE INDEX IF NOT EXISTS idx_app_error_logs_created_at ON app_error_logs(created_at DESC)`
-  );
-  await query(
-    `CREATE INDEX IF NOT EXISTS idx_app_error_logs_source ON app_error_logs(source)`
-  );
-  await query(
-    `CREATE INDEX IF NOT EXISTS idx_app_error_logs_level ON app_error_logs(level)`
-  );
-  tableEnsured = true;
+  const client = await getPostgresClient();
+  if (!client) return;
+  try {
+    await withSchemaMigrationLock(client, async () => {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS app_error_logs (
+          id BIGSERIAL PRIMARY KEY,
+          source VARCHAR(20) NOT NULL,
+          level VARCHAR(10) NOT NULL,
+          message TEXT NOT NULL,
+          stack TEXT,
+          context JSONB,
+          user_id UUID,
+          user_email TEXT,
+          request_path TEXT,
+          method TEXT,
+          user_agent TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query('CREATE INDEX IF NOT EXISTS idx_app_error_logs_created_at ON app_error_logs(created_at DESC)');
+      await client.query('CREATE INDEX IF NOT EXISTS idx_app_error_logs_source ON app_error_logs(source)');
+      await client.query('CREATE INDEX IF NOT EXISTS idx_app_error_logs_level ON app_error_logs(level)');
+      tableEnsured = true;
+    });
+  } finally {
+    client.release();
+  }
 }
 
 export async function logAppError({

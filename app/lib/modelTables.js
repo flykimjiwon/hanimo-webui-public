@@ -1,6 +1,7 @@
 import logger from '@/lib/logger';
 import { query, transaction } from '@/lib/postgres';
 import { isValidUUID } from '@/lib/utils';
+import { lockSchemaMigrationTransaction } from '@/lib/schema-migration-lock.mjs';
 
 /**
  * Query model settings in categories format from new table structure
@@ -154,10 +155,10 @@ export async function getModelsFromTables() {
 /**
  * Check and fix foreign key constraints (called outside transaction)
  */
-async function fixForeignKeyConstraints() {
+async function fixForeignKeyConstraints(client) {
   try {
     // Check if models table exists
-    const modelsTableCheck = await query(`
+    const modelsTableCheck = await client.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_schema = 'public' 
@@ -170,7 +171,7 @@ async function fixForeignKeyConstraints() {
     }
 
     // Check foreign key constraints
-    const fkCheck = await query(`
+    const fkCheck = await client.query(`
       SELECT 
         tc.constraint_name,
         tc.table_name,
@@ -196,11 +197,11 @@ async function fixForeignKeyConstraints() {
           `[modelTables] Invalid foreign key constraint found: ${fk.constraint_name}, Referenced table: ${fk.foreign_table_name}`
         );
         // Delete invalid constraint (separate transaction)
-        await query(
+        await client.query(
           `ALTER TABLE models DROP CONSTRAINT IF EXISTS ${fk.constraint_name}`
         );
         // Add correct foreign key constraint
-        await query(`
+        await client.query(`
           ALTER TABLE models 
           ADD CONSTRAINT models_category_id_fkey 
           FOREIGN KEY (category_id) 
@@ -211,7 +212,7 @@ async function fixForeignKeyConstraints() {
       }
     } else {
       // Add foreign key constraint if missing
-      await query(`
+      await client.query(`
         ALTER TABLE models 
         ADD CONSTRAINT models_category_id_fkey 
         FOREIGN KEY (category_id) 
@@ -232,6 +233,7 @@ async function fixForeignKeyConstraints() {
  * Check if required tables exist and create if not
  */
 async function ensureTablesExist(client) {
+  await lockSchemaMigrationTransaction(client);
   // Enable UUID extension (if needed)
   try {
     await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
@@ -344,12 +346,10 @@ async function ensureTablesExist(client) {
  * Save model settings to new table structure
  */
 export async function saveModelsToTables(categories) {
-  // Fix foreign key constraints before starting transaction (separate transaction)
-  await fixForeignKeyConstraints();
-
   return await transaction(async (client) => {
     // Check table existence and create within transaction
     await ensureTablesExist(client);
+    await fixForeignKeyConstraints(client);
 
     // Check if columns exist
     const columnCheckResult = await client.query(

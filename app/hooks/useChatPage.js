@@ -192,7 +192,7 @@ export function useChatPage({
     const defaultPrompt = enableTranslation
       ? t('chat.image_analysis_prompt')
       : '이 이미지를 설명해줘.';
-    fetch('/api/admin/settings')
+    TokenManager.safeFetch('/api/admin/settings')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || !isMounted) return;

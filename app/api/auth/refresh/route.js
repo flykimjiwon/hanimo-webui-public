@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { query } from '@/lib/postgres';
 import { JWT_SECRET } from '@/lib/config';
 import { authRateLimitConfig, consumeRateLimit, rateLimitKey } from '@/lib/security/rate-limit.mjs';
+import { shouldUseSecureAuthCookie } from '@/lib/security/auth-cookie-policy.mjs';
 
 const ACCESS_TOKEN_EXPIRES = '1h';
 const REFRESH_TOKEN_EXPIRES_DAYS = 30;
@@ -57,16 +58,17 @@ export async function POST(request) {
         { error: 'Refresh token is expired or invalid.', errorType: 'refresh_expired' },
         { status: 401 }
       );
+      const secureCookie = shouldUseSecureAuthCookie(request);
       response.cookies.set('refresh_token', '', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: secureCookie,
         sameSite: 'lax',
         maxAge: 0,
         path: '/api/auth',
       });
       response.cookies.set('token', '', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: secureCookie,
         sameSite: 'lax',
         maxAge: 0,
         path: '/',
@@ -124,16 +126,17 @@ export async function POST(request) {
     );
 
     const response = NextResponse.json({ token: newAccessToken });
+    const secureCookie = shouldUseSecureAuthCookie(request);
     response.cookies.set('token', newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: secureCookie,
       sameSite: 'lax',
       maxAge: 60 * 60,
       path: '/',
     });
     response.cookies.set('refresh_token', newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: secureCookie,
       sameSite: 'lax',
       maxAge: REFRESH_TOKEN_EXPIRES_DAYS * 24 * 60 * 60,
       path: '/api/auth',

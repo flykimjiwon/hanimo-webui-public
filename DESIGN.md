@@ -290,6 +290,14 @@ semantic success, warning, error, focus visibility, translation, or behavior.
   provider/model behavior.
 - Unknown persisted skin values fall back to `warm-command-deck`.
 - User-supplied CSS and arbitrary stylesheet URLs are never accepted.
+- `data-hanimo-skin` on the root element is the authoritative skin scope;
+  `data-skin` is written only as a compatibility mirror during migration.
+- The production registry is limited to `warm-command-deck`,
+  `graphite-terminal`, `aurora-glass`, `paper-ledger`, `cobalt-studio`,
+  `honeycomb-focus`, `mono-atelier`, `moss-laboratory`, and `signal-orange`.
+- Skin styles may override semantic surface, border, radius, and shadow tokens.
+  Action, focus, status, destructive, font, and user palette tokens remain owned
+  by their independent appearance axes.
 
 ### Accessibility invariants
 

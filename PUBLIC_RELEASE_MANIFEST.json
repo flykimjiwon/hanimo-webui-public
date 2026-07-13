@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "4a0ab45623c15d00427b843169e5c2e4ca915c60",
+  "sourceCommit": "82debcdf4d94650b93b8446ab6c9f373432399cf",
   "dirty": false,
   "files": [
     {
@@ -23,7 +23,7 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "07c8fb21c9be9f71dddca119eeb3c245658015810cb13e61f3262d113aec9eb6"
+      "sha256": "b03ddd4a4ffde985b46cb42b68be124b593c69e4faef6de3fb38b21492aa8f8b"
     },
     {
       "path": ".prettierrc",
@@ -47,7 +47,7 @@
     },
     {
       "path": "app/admin/dashboard/page.js",
-      "sha256": "80648e4465d56bd967a95d295f42464499bdeee630da6a9ffdd83c802bcaa3ce"
+      "sha256": "8d926a2226d8301133b12ec547ffa36e970c175830cab4d8fa7b816a7824f77a"
     },
     {
       "path": "app/admin/database/page.js",
@@ -87,7 +87,7 @@
     },
     {
       "path": "app/admin/messages/page.js",
-      "sha256": "70d3157b315b05a2b23e8ec7b4dc1aaf47d84a5ca8c0e8ddae57092d514873e8"
+      "sha256": "bdf97ed7c0339b96e0a28257093086a205bf42db9ce3aa94cc297dadf66a9903"
     },
     {
       "path": "app/admin/models/components/CategoryPanel.jsx",
@@ -98,12 +98,40 @@
       "sha256": "c8d7e2278012089bf34e0f969b24cf9957a358a5d9a7e0c9200fba00cf5cf503"
     },
     {
+      "path": "app/admin/models/components/model-form-helpers.mjs",
+      "sha256": "f1816f61e356781bebe2da4f21a79c266a45a1683ee92d022ead46805ad69289"
+    },
+    {
+      "path": "app/admin/models/components/model-form/AddModelLabelField.jsx",
+      "sha256": "a42db9cf3b266b323868b4a27d42fff17c4b2432e6275a1f6e5c72430a57b321"
+    },
+    {
+      "path": "app/admin/models/components/model-form/EndpointSelector.jsx",
+      "sha256": "6909ea41a3e7c03709f9c59e917b0422713a395069791f0d313b0ae724e9a114"
+    },
+    {
+      "path": "app/admin/models/components/model-form/ModelBehaviorFields.jsx",
+      "sha256": "81e80f2cf5f3b3ab567d19097af17fd9899593ca34ac5bb9dd4827f2c88d77d6"
+    },
+    {
+      "path": "app/admin/models/components/model-form/ModelFormActions.jsx",
+      "sha256": "8b709b8956a13b2bad965b12bd52f7caa1486ed0352158887eafa5425ffd83bc"
+    },
+    {
+      "path": "app/admin/models/components/model-form/ModelIdentityFields.jsx",
+      "sha256": "83a2749b8f89ee28ab453ef389b73d23ee28d24fbb00fb20d9f2fb40d054176b"
+    },
+    {
+      "path": "app/admin/models/components/model-form/ModelNameField.jsx",
+      "sha256": "7a72d62a1e56be3409d370b72ed8fc518ad9e93d2f4388cdc4f85a670882f461"
+    },
+    {
       "path": "app/admin/models/components/ModelCard.jsx",
       "sha256": "b53624caeed794d333a180887d9ff009c68dda120cc8063fb8ddc32b39c1e135"
     },
     {
       "path": "app/admin/models/components/ModelForm.jsx",
-      "sha256": "f25aac410c01746cef39c8618d60cbcd161f269c585422dc8030441b5d7c80e0"
+      "sha256": "331b44c2a4b31ce524aa229a8bbe3722c74ce861f912cc5be97355c539f4d992"
     },
     {
       "path": "app/admin/models/components/PresetUrlSettings.jsx",
@@ -123,11 +151,11 @@
     },
     {
       "path": "app/admin/models/hooks/useModelConfig.js",
-      "sha256": "4a5259501dbd46b35f86d7cbeecf32a8eabdb23b20a90924d8b8bcc89d1ae1fd"
+      "sha256": "bf6a091e819171f808457cc0d3de8472fe1c798bf7f9fc488250f0d94c180933"
     },
     {
       "path": "app/admin/models/hooks/useRoundRobin.js",
-      "sha256": "a7100eccddfe936cac9bb6b0604ee5b6e65eadf57fccc576f42a1f9dd9155c23"
+      "sha256": "e61ba49d8923a527c72132a30190b5786dc156b752f1676780f57366533c1ef9"
     },
     {
       "path": "app/admin/models/model-utils.js",
@@ -151,7 +179,7 @@
     },
     {
       "path": "app/admin/settings/page.js",
-      "sha256": "883c2be8d36b7c29c7f5c36994d43558d9e53bec0fdfc09f3665ce5530a9090a"
+      "sha256": "6bb18ee700f5e71ce2ee6a04ed8140b6c41348befd0440e2f62a6394dc319cac"
     },
     {
       "path": "app/admin/sso-logs/page.js",
@@ -167,7 +195,7 @@
     },
     {
       "path": "app/admin/users/page.js",
-      "sha256": "2ab397aec523d3121c0ddf4eb80f01d282efdaac92111c7a435365f0996dcf89"
+      "sha256": "5cee50527d4844edeb3d232c7f209a1e22b45615f429400a29a823c350030396"
     },
     {
       "path": "app/api/admin/agents/route.js",
@@ -279,7 +307,7 @@
     },
     {
       "path": "app/api/admin/init-schema/route.js",
-      "sha256": "f3613194f25926ba8406a7bd8d67077771166b125544638c24e5f5b65e1e6c72"
+      "sha256": "12c5c64fa394236e3282a83d0b429d8e47a607f304bcff99b3fb46d8a3650e7e"
     },
     {
       "path": "app/api/admin/instances/route.js",
@@ -339,7 +367,7 @@
     },
     {
       "path": "app/api/admin/user-memories/route.js",
-      "sha256": "8b81d4c57701dcf9beda4667422b7c8d4c4b8f8f97d07f2fc88453786d6ea5be"
+      "sha256": "5b630d10d1a51169c125589653c0992265e93a1cf620e0f2181688b4e4b9f88e"
     },
     {
       "path": "app/api/admin/users/[id]/route.js",
@@ -363,7 +391,7 @@
     },
     {
       "path": "app/api/auth/login/route.js",
-      "sha256": "9102acfab42d22f32740c01eeaafacb105262e8194ca5a8cf60cbc0e26e3ab8b"
+      "sha256": "4f8bab254202bfbdbfb2b7e0817776483dc69cd3e6c63d3113978a13107653e3"
     },
     {
       "path": "app/api/auth/logout/route.js",
@@ -371,7 +399,7 @@
     },
     {
       "path": "app/api/auth/refresh/route.js",
-      "sha256": "19a70953e679ce48dd1ba3ccd9473e96481f2b6a8caa3b288c92fab736b17477"
+      "sha256": "4307e096bf3b37dd474e4c6ddb4cb1888d125a75930e167f009544a46b0769e6"
     },
     {
       "path": "app/api/auth/register/route.js",
@@ -483,7 +511,7 @@
     },
     {
       "path": "app/api/user/memory/route.js",
-      "sha256": "1a3dbf3b65625fa231eb109e54e034967e2df38f800963622615bca62028dc27"
+      "sha256": "1f2befb3dac624db60d549bceda375ec6fa500ca856cc270e05499b46ce112ea"
     },
     {
       "path": "app/api/user/profile/route.js",
@@ -619,11 +647,11 @@
     },
     {
       "path": "app/components/chat/ChatHeader.js",
-      "sha256": "42bd0b999552e3025cf31647dea2ef7f82187254f6d3ff31f6e9caa1625f3d60"
+      "sha256": "e8b3d957f6e81529c30f2d260429f331ddd2730b8f38fc4ce4a7239998b3bc99"
     },
     {
       "path": "app/components/chat/ChatInput.js",
-      "sha256": "37e91c27d04dda85c48f19c79f5cd343a356a6e7d80a2f0b1db7b712eef5fe5d"
+      "sha256": "60e62f358c11bc8ca94428b45dea533543049e45ee4b80e6ca4c2ba34fc76868"
     },
     {
       "path": "app/components/chat/ChatLayout.js",
@@ -639,11 +667,11 @@
     },
     {
       "path": "app/components/chat/MessageList.js",
-      "sha256": "45a219235c20dfd6f7f0b7ac54ea61e2cea12753cd903c3095c1676c8df950f4"
+      "sha256": "bd468e59f64f8a9668bb5affff7ef2fc68e2c9d52c7ed98344d417f7038c1633"
     },
     {
       "path": "app/components/chat/ModelSelector.js",
-      "sha256": "da0122ee36f1e7ab2747a495244984eebb430a200db8ee22ea6f7b529af9e698"
+      "sha256": "94d70b49f4d35351d33757eea272fee9e57f7a94c277c0e20901315576b5cee4"
     },
     {
       "path": "app/components/chat/ScrollButtons.js",
@@ -659,11 +687,11 @@
     },
     {
       "path": "app/components/ChatWidget.js",
-      "sha256": "04651f70811b8a119647235b2804d4abca776ac91a401874334b0c4757bcc657"
+      "sha256": "658c4ef61f747a64340dad15993167891923a194fca9019940148c67035636bf"
     },
     {
       "path": "app/components/ClientErrorReporter.js",
-      "sha256": "7dfbdbf24e6533b6bf73480bf93a9541fe655f345f5b20f98767ad3ae2131ccf"
+      "sha256": "ddf0e3314e63116bb2e779e4faf56e7c5b5645d485f782226be0ce895b9e9848"
     },
     {
       "path": "app/components/ClientLayout.js",
@@ -676,6 +704,10 @@
     {
       "path": "app/components/DarkModeToggle.js",
       "sha256": "36c1ef978a6eaabfb5fdf66337d59cf703687e631ae501ffe229efa8b59864a2"
+    },
+    {
+      "path": "app/components/dev/ReactDevTools.js",
+      "sha256": "8ac4d5273f4a7af574de55da758303c3cc5b60c8c593081fb73a4685157ca311"
     },
     {
       "path": "app/components/DirectMessageModal.js",
@@ -699,7 +731,7 @@
     },
     {
       "path": "app/components/NoticePopup.js",
-      "sha256": "cf81f02a2c2d16fbe8a4447761d57bf7ad7a4c9235ab89e5d1e1f7928e23f8af"
+      "sha256": "09e1a0aae84625e9141b915ffbd0a3afe8152b6bcd45568b7a19629b1de68fa8"
     },
     {
       "path": "app/components/PageHead.js",
@@ -723,15 +755,23 @@
     },
     {
       "path": "app/components/SiteMenuSelector.js",
-      "sha256": "4e8c590c69f4a961aa2eaab43d0f1bb27738d57ee56bbfec6297678b0dc064d1"
+      "sha256": "60fc28a932655c9f0be60ca56337c9b964527fb7c95a80747d01fd563bc52d59"
     },
     {
       "path": "app/components/SiteSettings.js",
-      "sha256": "86ffb773541f519c8d36b894b0b6ff390b6284067d27f6d22af4b315b187bf20"
+      "sha256": "1462260ca7cf1f67964206b6d49545cdd25c19a487cdb71650517be1f2ab41a9"
+    },
+    {
+      "path": "app/components/theme/ThemeDrawerControls.js",
+      "sha256": "43c5065a938f1a4fe282dde184ea3b1beba84b70be5ff02279b602913785b46f"
+    },
+    {
+      "path": "app/components/theme/ThemeDrawerSections.js",
+      "sha256": "14963289bc57ed4fb4825370fd17923ca404e5e7136420c0e0a82cb41c426268"
     },
     {
       "path": "app/components/ThemeDrawer.js",
-      "sha256": "fd30d135d226dff4e137c4e63b93afe3049068cc53f00b12cb7a05d2c83ad905"
+      "sha256": "7cc79fe10a2211332c215592d057e792e1bdbea4fe39498a8bdb9de2344ddc9e"
     },
     {
       "path": "app/components/TypingAnimation.js",
@@ -855,7 +895,7 @@
     },
     {
       "path": "app/components/workflow/PropertyPanel.js",
-      "sha256": "9bd136a900f81e484a3c1226a32ea8cecc9f90505cf8b0a51b25f1fbbbb5f036"
+      "sha256": "f3919ade2133aa0814295ecd23e6592d541cf9b161e36c4eaaa4e2268e63fcf1"
     },
     {
       "path": "app/components/workflow/TestPanel.js",
@@ -891,7 +931,7 @@
     },
     {
       "path": "app/globals.css",
-      "sha256": "e121760395d83fe5009ec07b3a4acf7f28518ff9467f978d80a80285bdbaec6f"
+      "sha256": "862c0ad7ea032eb96f6c92360a6ae214d49c43f9d80b07a7af9f3cf1107cefc7"
     },
     {
       "path": "app/hooks/useAgentGenerate.js",
@@ -911,7 +951,7 @@
     },
     {
       "path": "app/hooks/useChatPage.js",
-      "sha256": "af5884d2f87278f328bc6c8f8d793d16d49ba2527bf5de75e5e3cbc761da1f31"
+      "sha256": "f044e4b0ea15f28f3299774c2423c82da7b065806b786dcd9f5972b9436ac7b9"
     },
     {
       "path": "app/hooks/useChatSender.js",
@@ -939,7 +979,7 @@
     },
     {
       "path": "app/layout.js",
-      "sha256": "7a37cf8893c813ed0a2fd89444f9471cace95dfe0b63fbe25754e7bf1664e4cf"
+      "sha256": "c5751be520d3930725f49408f5d78e0ce4f62ac80f68b9ca07736754c5d7b7b7"
     },
     {
       "path": "app/lib/adminAuth.js",
@@ -958,8 +998,20 @@
       "sha256": "37eb8fce5279484fa8a181c4a6772575341ca444df000c24ab83782045379390"
     },
     {
+      "path": "app/lib/appearance-contract.mjs",
+      "sha256": "98ebed84cad25e605823f8d522f0be542ccc036c75f88e4a5c6f83e92f0d0d56"
+    },
+    {
+      "path": "app/lib/appearance-prepaint.mjs",
+      "sha256": "c8f2e6eed3c5f21005222fe42235ef9c14987f01ca8e113bdff15bf0c2d3f025"
+    },
+    {
+      "path": "app/lib/appearance/skin-registry.mjs",
+      "sha256": "2531d4adba694e3999f79c302734fc75dc7c0af1172e7d3354b4e054fccaa52d"
+    },
+    {
       "path": "app/lib/appErrorLogger.js",
-      "sha256": "e1e6c3bc9cd258166057f854dcbdbdd14bd7ad9ecf40727ee1306dcb911a418d"
+      "sha256": "c088a7d179ba9ea04ffb3f87841689341160d94c4fd7f64cc80431d155bc79b5"
     },
     {
       "path": "app/lib/auth.js",
@@ -967,7 +1019,7 @@
     },
     {
       "path": "app/lib/autoMigrate.js",
-      "sha256": "7d56355746567f7a92960439684b36a61d73e8b265e209817eecd9e4aed1e686"
+      "sha256": "44e6a7a7ebe88a36a44307b1509d68c262a9e86ea39f11234cb2624de5166d5e"
     },
     {
       "path": "app/lib/chatUtils.js",
@@ -1011,7 +1063,7 @@
     },
     {
       "path": "app/lib/i18n/en.json",
-      "sha256": "22374607e86ac34bd0941913354df1ef49d32fdca5a1e6226b3faeb34c42dc05"
+      "sha256": "dca8792b20db5a761c289a8637eb39eaf4739e01b0aa3626d44b663090071f3a"
     },
     {
       "path": "app/lib/i18n/ko-admin.json",
@@ -1023,7 +1075,7 @@
     },
     {
       "path": "app/lib/i18n/ko.json",
-      "sha256": "699a4f23936d6bdcf3526419b3b9e351de67b2e7a0c8b7d507fd297f24065367"
+      "sha256": "46de681e68b38cf9ec44c14acd519e9aac13be9aab78206970819ad7301a4d44"
     },
     {
       "path": "app/lib/instanceLogger.js",
@@ -1055,7 +1107,7 @@
     },
     {
       "path": "app/lib/modelTables.js",
-      "sha256": "0e43e41715135cf15a8d8fae6d856076aaa1f13bdc5bd32e8901856968d2d82d"
+      "sha256": "ab67113685870a294374694aab0fc9afa4084bf6e26872c7fefbfab101f362f8"
     },
     {
       "path": "app/lib/openai-gateway.mjs",
@@ -1063,11 +1115,11 @@
     },
     {
       "path": "app/lib/piiFilter.js",
-      "sha256": "dfc616239ba5c25583e0b6a22f156accd3cdadaba87a154dd4e82d7fa9081704"
+      "sha256": "c21af7e07c8a17c84b4ba592826b4cd8d576d06e4a5413726ac2462933bbd9a0"
     },
     {
       "path": "app/lib/postgres.js",
-      "sha256": "67ba7117a496e58171d74bbe4946b3c4d269ce79bee476edb58ebeb2c34caf3a"
+      "sha256": "b3fdaba0d59409e5b7576119b3b5f418b972e725373edc23831eda2785b9d3c9"
     },
     {
       "path": "app/lib/provider-catalog.mjs",
@@ -1086,12 +1138,20 @@
       "sha256": "5ecb2b7ff5d9461b68cd10d12756e373d2e335e8779749295e2287bd8478e4b3"
     },
     {
+      "path": "app/lib/schema-migration-lock.mjs",
+      "sha256": "d083bc54ec19f372ca798f8995a2d88940ef27aff3dfd69328e6103d6553cd6e"
+    },
+    {
       "path": "app/lib/screen-security.mjs",
       "sha256": "bdc93899ed195de91710f961d503f9c836e729129ea488d321faa3e769281ca6"
     },
     {
       "path": "app/lib/security/auth-boundary.mjs",
       "sha256": "3bd9e79ee13537acf143feae85a36a6e8a6c0b34ccbc613b6bc8708dbae33b07"
+    },
+    {
+      "path": "app/lib/security/auth-cookie-policy.mjs",
+      "sha256": "e3501dc7693ac19ea3b8777092b45c70cf4e457ce4b39af90a9c8cfee90f5bb4"
     },
     {
       "path": "app/lib/security/image-magic.mjs",
@@ -1179,7 +1239,7 @@
     },
     {
       "path": "app/login/page.js",
-      "sha256": "a143ec700adecc7cdcbd1cfebb908b0689f661e9630285ada99379e56e68a50b"
+      "sha256": "ce76421f32684f88aa9edf25494272498e5ee06c2a4ab05f43bb69f29bb1957f"
     },
     {
       "path": "app/my-api-keys/page.js",
@@ -1211,7 +1271,7 @@
     },
     {
       "path": "app/page.js",
-      "sha256": "37cb4bcd5aac6d880bd17fd7b581a79efd51f053acc5caa06a06e81226d29f2f"
+      "sha256": "272848568e08eb455b74e96541176eb1aa5803cf43f022e4601d68d3729fe617"
     },
     {
       "path": "app/profile/page.js",
@@ -1240,6 +1300,10 @@
     {
       "path": "app/sso/page.js",
       "sha256": "dae0fe79331da5910c1fcb40f7e3a214e14819336d4126cf85172b235a59cb5a"
+    },
+    {
+      "path": "app/styles/appearance-skins.css",
+      "sha256": "10c9c1aa391abb8eac1aca6f4643b583b65ce1a9b2b71431affa4a8427889969"
     },
     {
       "path": "app/workflow/[id]/page.js",
@@ -1443,7 +1507,7 @@
     },
     {
       "path": "DESIGN.md",
-      "sha256": "73baa19584dba22cc985b943d801e93e5623bddd4fc78b6646d53a5fc6620437"
+      "sha256": "21fcbef44d12e98a4171f7d594aa7df26bcbf68cfe6529e938fb97aa3ce37ad7"
     },
     {
       "path": "docker-compose.dev.yml",
@@ -1539,7 +1603,7 @@
     },
     {
       "path": "next.config.mjs",
-      "sha256": "9f8592d542e6150dba253b3af2fb33d522739bf1b2d78500c5a58be074e59bf9"
+      "sha256": "170021eb485ec87745006af4b341e93cf30c63180b53dcddc5711b081f264494"
     },
     {
       "path": "NOTICE",
@@ -1547,11 +1611,11 @@
     },
     {
       "path": "package-lock.json",
-      "sha256": "e97fe9838044a95246e92b9db05b6fc17ebbf3081b44a292ec34a72fac024879"
+      "sha256": "f4f7302ec8496dfcc9899b5d138b7e48d74f6bb1d0cce65f5eba612b9625781a"
     },
     {
       "path": "package.json",
-      "sha256": "acadecc6cd1d63c4865eef9b9f1c5eb88462fbe231df8407a7eb9644f57acd0b"
+      "sha256": "b25410cebc7a17d82e4af9610fd7111c0d82b7eac0a06fcd3da6d7e71b1795ee"
     },
     {
       "path": "postcss.config.mjs",
@@ -1599,11 +1663,15 @@
     },
     {
       "path": "scripts/check-docker-install.js",
-      "sha256": "63fa5b6820abbbb634b02ed33b58eaf041fb9c4e693f178cf15fcd201e582b8e"
+      "sha256": "f49689aae3d270112816e6cfc9ffd549896e906cba0118f3374d5b3077ee3987"
+    },
+    {
+      "path": "scripts/check-local-release.js",
+      "sha256": "ae43fbad8bab31a6f85b14c82998d56347b002cf96ce1ea857ad0e4a840b15e3"
     },
     {
       "path": "scripts/check-production-install.js",
-      "sha256": "f74e96c1e26dbbe3384beaf3e968407b4e61892502c793897fb32570607931d4"
+      "sha256": "14f47a3319145047c3907acad532e8cd9faa705f9d7b05406f2b465d10c2bc2d"
     },
     {
       "path": "scripts/check-public-export.js",
@@ -1611,7 +1679,7 @@
     },
     {
       "path": "scripts/check-security-parity.mjs",
-      "sha256": "5c5582bffedaa36bf76cd9a751767b8b424489618e521e90b4fac32866555091"
+      "sha256": "2548dfcb3f2fae8f00a76903b421dd148079d397de8c21ffca75c058759ff853"
     },
     {
       "path": "scripts/create-admin.js",
@@ -1619,7 +1687,7 @@
     },
     {
       "path": "scripts/create-postgres-schema.js",
-      "sha256": "81a23a0857e8c97b18bd556d7a965ecc1b9a1e8aeabe35a322f3f5d9959dcf44"
+      "sha256": "a4afa3186b872234cb58bc99f0695a6ea7692bec7d2f065844e224b61d86d98e"
     },
     {
       "path": "scripts/db-utils.js",
@@ -1644,6 +1712,14 @@
     {
       "path": "scripts/lib/api-token-db-model-server.js",
       "sha256": "e9183506d4ef795113598dcf981df8cd135ecf707b28d4ee08864c59bff17600"
+    },
+    {
+      "path": "scripts/lib/docker-e2e-config.js",
+      "sha256": "8a2772be8ee3901029d578e869534dd1b36415b3c82f9d3b83828053a8a4c98b"
+    },
+    {
+      "path": "scripts/lib/local-release-fixture.js",
+      "sha256": "984d47fc318aad8f68bb0bc38c421169e8b62a9340502b65cc7a4a5ef03a8752"
     },
     {
       "path": "scripts/manage.sh",
@@ -1671,7 +1747,7 @@
     },
     {
       "path": "scripts/smoke-routes.js",
-      "sha256": "5d71c97dcb1a6ac140a9b6c3c0f92fb4aa4670d09f2b4ef61f23305048a26e54"
+      "sha256": "f32f8beb093f897b152f520294232cc9066e76598f3fed99a12a4404af6eae81"
     },
     {
       "path": "scripts/start-standalone.js",
@@ -1683,7 +1759,7 @@
     },
     {
       "path": "scripts/test-api-token-db.js",
-      "sha256": "3014715cc77076478d14ed7540dfea91156fa2fa6086d42f75954d3ff5acf2a9"
+      "sha256": "fc2dd3dda884ceb09af8c989655406c47f5e54ef6322382d833a507990f8bc3a"
     },
     {
       "path": "scripts/test-api-token-security.js",
@@ -1712,6 +1788,50 @@
     {
       "path": "SUPPORT.md",
       "sha256": "990dbca81d1aa4746eec47cf57dfb1033b65f7de8e6fab6845a381fe5d231270"
+    },
+    {
+      "path": "tests/appearance-contract.test.mjs",
+      "sha256": "109c4c69f990800c5f1c753603b0d3b22950ca238b2d086e89cda98c680de603"
+    },
+    {
+      "path": "tests/appearance-skins.test.mjs",
+      "sha256": "27702dcb10afefe4e06849f9cc63e8cd823ab1058da6f93b58416e7a1dcb4ecd"
+    },
+    {
+      "path": "tests/auth-cookie-policy.test.mjs",
+      "sha256": "3e30b53e7a1815fa20e7faf7d8e002fcd60d6301950610126fded8c8d21562ef"
+    },
+    {
+      "path": "tests/docker-e2e-config.test.cjs",
+      "sha256": "c5b80614ac26230176cb455ed5477ce93dad4c4063d3c55fe76d819b7833b2ee"
+    },
+    {
+      "path": "tests/lint-hook-behavior-contract.test.mjs",
+      "sha256": "1518756d6d5d88aa47ddd5dde8829441a14913f5b6485f4e62dc25f05d0fb1b9"
+    },
+    {
+      "path": "tests/local-release-fixture.test.cjs",
+      "sha256": "505f4cd7f0d8fe824ef2b6bc40afd8481d8e36a03baf6e048306946c25dcb70b"
+    },
+    {
+      "path": "tests/login-accessibility-contract.test.mjs",
+      "sha256": "6859e97b2836c08ebc50115a107e31866a1c9742186504045e43dd065c57d864"
+    },
+    {
+      "path": "tests/model-form-contract.test.mjs",
+      "sha256": "5ea64b1390ce68f3d5355ac149dbe4b9d7bc286678712fc21d9bad675ed6d215"
+    },
+    {
+      "path": "tests/network-clean-contract.test.mjs",
+      "sha256": "41d1da29ebc40d6ccf654bb4add71c5297db3e3f57230aa71e5bc33a6a728eb2"
+    },
+    {
+      "path": "tests/react-dev-tools.test.mjs",
+      "sha256": "a38c5c93687ae7ec5a13f9e60475532e27063689120f32d0f2955be1db0a5e6c"
+    },
+    {
+      "path": "tests/schema-migration-lock.test.mjs",
+      "sha256": "f82764b46807fd001ead53ce3075d30c357bf95f8bb4977059f13c965c3b1f46"
     },
     {
       "path": "tests/security/admin-diagnostics.test.mjs",
@@ -1763,7 +1883,7 @@
     },
     {
       "path": "tests/security/release-surface.test.mjs",
-      "sha256": "7fd4c356d8e538a7e2fbd7c85c1d4ae73bfc484959fb647d637eed914a6a6fe5"
+      "sha256": "979faccda44cb17cfcc8624abd04ee3cba64d462271640340c1f1a947e0262ad"
     },
     {
       "path": "tests/security/screen-boundary.test.mjs",
@@ -1788,6 +1908,10 @@
     {
       "path": "tests/security/workflow-boundary.test.mjs",
       "sha256": "16c78d97850f0adf83557d3010dfac1574fc0c8cb586faa6f3f695a9564fd111"
+    },
+    {
+      "path": "tests/visual-fix-contract.test.mjs",
+      "sha256": "8a9c7c928ee5b1cb88f3d3cb416ab2282df38913bfceb7363c502bb37371f64e"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",

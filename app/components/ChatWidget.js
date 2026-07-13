@@ -191,6 +191,8 @@ export default function ChatWidget() {
       logger.error('Error fetching latest messages:', error);
     }
   };
+  const fetchLatestMessagesRef = useRef(fetchLatestMessages);
+  fetchLatestMessagesRef.current = fetchLatestMessages;
 
   const loadMoreMessages = async () => {
     if (!hasMore || isLoadingMore) return;
@@ -224,11 +226,11 @@ export default function ChatWidget() {
     let intervalId;
     if (isOpen && isLoggedIn) {
       const latest = messagesRef.current[messagesRef.current.length - 1]?.createdAt || null;
-      fetchLatestMessages(latest ? { since: latest } : {});
+      fetchLatestMessagesRef.current(latest ? { since: latest } : {});
       const interval = isTabActive ? POLL_INTERVAL_ACTIVE : POLL_INTERVAL_INACTIVE;
       intervalId = setInterval(() => {
         const newest = messagesRef.current[messagesRef.current.length - 1]?.createdAt || null;
-        fetchLatestMessages(newest ? { since: newest } : {});
+        fetchLatestMessagesRef.current(newest ? { since: newest } : {});
       }, interval);
     } else {
       if (intervalId) clearInterval(intervalId);

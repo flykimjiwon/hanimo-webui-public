@@ -2,7 +2,7 @@
 
 
 import logger from '@/lib/logger';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Users,
   MessageSquare,
@@ -68,12 +68,14 @@ export default function AdminDashboard() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [dateRangeMode, setDateRangeMode] = useState('7days');
+  const fetchDashboardDataRef = useRef(null);
+  const fetchSystemStatusRef = useRef(null);
 
   useEffect(() => {
     if (dateRangeMode !== 'custom') {
-      fetchDashboardData();
+      fetchDashboardDataRef.current();
     }
-    fetchSystemStatus();
+    fetchSystemStatusRef.current();
   }, [dateRangeMode]);
 
   const fetchDashboardData = async () => {
@@ -145,6 +147,9 @@ export default function AdminDashboard() {
       });
     }
   };
+
+  fetchDashboardDataRef.current = fetchDashboardData;
+  fetchSystemStatusRef.current = fetchSystemStatus;
 
   if (loading) {
     return (

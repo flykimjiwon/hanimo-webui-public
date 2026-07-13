@@ -1,8 +1,7 @@
 'use client';
 
-import logger from '@/lib/logger';
-import { useState, memo, useEffect, Fragment } from 'react';
-import { Zap, ChevronDown, Loader2, Star } from '@/components/icons';
+import { useState, memo, Fragment } from 'react';
+import { Zap, ChevronDown, Star } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -66,14 +65,19 @@ function ModelTypeDot({ type }) {
 }
 
 // 라운드로빈 여부 확인 (같은 label + 서로 다른 endpoint)
-function isRoundRobinGroup(models) {
-  if (models.length <= 1) return false;
-
+function getRoundRobinGroupInfo(models) {
   const uniqueEndpoints = new Set(
     models.filter((m) => m.endpoint).map((m) => m.endpoint)
   );
 
-  return uniqueEndpoints.size > 1;
+  return {
+    isRoundRobin: models.length > 1 && uniqueEndpoints.size > 1,
+    serverCount: uniqueEndpoints.size,
+  };
+}
+
+function isRoundRobinGroup(models) {
+  return getRoundRobinGroupInfo(models).isRoundRobin;
 }
 
 // label별로 모델 그룹화
@@ -158,8 +162,6 @@ const ModelSelector = memo(function ModelSelector({
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation();
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [roundRobinInfo, setRoundRobinInfo] = useState(null);
-  const [checkingRoundRobin, setCheckingRoundRobin] = useState(false);
 
   // 모든 모델 수집 (id가 이미 UUID로 고유함)
   const allModels = modelConfig
@@ -181,40 +183,13 @@ const ModelSelector = memo(function ModelSelector({
   const selectedModelInfo = allModels.find(
     (model) => model.id === selectedModel
   );
-
-  // 라운드로빈 상태 확인
-  useEffect(() => {
-    if (!selectedModel || !selectedModelInfo) {
-      setRoundRobinInfo(null);
-      setCheckingRoundRobin(false);
-      return;
-    }
-
-    const checkRoundRobin = async () => {
-      setCheckingRoundRobin(true);
-      try {
-        // id는 UUID이므로 modelName을 사용하여 라운드로빈 확인
-        const modelNameToCheck = selectedModelInfo.modelName || selectedModelInfo.id;
-
-        const response = await fetch(
-          `/api/admin/check-round-robin?modelName=${encodeURIComponent(
-            modelNameToCheck
-          )}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setRoundRobinInfo(data);
-        }
-      } catch (error) {
-        logger.error('라운드로빈 상태 확인 실패:', error);
-      } finally {
-        setCheckingRoundRobin(false);
-      }
-    };
-
-    checkRoundRobin();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedModel]);
+  const selectedLabel = selectedModelInfo?.label?.trim().toLowerCase();
+  const selectedRoundRobinModels = selectedLabel
+    ? allModels.filter(
+        (model) => model.label?.trim().toLowerCase() === selectedLabel
+      )
+    : [];
+  const roundRobinInfo = getRoundRobinGroupInfo(selectedRoundRobinModels);
 
   const handleModelSelect = (modelId) => {
     if (!modelId) return;
@@ -261,9 +236,6 @@ const ModelSelector = memo(function ModelSelector({
             <Badge variant='secondary' className='text-[10px] px-1.5 py-0'>
               RR {roundRobinInfo.serverCount}
             </Badge>
-          )}
-          {checkingRoundRobin && (
-            <Loader2 size={12} className='animate-spin text-muted-foreground' />
           )}
           <ChevronDown
             size={14}

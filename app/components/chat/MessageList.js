@@ -407,8 +407,8 @@ function MessageList({
   const displayMessages = currentRoom
     ? filteredMessages.filter((msg) => msg.roomId === currentRoom)
     : filteredMessages;
-  const imageHistory = currentRoom ? imageHistoryByRoom[currentRoom] || [] : [];
   const imagesByTurn = useMemo(() => {
+    const imageHistory = currentRoom ? imageHistoryByRoom[currentRoom] || [] : [];
     const map = new Map();
     imageHistory.forEach((entry) => {
       if (entry && Number.isFinite(entry.turnIndex)) {
@@ -416,7 +416,7 @@ function MessageList({
       }
     });
     return map;
-  }, [imageHistory]);
+  }, [currentRoom, imageHistoryByRoom]);
   const [previewImage, setPreviewImage] = useState(null);
   const localListRef = useRef(null);
   const resolvedListRef = listRef || localListRef;
@@ -548,10 +548,10 @@ function MessageList({
               ? t('chat.greet_personal', { name: userName })
               : t('chat.greet_title')}
           </p>
-          <h1 className='m-0 max-w-[720px] text-balance text-[30px] font-bold leading-[1.15] tracking-[-0.035em] text-[var(--hn-fg)] sm:text-[42px]'>
+          <h2 className='m-0 max-w-[720px] text-balance text-[30px] font-bold leading-[1.15] tracking-[-0.035em] text-[var(--hn-fg)] sm:text-[42px]'>
             {t('chat.solution_title')}
-          </h1>
-          <p className='m-0 mt-4 max-w-[580px] text-balance text-sm leading-6 text-[var(--hn-fg-muted)] sm:text-[15px]'>
+          </h2>
+          <p className='m-0 mt-4 w-full max-w-[580px] break-keep px-2 text-balance text-sm leading-6 text-[var(--hn-fg-muted)] sm:px-0 sm:text-[15px]'>
             {t('chat.solution_sub')}
           </p>
 

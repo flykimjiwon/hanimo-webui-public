@@ -662,76 +662,74 @@
   --sidebar-ring: var(--hn-primary);
 }
 
-/* @supports (oklch) 블록 — primary/ring/sidebar 계열은 hn-primary 브리지를 따르고
- * 나머지 surface/border 등 perceptual stone scale은 oklch 값으로 유지. */
 @supports (color: oklch(1 0 0)) {
   :root {
-    --background: oklch(0.985 0.002 75);
-    --foreground: oklch(0.216 0.006 56);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.216 0.006 56);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.216 0.006 56);
+    --background: var(--hn-bg);
+    --foreground: var(--hn-fg);
+    --card: var(--hn-surface);
+    --card-foreground: var(--hn-fg);
+    --popover: var(--hn-surface);
+    --popover-foreground: var(--hn-fg);
     --primary: var(--hn-primary);
     --primary-foreground: var(--hn-primary-fg);
-    --secondary: oklch(0.97 0.001 106);
-    --secondary-foreground: oklch(0.216 0.006 56);
-    --muted: oklch(0.97 0.001 106);
-    --muted-foreground: oklch(0.553 0.013 58);
-    --accent: oklch(0.97 0.001 106);
-    --accent-foreground: oklch(0.216 0.006 56);
+    --secondary: var(--hn-surface-2);
+    --secondary-foreground: var(--hn-fg);
+    --muted: var(--hn-surface-2);
+    --muted-foreground: var(--hn-fg-muted);
+    --accent: var(--hn-surface-2);
+    --accent-foreground: var(--hn-fg);
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(1 0 0);
-    --border: oklch(0.923 0.003 48);
-    --input: oklch(0.923 0.003 48);
+    --border: var(--hn-border);
+    --input: var(--hn-border);
     --ring: var(--hn-primary);
     --chart-1: var(--hn-primary);
-    --chart-2: oklch(0.553 0.013 58);
+    --chart-2: var(--hn-fg-muted);
     --chart-3: var(--hn-primary-strong);
     --chart-4: oklch(0.709 0.01 56);
-    --chart-5: oklch(0.869 0.005 56);
-    --sidebar: oklch(0.97 0.001 106);
-    --sidebar-foreground: oklch(0.216 0.006 56);
+    --chart-5: var(--hn-border-strong);
+    --sidebar: var(--hn-surface-2);
+    --sidebar-foreground: var(--hn-fg);
     --sidebar-primary: var(--hn-primary);
     --sidebar-primary-foreground: var(--hn-primary-fg);
-    --sidebar-accent: oklch(0.985 0.002 75);
-    --sidebar-accent-foreground: oklch(0.216 0.006 56);
-    --sidebar-border: oklch(0.923 0.003 48);
+    --sidebar-accent: var(--hn-bg);
+    --sidebar-accent-foreground: var(--hn-fg);
+    --sidebar-border: var(--hn-border);
     --sidebar-ring: var(--hn-primary);
   }
 
   .dark {
-    --background: oklch(0.216 0.006 56);
-    --foreground: oklch(0.985 0.002 75);
-    --card: oklch(0.268 0.007 34);
-    --card-foreground: oklch(0.985 0.002 75);
-    --popover: oklch(0.268 0.007 34);
-    --popover-foreground: oklch(0.985 0.002 75);
+    --background: var(--hn-bg);
+    --foreground: var(--hn-fg);
+    --card: var(--hn-surface);
+    --card-foreground: var(--hn-fg);
+    --popover: var(--hn-surface);
+    --popover-foreground: var(--hn-fg);
     --primary: var(--hn-primary);
     --primary-foreground: var(--hn-primary-fg);
-    --secondary: oklch(0.268 0.007 34);
-    --secondary-foreground: oklch(0.985 0.002 75);
-    --muted: oklch(0.268 0.007 34);
-    --muted-foreground: oklch(0.709 0.01 56);
-    --accent: oklch(0.268 0.007 34);
-    --accent-foreground: oklch(0.985 0.002 75);
+    --secondary: var(--hn-surface-2);
+    --secondary-foreground: var(--hn-fg);
+    --muted: var(--hn-surface-2);
+    --muted-foreground: var(--hn-fg-muted);
+    --accent: var(--hn-surface-2);
+    --accent-foreground: var(--hn-fg);
     --destructive: oklch(0.637 0.237 25);
     --destructive-foreground: oklch(1 0 0);
-    --border: oklch(0.374 0.01 67);
-    --input: oklch(0.374 0.01 67);
+    --border: var(--hn-border);
+    --input: var(--hn-border);
     --ring: var(--hn-primary);
     --chart-1: var(--hn-primary);
-    --chart-2: oklch(0.709 0.01 56);
+    --chart-2: var(--hn-fg-muted);
     --chart-3: var(--hn-primary-strong);
     --chart-4: oklch(0.553 0.013 58);
-    --chart-5: oklch(0.444 0.011 73);
-    --sidebar: oklch(0.216 0.006 56);
-    --sidebar-foreground: oklch(0.985 0.002 75);
+    --chart-5: var(--hn-border-strong);
+    --sidebar: var(--hn-surface-2);
+    --sidebar-foreground: var(--hn-fg);
     --sidebar-primary: var(--hn-primary);
     --sidebar-primary-foreground: var(--hn-primary-fg);
-    --sidebar-accent: oklch(0.268 0.007 34);
-    --sidebar-accent-foreground: oklch(0.985 0.002 75);
-    --sidebar-border: oklch(0.374 0.01 67);
+    --sidebar-accent: var(--hn-bg);
+    --sidebar-accent-foreground: var(--hn-fg);
+    --sidebar-border: var(--hn-border);
     --sidebar-ring: var(--hn-primary);
   }
 }

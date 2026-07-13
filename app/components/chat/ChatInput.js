@@ -12,6 +12,26 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 let _imgIdCounter = 0;
 
+const readFileAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+const generateImageId = () => {
+  if (typeof crypto !== 'undefined') {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    if (crypto.getRandomValues) {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    }
+  }
+  return `${Date.now()}-${++_imgIdCounter}`;
+};
+
 const ChatInput = memo(function ChatInput({
   input,
   setInput,
@@ -77,27 +97,7 @@ const ChatInput = memo(function ChatInput({
   const currentImageCount = selectedImages?.length || 0;
   const hasImages = currentImageCount > 0;
 
-  const readFileAsDataUrl = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-
-  const generateImageId = () => {
-    if (typeof crypto !== 'undefined') {
-      if (crypto.randomUUID) return crypto.randomUUID();
-      if (crypto.getRandomValues) {
-        const bytes = new Uint8Array(16);
-        crypto.getRandomValues(bytes);
-        return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-      }
-    }
-    return `${Date.now()}-${++_imgIdCounter}`;
-  };
-
-  const addImagesFromFiles = async (files) => {
+  const addImagesFromFiles = useCallback(async (files) => {
     if (!files || files.length === 0) return;
 
     const availableSlots = Math.max(0, maxImages - currentImageCount);
@@ -173,7 +173,7 @@ const ChatInput = memo(function ChatInput({
     if (errors.length > 0) {
       alert(errors.join('\n'), 'warning', t('chat.upload_limit'));
     }
-  };
+  }, [alert, currentImageCount, maxImages, setSelectedImages, t]);
 
   const handleImageChange = async (event) => {
     const files = Array.from(event.target.files || []);
@@ -340,7 +340,7 @@ const ChatInput = memo(function ChatInput({
           data-testid='chat-input'
           ref={inputRef}
           rows={3}
-          className={`w-full rounded-none bg-transparent border-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 resize-none min-h-[44px] max-h-96 px-4 py-3 pr-32 ${
+          className={`w-full rounded-none bg-transparent border-0 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 resize-none min-h-[44px] max-h-96 break-keep px-4 py-3 pr-4 sm:pr-32 ${
             isDragging ? 'bg-accent' : ''
           }`}
           placeholder={

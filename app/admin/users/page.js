@@ -34,6 +34,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/useTranslation';
 
+const DEFAULT_DEPTS = ['개발팀', '마케팅팀', '재무팀', '운영팀', '프로덕트팀', '기타'];
+
 export default function UsersPage() {
   const { alert, confirm } = useAlert();
   const { t } = useTranslation();
@@ -62,8 +64,6 @@ export default function UsersPage() {
     department: '',
     cell: '',
   });
-
-  const DEFAULT_DEPTS = ['개발팀', '마케팅팀', '재무팀', '운영팀', '프로덕트팀', '기타'];
 
   useEffect(() => {
     function handleClickOutside(e) {

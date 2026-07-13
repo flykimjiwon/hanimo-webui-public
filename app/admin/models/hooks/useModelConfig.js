@@ -229,7 +229,7 @@ export function useModelConfig({ endpoints }) {
 
         const roundRobinPromises = allModels.map(async (model) => {
           try {
-            const rrResponse = await fetch(
+            const rrResponse = await TokenManager.safeFetch(
               `/api/admin/check-round-robin?modelName=${encodeURIComponent(model.id)}`
             );
             if (rrResponse.ok) {

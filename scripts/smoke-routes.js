@@ -26,7 +26,11 @@ const API_CHECKS = [
   ['/api/admin/db-reset', 401],
   ['/api/admin/db-restore', 401],
   ['/api/v1/models', 401],
-  ['/api/v1/chat/completions', 401],
+  ['/api/v1/chat/completions', 401, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'smoke', messages: [], stream: false }),
+  }],
   ['/api/workflows', LABS_ENABLED ? 401 : 404],
   ['/api/screens', LABS_ENABLED ? 401 : 404],
   ['/api/screens/smoke-screen/execute', LABS_ENABLED ? 401 : 404, {

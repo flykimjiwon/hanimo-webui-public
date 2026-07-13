@@ -125,6 +125,7 @@ tests/reports/
 # Development workflow state
 .sisyphus/
 .omc/
+.omo/
 
 # Misc generated files
 results.tsv

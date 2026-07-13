@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getPostgresClient } from '@/lib/postgres';
 import { verifyAdminWithResult } from '@/lib/auth';
 import { createAuthError, createServerError } from '@/lib/errorHandler';
+import { lockSchemaMigrationTransaction } from '@/lib/schema-migration-lock.mjs';
 
 async function checkTableExists(client, tableName) {
   const result = await client.query(
@@ -628,6 +629,7 @@ export async function POST(request) {
 
   try {
     await client.query('BEGIN');
+    await lockSchemaMigrationTransaction(client);
     await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
 
     for (const table of TABLES) {

@@ -1,12 +1,17 @@
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { SECURITY_MANIFEST } from '../../scripts/check-security-parity.mjs';
 import {
   areLabsEnabled,
   filterStableMenus,
   isLabsPath,
   isStableCorePath,
 } from '../../app/lib/release-surface.mjs';
+
+const require = createRequire(import.meta.url);
+const { listReleaseFiles } = require('../../scripts/public-export-policy.js');
 
 test('release surface keeps Labs out of stable navigation recursively', () => {
   assert.equal(isStableCorePath('/workflow'), false);
@@ -47,4 +52,12 @@ test('Labs routes are default-off and enforced before public/auth routing', asyn
   assert.ok(labsGateIndex >= 0);
   assert.ok(labsGateIndex < middleware.indexOf('if (isPublic(pathname))'));
   assert.match(middleware, /status:\s*404/);
+});
+
+test('Given local agent state, public export and security parity exclude .omo', () => {
+  const root = new URL('../..', import.meta.url).pathname;
+  const releaseFiles = listReleaseFiles(root, { includeUntracked: true });
+
+  assert.equal(releaseFiles.some((file) => file === '.omo' || file.startsWith('.omo/')), false);
+  assert.equal(SECURITY_MANIFEST.some((file) => file === '.omo' || file.startsWith('.omo/')), false);
 });

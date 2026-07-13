@@ -5,10 +5,12 @@ const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const { configureModelServer, restoreModelServer } = require('./lib/api-token-db-model-server');
 
-for (const envFile of ['.env.local', '.env.development', '.env']) {
-  const envPath = path.join(__dirname, '..', envFile);
-  if (fs.existsSync(envPath)) {
-    require('dotenv').config({ path: envPath });
+if (process.env.API_TOKEN_DB_TEST_DISABLE_ENV_FILES !== 'true') {
+  for (const envFile of ['.env.local', '.env.development', '.env']) {
+    const envPath = path.join(__dirname, '..', envFile);
+    if (fs.existsSync(envPath)) {
+      require('dotenv').config({ path: envPath });
+    }
   }
 }
 
@@ -33,6 +35,10 @@ function legacyHashApiToken(token) {
 }
 
 function skip(message) {
+  if (process.env.API_TOKEN_DB_TEST_REQUIRED === 'true') {
+    console.error(`API token DB integration required but unavailable: ${message}`);
+    process.exit(1);
+  }
   console.log(`API token DB integration skipped: ${message}`);
   process.exit(0);
 }

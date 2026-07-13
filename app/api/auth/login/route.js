@@ -12,6 +12,7 @@ import {
   rateLimitKey,
   trustedClientAddress,
 } from '@/lib/security/rate-limit.mjs';
+import { shouldUseSecureAuthCookie } from '@/lib/security/auth-cookie-policy.mjs';
 
 function rateLimited(retryAfterSeconds) {
   return NextResponse.json(
@@ -138,16 +139,17 @@ export async function POST(request) {
   });
 
   const response = NextResponse.json({ token });
+  const secureCookie = shouldUseSecureAuthCookie(request);
   response.cookies.set('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: secureCookie,
     sameSite: 'lax',
     maxAge: 60 * 60,
     path: '/',
   });
   response.cookies.set('refresh_token', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: secureCookie,
     sameSite: 'lax',
     maxAge: 30 * 24 * 60 * 60,
     path: '/api/auth',

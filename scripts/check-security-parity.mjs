@@ -13,6 +13,7 @@ export const SECURITY_MANIFEST = [
   'scripts/install.sh',
   'scripts/install-local.sh',
   'scripts/check-docker-install.js',
+  'scripts/lib/docker-e2e-config.js',
   'scripts/mock-ollama.js',
   'scripts/public-export-policy.js',
   'scripts/prepare-public-export.js',

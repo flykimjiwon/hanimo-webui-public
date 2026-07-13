@@ -1,4 +1,17 @@
 {
+  "appearance": {
+    "skin": {
+      "warm_command_deck": "웜 커맨드 덱",
+      "graphite_terminal": "그래파이트 터미널",
+      "aurora_glass": "오로라 글라스",
+      "paper_ledger": "페이퍼 레저",
+      "cobalt_studio": "코발트 스튜디오",
+      "honeycomb_focus": "허니컴 포커스",
+      "mono_atelier": "모노 아틀리에",
+      "moss_laboratory": "모스 래버러토리",
+      "signal_orange": "시그널 오렌지"
+    }
+  },
   "auth": {
     "email": "이메일",
     "email_placeholder": "이메일을 입력하세요",

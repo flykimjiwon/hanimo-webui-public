@@ -150,7 +150,7 @@ export default function SiteMenuSelector() {
 
   if (loading) {
     return (
-      <div className='flex items-center gap-2 px-3 py-2 bg-muted border-b border-border'>
+      <div className='flex items-center gap-2 pl-16 pr-3 py-2 bg-muted border-b border-border lg:px-3'>
         <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
         <span className='text-xs text-muted-foreground'>{t('site_menu.loading')}</span>
       </div>
@@ -161,7 +161,7 @@ export default function SiteMenuSelector() {
 
   return (
     <>
-      <div className='flex flex-wrap items-center gap-2 px-3 py-2 bg-muted border-b border-border'>
+      <div className='flex flex-wrap items-center gap-2 pl-16 pr-3 py-2 bg-muted border-b border-border lg:px-3'>
         {/* 1뎁스 셀렉트 */}
         <select
           value={selected1}

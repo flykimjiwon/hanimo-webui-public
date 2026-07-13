@@ -83,7 +83,7 @@ function ChatHeader() {
         borderBottom: '1px solid var(--hn-border)',
       }}
     >
-      <div className='w-full max-w-full md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto flex items-center justify-center gap-4 px-14 py-2.5 sm:px-4'>
+      <div className='w-full max-w-full md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto flex items-center justify-center gap-4 pl-16 pr-4 py-2.5 lg:px-4'>
         <div className='w-10' />
         <DynamicSiteTitle />
         <div className='w-10' />

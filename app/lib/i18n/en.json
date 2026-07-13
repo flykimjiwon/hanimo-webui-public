@@ -1,4 +1,17 @@
 {
+  "appearance": {
+    "skin": {
+      "warm_command_deck": "Warm Command Deck",
+      "graphite_terminal": "Graphite Terminal",
+      "aurora_glass": "Aurora Glass",
+      "paper_ledger": "Paper Ledger",
+      "cobalt_studio": "Cobalt Studio",
+      "honeycomb_focus": "Honeycomb Focus",
+      "mono_atelier": "Mono Atelier",
+      "moss_laboratory": "Moss Laboratory",
+      "signal_orange": "Signal Orange"
+    }
+  },
   "auth": {
     "email": "Email",
     "email_placeholder": "Enter your email",

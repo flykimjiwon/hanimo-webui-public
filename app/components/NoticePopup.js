@@ -7,6 +7,17 @@ import { X, Eye, Bell } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/useTranslation';
 
+const getHideSettingsKey = (target) => `noticeHideSettings:${target}`;
+
+const getHideSettings = (target) => {
+  const settings = localStorage.getItem(getHideSettingsKey(target));
+  return settings ? JSON.parse(settings) : { permanent: [], oneDay: {} };
+};
+
+const saveHideSettings = (target, settings) => {
+  localStorage.setItem(getHideSettingsKey(target), JSON.stringify(settings));
+};
+
 export default function NoticePopup({ target = 'main', initialNotice = null }) {
   const [notice, setNotice] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -30,7 +41,7 @@ export default function NoticePopup({ target = 'main', initialNotice = null }) {
     if (!initialNotice) return;
 
     // 안보기 설정 확인
-    const hideSettings = getHideSettings();
+    const hideSettings = getHideSettings(target);
     const noticeId = initialNotice._id;
 
     // 영구 안보기 체크
@@ -49,7 +60,7 @@ export default function NoticePopup({ target = 'main', initialNotice = null }) {
     setNotice(initialNotice);
     setIsVisible(true);
     setLoading(false);
-  }, [initialNotice]);
+  }, [initialNotice, target]);
 
   // 팝업 공지사항 조회
   useEffect(() => {
@@ -65,7 +76,7 @@ export default function NoticePopup({ target = 'main', initialNotice = null }) {
             const latestNotice = data.notices[0];
 
             // 안보기 설정 확인
-            const hideSettings = getHideSettings();
+            const hideSettings = getHideSettings(target);
             const noticeId = latestNotice._id;
 
             // 영구 안보기 체크
@@ -94,40 +105,27 @@ export default function NoticePopup({ target = 'main', initialNotice = null }) {
 
     // 메인/로그인 모두 설정 조건만 충족하면 표시
     fetchPopupNotice();
-  }, []);
-
-  const getHideSettingsKey = () => `noticeHideSettings:${target}`;
-
-  // 안보기 설정 가져오기
-  const getHideSettings = () => {
-    const settings = localStorage.getItem(getHideSettingsKey());
-    return settings ? JSON.parse(settings) : { permanent: [], oneDay: {} };
-  };
-
-  // 안보기 설정 저장
-  const saveHideSettings = (settings) => {
-    localStorage.setItem(getHideSettingsKey(), JSON.stringify(settings));
-  };
+  }, [initialNotice, target]);
 
   // 하루 안보기
   const hideForOneDay = () => {
-    const settings = getHideSettings();
+    const settings = getHideSettings(target);
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0); // 다음날 자정까지
 
     settings.oneDay[notice._id] = tomorrow.toISOString();
-    saveHideSettings(settings);
+    saveHideSettings(target, settings);
     setIsVisible(false);
   };
 
   // 계속 안보기
   const hidePermanently = () => {
-    const settings = getHideSettings();
+    const settings = getHideSettings(target);
     if (!settings.permanent.includes(notice._id)) {
       settings.permanent.push(notice._id);
     }
-    saveHideSettings(settings);
+    saveHideSettings(target, settings);
     setIsVisible(false);
   };
 

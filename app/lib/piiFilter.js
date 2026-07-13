@@ -24,4 +24,6 @@ export async function detectAndMaskPII(text /* , options = {} */) {
   };
 }
 
-export default { detectAndMaskPII };
+const piiFilter = { detectAndMaskPII };
+
+export default piiFilter;

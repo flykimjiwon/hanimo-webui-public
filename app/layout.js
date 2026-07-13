@@ -1,5 +1,8 @@
 import './globals.css';
+import './styles/appearance-skins.css';
+import { APPEARANCE_PREPAINT_SCRIPT } from './lib/appearance-prepaint.mjs';
 import ChatWidget from './components/ChatWidget';
+import ReactDevTools from './components/dev/ReactDevTools';
 import { AlertProvider } from './contexts/AlertContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import SiteSettings from './components/SiteSettings';
@@ -135,9 +138,19 @@ export const metadata = {
   },
 };
 
+const enableReactDevTools =
+  process.env.NODE_ENV === 'development' &&
+  process.env.NEXT_PUBLIC_DISABLE_REACT_DEVTOOLS !== '1';
+
 export default function RootLayout({ children }) {
   return (
-    <html lang='ko' className='h-full' suppressHydrationWarning>
+    <html
+      lang='ko'
+      className='h-full'
+      data-hanimo-skin='warm-command-deck'
+      data-skin='warm-command-deck'
+      suppressHydrationWarning
+    >
       <head>
         <link rel='preconnect' href='https://cdn.jsdelivr.net' crossOrigin='anonymous' />
         <link
@@ -146,78 +159,7 @@ export default function RootLayout({ children }) {
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  const root = document.documentElement;
-                  const ua = navigator.userAgent || '';
-                  const isEdge = ua.indexOf('Edg/') !== -1;
-                  const edgeMatch = ua.match(/Edg\\/(\\d+)/);
-                  const chromeMatch = ua.match(/Chrome\\/(\\d+)/);
-                  const edgeVersion = edgeMatch ? parseInt(edgeMatch[1], 10) : null;
-                  const chromeVersion = chromeMatch ? parseInt(chromeMatch[1], 10) : null;
-                  const isChrome = !!chromeVersion && !isEdge;
-                  const browserVersion = isEdge ? edgeVersion : chromeVersion;
-                  const theme = localStorage.getItem('theme');
-                  if (theme === 'dark') {
-                    root.classList.add('dark');
-                  } else if (theme === 'light') {
-                    root.classList.remove('dark');
-                  } else {
-                    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    if (isDark) {
-                      root.classList.add('dark');
-                    }
-                  }
-                  var lang = localStorage.getItem('hanimo-webui-lang');
-                  if (lang === 'ko' || lang === 'en') {
-                    root.lang = lang;
-                  }
-                  // Theme color restoration (FOUC prevention)
-                  var themeData = localStorage.getItem('hanimo-webui-theme');
-                  if (themeData) {
-                    try {
-                      var parsed = JSON.parse(themeData);
-                      var isDarkMode = root.classList.contains('dark');
-                      var vars = isDarkMode ? parsed.dark : parsed.light;
-                      if (vars && typeof vars === 'object') {
-                        for (var key in vars) {
-                          if (key.indexOf('--') === 0) {
-                            root.style.setProperty(key, vars[key]);
-                          }
-                        }
-                      }
-                      // v2 시안 포팅 — 개인화 prefs 복원 (밀도/폰트/글자크기/모션) FOUC 방지
-                      if (parsed.prefs) {
-                        var p = parsed.prefs;
-                        var padMap = { compact: '10px', cozy: '14px', roomy: '18px' };
-                        var rowMap = { compact: '6px', cozy: '10px', roomy: '14px' };
-                        if (p.density) {
-                          root.style.setProperty('--hn-pad', padMap[p.density] || '14px');
-                          root.style.setProperty('--hn-row-gap', rowMap[p.density] || '10px');
-                        }
-                        if (p.fontStack) root.style.setProperty('--hn-font', p.fontStack);
-                        if (p.typeScale) root.style.setProperty('--type-scale', p.typeScale);
-                        if (p.reduceMotion) root.toggleAttribute('data-reduce-motion', true);
-                      }
-                      if (parsed.dark) {
-                        var s = document.createElement('style');
-                        s.id = 'hanimo-webui-theme-dark';
-                        var css = '.dark {';
-                        for (var dk in parsed.dark) {
-                          if (dk.indexOf('--') === 0) css += dk + ':' + parsed.dark[dk] + ';';
-                        }
-                        css += '}';
-                        s.textContent = css;
-                        document.head.appendChild(s);
-                      }
-                    } catch(e) { /* ignore parse errors */ }
-                  }
-                } catch (e) {
-                  /* theme/lang init failed — ignore so render is never blocked */
-                }
-              })();
-            `,
+            __html: APPEARANCE_PREPAINT_SCRIPT,
           }}
         />
       </head>
@@ -225,6 +167,7 @@ export default function RootLayout({ children }) {
         className='h-full bg-background text-foreground'
         style={{ fontFamily: 'var(--hn-font)' }}
       >
+        {enableReactDevTools ? <ReactDevTools /> : null}
         <ClientErrorReporter />
         <SiteSettings />
         <LanguageProvider>

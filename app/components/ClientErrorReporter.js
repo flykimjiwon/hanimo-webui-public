@@ -57,11 +57,13 @@ export default function ClientErrorReporter() {
       }
     }
   };
+  const enqueueRef = useRef(enqueue);
+  enqueueRef.current = enqueue;
 
   useEffect(() => {
     const handleError = (event) => {
       const error = event.error || {};
-      enqueue({
+      enqueueRef.current({
         level: 'error',
         message: event.message || error.message || 'Unknown error',
         stack: error.stack,
@@ -78,7 +80,7 @@ export default function ClientErrorReporter() {
 
     const handleRejection = (event) => {
       const reason = event.reason || {};
-      enqueue({
+      enqueueRef.current({
         level: 'error',
         message:
           reason.message ||
@@ -100,7 +102,7 @@ export default function ClientErrorReporter() {
             typeof arg === 'string' ? arg : JSON.stringify(arg)
           )
           .join(' ');
-        enqueue({
+        enqueueRef.current({
           level: 'error',
           message,
           url: window.location.href,

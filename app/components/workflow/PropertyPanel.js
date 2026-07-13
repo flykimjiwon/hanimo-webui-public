@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Settings, Plus, Trash2, Loader2 } from '@/components/icons';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -739,11 +739,14 @@ const NODE_TYPE_LABEL_KEYS = {
 export default function PropertyPanel({ node, onNodeUpdate, models = [], workflowId }) {
   const { t } = useTranslation();
   const [localData, setLocalData] = useState({});
+  const selectedNodeRef = useRef(node);
+  selectedNodeRef.current = node;
 
   // Sync local state when selected node changes (only on node.id change)
   useEffect(() => {
-    if (node) {
-      setLocalData(node.data || {});
+    const selectedNode = selectedNodeRef.current;
+    if (selectedNode) {
+      setLocalData(selectedNode.data || {});
     }
   }, [node?.id]);
 

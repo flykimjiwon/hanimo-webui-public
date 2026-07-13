@@ -52,6 +52,9 @@
     "test:ollama": "node scripts/test-ollama-endpoints.js",
     "smoke": "node scripts/smoke-routes.js",
     "check:production": "node scripts/check-production-install.js",
+    "react:doctor": "react-doctor",
+    "test:local-release": "node scripts/check-local-release.js",
+    "test:docker-config": "node --test tests/docker-e2e-config.test.cjs && node scripts/check-docker-install.js --validate-only",
     "test:docker-install": "node scripts/check-docker-install.js",
     "mock-ollama": "node scripts/mock-ollama.js",
     "create-admin": "node scripts/create-admin.js",
@@ -98,6 +101,9 @@
     "dotenv": "^17.2.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.20",
+    "react-doctor": "^0.7.6",
+    "react-grab": "^0.1.48",
+    "react-scan": "^0.5.7",
     "typescript": "^5.9.3"
   },
   "overrides": {

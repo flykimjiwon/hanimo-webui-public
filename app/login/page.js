@@ -183,10 +183,9 @@ function LoginPageContent() {
               {t('auth.brand_kicker')}
             </p>
 
-            {/* H1 */}
-            <h1 className='font-bold mb-8' style={{ fontSize: 26, lineHeight: 1.3, letterSpacing: '-0.02em', color: 'var(--hn-fg)' }}>
+            <h2 className='font-bold mb-8' style={{ fontSize: 26, lineHeight: 1.3, letterSpacing: '-0.02em', color: 'var(--hn-fg)' }}>
               <span className='whitespace-pre-line'>{t('auth.brand_title')}</span>
-            </h1>
+            </h2>
 
             {/* Feature bullets */}
             <ul className='flex flex-col gap-3'>
@@ -306,6 +305,7 @@ function LoginPageContent() {
                       id='login-email'
                       data-testid='login-email'
                       type='email'
+                      autoComplete='email'
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -330,6 +330,7 @@ function LoginPageContent() {
                       id='login-password'
                       data-testid='login-password'
                       type='password'
+                      autoComplete='current-password'
                       required
                       minLength={6}
                       value={password}
