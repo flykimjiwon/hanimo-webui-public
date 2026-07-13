@@ -67,6 +67,8 @@ export const SECURITY_MANIFEST = [
   'app/api/auth/login/route.js',
   'app/api/auth/register/route.js',
   'app/api/auth/refresh/route.js',
+  'app/lib/security/auth-cookie-policy.mjs',
+  'tests/auth-cookie-policy.test.mjs',
   'tests/security',
 ];
 

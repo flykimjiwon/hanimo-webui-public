@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { shouldUseSecureAuthCookie } from '../app/lib/security/auth-cookie-policy.mjs';
+import {
+  effectiveRequestProtocol,
+  shouldUseSecureAuthCookie,
+} from '../app/lib/security/auth-cookie-policy.mjs';
 
 function request(url, forwardedProto) {
   return {
@@ -41,4 +44,20 @@ test('development HTTP remains non-Secure', () => {
     shouldUseSecureAuthCookie(request('http://localhost:3000/api/auth/login'), { NODE_ENV: 'development' }),
     false
   );
+});
+
+test('configured HTTP cannot downgrade an actual HTTPS request', () => {
+  assert.equal(
+    shouldUseSecureAuthCookie(request('https://chat.example.com/api/auth/login'), {
+      HANIMO_PUBLIC_URL: 'http://chat.example.com',
+    }),
+    true
+  );
+});
+
+test('custom and invalid configured schemes fall back to the request protocol', () => {
+  const secureRequest = request('https://chat.example.com/api/auth/login');
+
+  assert.equal(effectiveRequestProtocol(secureRequest, { HANIMO_PUBLIC_URL: 'ftp://chat.example.com' }), 'https:');
+  assert.equal(effectiveRequestProtocol(secureRequest, { HANIMO_PUBLIC_URL: 'not a URL' }), 'https:');
 });

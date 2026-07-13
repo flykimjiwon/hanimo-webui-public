@@ -191,7 +191,7 @@ async function fetchPinned(rawUrl, init = {}, options = {}) {
     method: init.method || 'GET',
     headers,
     servername: parsed.hostname,
-    lookup: (_hostname, _options, callback) => callback(null, address, family),
+    lookup: (_hostname, options, callback) => callback(null, options?.all ? [{ address, family }] : address, options?.all ? undefined : family),
   };
 
   return new Promise((resolve, reject) => {

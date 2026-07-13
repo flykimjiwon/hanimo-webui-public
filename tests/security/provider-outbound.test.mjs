@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import http from 'node:http';
 import test from 'node:test';
 
 import {
@@ -8,6 +9,32 @@ import {
 } from '../../app/lib/security/provider-outbound.mjs';
 
 const publicResolver = async () => [{ address: '93.184.216.34', family: 4 }];
+
+test('provider transport pins named local engines with the Node lookup contract', async (t) => {
+  // Given: a real local HTTP engine reached through a Docker-style hostname.
+  const server = http.createServer((_request, response) => {
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ models: [{ name: 'gemma3:1b' }] }));
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const address = server.address();
+  assert.equal(typeof address, 'object');
+
+  // When: the production transport pins the named endpoint to its resolved address.
+  const response = await fetchWithProviderPolicy(
+    `http://host.docker.internal:${address.port}/api/tags`,
+    {},
+    {
+      provider: 'model-server',
+      resolveHostname: async () => [{ address: '127.0.0.1', family: 4 }],
+    }
+  );
+
+  // Then: Node receives a valid lookup result and the request reaches the engine.
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { models: [{ name: 'gemma3:1b' }] });
+});
 
 test('provider policy permits explicit local engines but rejects metadata and untrusted private networks', async () => {
   // Given: built-in local engines and sensitive or arbitrary private targets.

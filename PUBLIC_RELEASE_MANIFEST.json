@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "82debcdf4d94650b93b8446ab6c9f373432399cf",
+  "sourceCommit": "5fa8ca2b839bbb7dbe1c928323810c458eecc883",
   "dirty": false,
   "files": [
     {
@@ -1151,7 +1151,7 @@
     },
     {
       "path": "app/lib/security/auth-cookie-policy.mjs",
-      "sha256": "e3501dc7693ac19ea3b8777092b45c70cf4e457ce4b39af90a9c8cfee90f5bb4"
+      "sha256": "afc3e95fe347cc941e5fc95bbc054afae592af6c84a9680dee7b4fdf12d36861"
     },
     {
       "path": "app/lib/security/image-magic.mjs",
@@ -1167,7 +1167,7 @@
     },
     {
       "path": "app/lib/security/outbound-policy.mjs",
-      "sha256": "0b531712eb7deec213ed02553241ad17fa624ad467f9c63e4dcbc42774c8b345"
+      "sha256": "5cb340e82128c1a19ce20f40fc0621677df772032ee119bd30327554ad65bb6d"
     },
     {
       "path": "app/lib/security/outbound-request.mjs",
@@ -1563,7 +1563,7 @@
     },
     {
       "path": "docs/RELEASE_CHECKLIST.md",
-      "sha256": "adfffd89294f877b02b07c9b6b131c53845c6b84c71c44448545c6448deb6d9e"
+      "sha256": "a15f0ba4f10e37a8e88b37203f830fc7784c6034b313afd09d429ce4beb53164"
     },
     {
       "path": "docs/ROADMAP_NEXT.md",
@@ -1675,11 +1675,11 @@
     },
     {
       "path": "scripts/check-public-export.js",
-      "sha256": "d4572100d84e2399394fd11bec038f9fafb0430c3d3a763035d53057ac61e23c"
+      "sha256": "a9fe6d86e126ecc8ecd16a1a07c2dd248e59741ed32484410066126b40cb6f70"
     },
     {
       "path": "scripts/check-security-parity.mjs",
-      "sha256": "2548dfcb3f2fae8f00a76903b421dd148079d397de8c21ffca75c058759ff853"
+      "sha256": "1d0ca6641a68de4b5fedaf25169053b6b44de335d46f567645cf66eb93f741ce"
     },
     {
       "path": "scripts/create-admin.js",
@@ -1799,7 +1799,7 @@
     },
     {
       "path": "tests/auth-cookie-policy.test.mjs",
-      "sha256": "3e30b53e7a1815fa20e7faf7d8e002fcd60d6301950610126fded8c8d21562ef"
+      "sha256": "e3a65cf9e1a289cc48f0b0cde63dc070aefbc725823cc5ae4d2ac329e076295c"
     },
     {
       "path": "tests/docker-e2e-config.test.cjs",
@@ -1815,7 +1815,7 @@
     },
     {
       "path": "tests/login-accessibility-contract.test.mjs",
-      "sha256": "6859e97b2836c08ebc50115a107e31866a1c9742186504045e43dd065c57d864"
+      "sha256": "680c8c17c46497f2a8f8425569a850c9c3432350f0ae3aeff9d19681d6f2a082"
     },
     {
       "path": "tests/model-form-contract.test.mjs",
@@ -1823,7 +1823,11 @@
     },
     {
       "path": "tests/network-clean-contract.test.mjs",
-      "sha256": "41d1da29ebc40d6ccf654bb4add71c5297db3e3f57230aa71e5bc33a6a728eb2"
+      "sha256": "832af00246b8b279f7ed34f2918308994ec4ee6e97074d06e9dc163c0ab7a3d0"
+    },
+    {
+      "path": "tests/public-export-parity.test.cjs",
+      "sha256": "e1386bb285e0944f19d8efbe29ea9787ffa3cd3c2246b1e978d629b87ae76016"
     },
     {
       "path": "tests/react-dev-tools.test.mjs",
@@ -1867,7 +1871,7 @@
     },
     {
       "path": "tests/security/provider-outbound.test.mjs",
-      "sha256": "57b3a27e354054b9cf58fe09f3c66ffe9fdb958ff0575810db963c99b0aa4895"
+      "sha256": "847077ab1d1c3eb0a8926312ccfd7599b0b4cd032870de16c5e87a198346eec4"
     },
     {
       "path": "tests/security/provider-regressions.test.mjs",

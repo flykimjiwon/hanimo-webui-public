@@ -64,9 +64,9 @@ test('null site favicon preserves the canonical generated icon route', async () 
   assert.match(layout, /url: '\/icon\.svg'/);
 });
 
-test('visual evidence index marks the old F failures as superseded', async () => {
-  const captureDone = await source('.omo/evidence/visual-qa/CAPTURE_DONE.md');
+test('canonical generated favicon is a tracked SVG source', async () => {
+  const icon = await source('app/icon.svg');
 
-  assert.match(captureDone, /F PASS[\s\S]*admin-model-micro-qa-results\.json/);
-  assert.match(captureDone, /superseded/i);
+  assert.match(icon, /<svg\b/);
+  assert.match(icon, /viewBox=/);
 });

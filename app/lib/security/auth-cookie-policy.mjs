@@ -1,6 +1,7 @@
 function protocolOf(value) {
   try {
-    return new URL(String(value)).protocol;
+    const protocol = new URL(String(value)).protocol;
+    return protocol === 'http:' || protocol === 'https:' ? protocol : null;
   } catch {
     return null;
   }
@@ -8,20 +9,22 @@ function protocolOf(value) {
 
 export function effectiveRequestProtocol(request, env = process.env) {
   const configuredProtocol = protocolOf(env.HANIMO_PUBLIC_URL);
-  if (configuredProtocol) return configuredProtocol;
+  let forwardedProtocol = null;
 
   if (env.HANIMO_TRUST_PROXY === 'true') {
-    const forwardedProtocol = request.headers
+    const forwardedValue = request.headers
       .get('x-forwarded-proto')
       ?.split(',')[0]
       ?.trim()
       ?.toLowerCase();
-    if (forwardedProtocol === 'http' || forwardedProtocol === 'https') {
-      return `${forwardedProtocol}:`;
+    if (forwardedValue === 'http' || forwardedValue === 'https') {
+      forwardedProtocol = `${forwardedValue}:`;
     }
   }
 
-  return protocolOf(request.url);
+  const requestProtocol = protocolOf(request.url);
+  const protocols = [configuredProtocol, forwardedProtocol, requestProtocol];
+  return protocols.includes('https:') ? 'https:' : protocols.find(Boolean) || null;
 }
 
 export function shouldUseSecureAuthCookie(request, env = process.env) {

@@ -16,10 +16,10 @@ test('login exposes one logical h1 and standard credential autocomplete hints', 
   assert.match(login, /id='login-password'[\s\S]*?type='password'[\s\S]*?autoComplete='current-password'/);
 });
 
-test('final visual freshness gate includes login and chat entry sources', () => {
-  const harness = read('.omo/evidence/visual-qa/run-final-capture.cjs');
+test('login labels remain associated with their tracked credential inputs', () => {
+  const login = read('app/login/page.js');
 
-  for (const source of ['app/page.js', 'app/login/page.js', 'app/hooks/useChatPage.js']) {
-    assert.match(harness, new RegExp(`['\"]${source.replaceAll('/', '\\/')}['\"]`));
+  for (const field of ['email', 'password']) {
+    assert.match(login, new RegExp(`<Label[\\s\\S]*?htmlFor='login-${field}'[\\s\\S]*?<Input[\\s\\S]*?id='login-${field}'`));
   }
 });

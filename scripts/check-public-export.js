@@ -69,9 +69,20 @@ function resolveRoots() {
 function main() {
   const args = parseArgs();
   const { canonical, publicRoot } = resolveRoots();
-  if (args.requireManifest) validateManifest(publicRoot, args.sourceCommit);
-  const canonicalFiles = listReleaseFiles(canonical, { includeUntracked: true });
+  const manifest = args.requireManifest
+    ? validateManifest(publicRoot, args.sourceCommit)
+    : null;
+  const canonicalFiles = listReleaseFiles(canonical);
   const publicFiles = listReleaseFiles(publicRoot, { includeUntracked: true });
+  if (manifest) {
+    const manifestFiles = (manifest.files || []).map((entry) => entry.path).sort((a, b) => a.localeCompare(b));
+    if (
+      manifestFiles.length !== publicFiles.length
+      || manifestFiles.some((file, index) => file !== publicFiles[index])
+    ) {
+      throw new Error('Manifest file set mismatch with public export.');
+    }
+  }
   const expected = new Set(canonicalFiles);
   const actual = new Set(publicFiles);
   const findings = [];

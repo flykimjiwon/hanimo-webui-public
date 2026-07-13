@@ -1,26 +1,28 @@
 # Hanimo WebUI Release Checklist
 
-Verification snapshot: 2026-07-11. Checked items were executed in both trees
-where applicable; unchecked items still require a release environment. After
-the low-resource brand/provider UI pass, targeted lint plus public scan/parity
-were re-run at 393 files; full build/security gates remain deferred and must be
-re-run on the exact release commit.
+Verification snapshot: 2026-07-13. Checked items were executed on the final
+local source where applicable; unchecked items still require Docker or the
+target release environment. The final verification completed 125 Node tests,
+lint with zero warnings, dependency audit with zero vulnerabilities,
+`check:production`, and the 111/111-route production build
+(`BUILD_ID=yzzJ3wokHRyOs_0YPqmOG`).
 
 ## Automated gates
 
-- [x] `npm ci` (security-patched lockfile, 660 packages)
+- [x] `npm ci` (lockfile install verified)
 - [x] `npm run audit:dependencies` (0 vulnerabilities)
-- [x] `npm run test:security` (`49/49`, canonical and public)
+- [x] `npm run test:security` (`63/63`)
 - [x] `npm run test:workflow`
 - [x] `npm run test:screen-security`
 - [x] `npm run test:api-tokens`
 - [x] `npm run test:admin-policy`
 - [x] `npm run scan:public`
-- [x] `npm run lint` (0 errors; 12 existing warnings)
-- [x] `npm run build` (canonical and public)
-- [x] `npm run test:parity` (77 security-sensitive entries)
-- [x] `npm run verify:public` (393 release files)
-- [x] `npm run check:production`
+- [x] `npm run lint` (0 errors, 0 warnings)
+- [x] `npm run build` (111/111 routes)
+- [x] `npm run test:parity` (84 security-sensitive entries)
+- [x] `npm run verify:public` (480 release files)
+- [x] `npm run check:production` (PASS)
+- [x] Full Node test suite (`125/125`)
 - [ ] `npm run test:docker-install` (harness and CI job ready; no local Docker runtime)
 
 ## Runtime gates
