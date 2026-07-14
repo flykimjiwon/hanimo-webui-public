@@ -159,23 +159,30 @@ test('fetchWithOutboundPolicy strips sensitive headers on cross-origin redirects
 });
 
 test('fetchWithOutboundPolicy composes timeout with caller signal and cancels redirect bodies', async () => {
-  const callerController = new AbortController();
-  let observedSignal;
-  await assert.rejects(
-    () => fetchWithOutboundPolicy('https://api.example.com/slow', { signal: callerController.signal }, {
-      timeoutMs: 5,
-      resolveHostname: publicResolver,
-      fetch: async (_url, init) => {
-        observedSignal = init.signal;
-        return new Promise((_resolve, reject) => {
-          init.signal.addEventListener('abort', () => reject(init.signal.reason || new Error('aborted')), { once: true });
-        });
-      },
-    }),
-    /aborted|Abort/
-  );
-  assert.equal(observedSignal.aborted, true);
-  assert.equal(callerController.signal.aborted, false);
+  // A real fetch keeps the event loop alive via its socket while the unref'd
+  // outbound timeout runs; this mock does not, so keep the loop alive explicitly.
+  const keepLoopAlive = setInterval(() => {}, 1000);
+  try {
+    const callerController = new AbortController();
+    let observedSignal;
+    await assert.rejects(
+      () => fetchWithOutboundPolicy('https://api.example.com/slow', { signal: callerController.signal }, {
+        timeoutMs: 5,
+        resolveHostname: publicResolver,
+        fetch: async (_url, init) => {
+          observedSignal = init.signal;
+          return new Promise((_resolve, reject) => {
+            init.signal.addEventListener('abort', () => reject(init.signal.reason || new Error('aborted')), { once: true });
+          });
+        },
+      }),
+      /aborted|Abort/
+    );
+    assert.equal(observedSignal.aborted, true);
+    assert.equal(callerController.signal.aborted, false);
+  } finally {
+    clearInterval(keepLoopAlive);
+  }
 
   let canceled = false;
   await fetchWithOutboundPolicy('https://api.example.com/start', {}, {
@@ -196,18 +203,25 @@ test('fetchWithOutboundPolicy composes timeout with caller signal and cancels re
 });
 
 test('fetchWithOutboundPolicy keeps timeout active while the response body is consumed', async () => {
-  const response = await fetchWithOutboundPolicy('https://api.example.com/slow-body', {}, {
-    timeoutMs: 5,
-    resolveHostname: publicResolver,
-    fetch: async (_url, init) => new Response(new ReadableStream({
-      start(controller) {
-        init.signal.addEventListener('abort', () => {
-          controller.error(new DOMException('body aborted', 'AbortError'));
-        }, { once: true });
-      },
-    }), { status: 200 }),
-  });
-  await assert.rejects(() => response.text(), /body aborted|Abort/);
+  // Keep the loop alive because the mock body only settles when the unref'd
+  // outbound timeout aborts it (a real socket would keep the loop alive).
+  const keepLoopAlive = setInterval(() => {}, 1000);
+  try {
+    const response = await fetchWithOutboundPolicy('https://api.example.com/slow-body', {}, {
+      timeoutMs: 5,
+      resolveHostname: publicResolver,
+      fetch: async (_url, init) => new Response(new ReadableStream({
+        start(controller) {
+          init.signal.addEventListener('abort', () => {
+            controller.error(new DOMException('body aborted', 'AbortError'));
+          }, { once: true });
+        },
+      }), { status: 200 }),
+    });
+    await assert.rejects(() => response.text(), /body aborted|Abort/);
+  } finally {
+    clearInterval(keepLoopAlive);
+  }
 });
 
 test('getOutboundTimeoutMs uses defaults and caps configured timeout', () => {

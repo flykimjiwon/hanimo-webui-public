@@ -34,6 +34,7 @@ function buildDockerE2eContext(input) {
       POSTGRES_PASSWORD: input.postgresPassword,
       POSTGRES_DB: `hanimo_${suffix}`,
       JWT_SECRET: input.jwtSecret,
+      HANIMO_SETUP_TOKEN: input.setupToken,
       HANIMO_CREDENTIAL_ENCRYPTION_KEY: input.credentialEncryptionKey,
       HANIMO_ADMIN_EMAIL: `admin-${suffix}@hanimo.test`,
       HANIMO_ADMIN_PASSWORD: input.adminPassword,

@@ -127,6 +127,7 @@ async function main() {
     processId: process.pid,
     postgresPassword: crypto.randomBytes(24).toString('base64url'),
     jwtSecret: crypto.randomBytes(32).toString('hex'),
+    setupToken: crypto.randomBytes(32).toString('hex'),
     credentialEncryptionKey: crypto.randomBytes(32).toString('hex'),
     adminPassword: `Hmo-E2E-${crypto.randomBytes(18).toString('base64url')}!`,
   });

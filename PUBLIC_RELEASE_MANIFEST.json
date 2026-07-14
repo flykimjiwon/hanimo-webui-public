@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "d05e75726c605f80af063342ee9f6ad760b7f5b8",
+  "sourceCommit": "4bc7a31710153174dfce3a0ff8f3ecb11bc62a12",
   "dirty": false,
   "files": [
     {
@@ -1691,7 +1691,7 @@
     },
     {
       "path": "scripts/check-docker-install.js",
-      "sha256": "f49689aae3d270112816e6cfc9ffd549896e906cba0118f3374d5b3077ee3987"
+      "sha256": "2040cbd313c0e98516da620e6fc80a8537aa79fd09da9393bf0a007fb156a81e"
     },
     {
       "path": "scripts/check-local-release.js",
@@ -1743,7 +1743,7 @@
     },
     {
       "path": "scripts/lib/docker-e2e-config.js",
-      "sha256": "8a2772be8ee3901029d578e869534dd1b36415b3c82f9d3b83828053a8a4c98b"
+      "sha256": "2953bcef9c9dca6ed6d8f093d64b8c71451d989087510e0c87ca5668db9cf60a"
     },
     {
       "path": "scripts/lib/local-release-fixture.js",
@@ -1903,7 +1903,7 @@
     },
     {
       "path": "tests/security/outbound-policy.test.mjs",
-      "sha256": "aaed40baae2d7cbd9f4722c3d95a930d97cf52a8d53d365c2173ad2baa1c58fd"
+      "sha256": "ec94663c9b68a5231fdde1103351f65b307ae3284c5db9660b202b067114837f"
     },
     {
       "path": "tests/security/provider-catalog.test.mjs",
