@@ -8,7 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-This worktree is not tagged or released yet.
+No unreleased changes.
+
+## [0.1.0] - 2026-07-14
+
+First stable core release. Tagged on canonical `4bc7a31` and public export `bfc02be`.
+Release gates green on Node 20 CI at the exact release commit: security 91/91,
+full suite 146/146, lint 0, audit 0, build 111/111, clean Docker install E2E,
+canonical↔public export parity no drift.
 
 ### Added
 - Nine production appearance skins and a decomposed model configuration form

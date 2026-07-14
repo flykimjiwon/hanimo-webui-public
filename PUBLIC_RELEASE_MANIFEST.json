@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "policyVersion": 1,
   "sourceRepository": "flykimjiwon/hanimo-webui",
-  "sourceCommit": "4bc7a31710153174dfce3a0ff8f3ecb11bc62a12",
+  "sourceCommit": "7fec681058a48243dcd9e71111970a7748ad59df",
   "dirty": false,
   "files": [
     {
@@ -1347,7 +1347,7 @@
     },
     {
       "path": "CHANGELOG.md",
-      "sha256": "84233e245ba338a3ced9ae083d77c0d7a6c31cf3486678db9d426bcf7f2eed8e"
+      "sha256": "dafd9becf3a277673c51a1b32e7d8ee363a55f87055c05e4e86157944ac1215a"
     },
     {
       "path": "CITATION.cff",
