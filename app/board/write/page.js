@@ -18,6 +18,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  clearBoardDraft,
+  loadBoardDraft,
+  saveBoardDraft,
+} from '@/lib/board-draft.mjs';
 
 export default function BoardWritePage() {
   const router = useRouter();
@@ -27,8 +32,8 @@ export default function BoardWritePage() {
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [userRole, setUserRole] = useState('user');
-  // category는 UI 전용(DB는 isNotice bool만 보유) — isNotice = (category === 'notice')로만 전송
-  const [category, setCategory] = useState('doc');
+  const [draftOwner, setDraftOwner] = useState('');
+  const [category, setCategory] = useState('post');
   const [hnEditorMode, setHnEditorMode] = useState('rich'); // 'rich' | 'md' — 시각 토글
   const [boardEnabled, setBoardEnabled] = useState(true);
   const contentRef = useRef(null);
@@ -42,6 +47,18 @@ export default function BoardWritePage() {
     try {
       const payload = decodeJWTPayload(token);
       setUserRole(payload.role || 'user');
+      const ownerId = String(payload.sub || '').trim();
+      setDraftOwner(ownerId);
+      const draft = loadBoardDraft(localStorage, ownerId);
+      if (draft) {
+        setTitle(draft.title);
+        setContent(draft.content);
+        setCategory(
+          draft.category === 'notice' && payload.role === 'admin'
+            ? 'notice'
+            : 'post'
+        );
+      }
     } catch (error) {
       logger.error('토큰 파싱 실패:', error);
       localStorage.removeItem('token');
@@ -79,7 +96,6 @@ export default function BoardWritePage() {
         body: JSON.stringify({
           title: title.trim(),
           content: content.trim(),
-          // 공지는 admin 전용. category는 UI 전용이라 DB엔 isNotice만 반영 (TODO: category 컬럼 추가 시 함께 전송)
           isNotice: userRole === 'admin' ? category === 'notice' : undefined,
         }),
       });
@@ -89,6 +105,9 @@ export default function BoardWritePage() {
         throw new Error(data.error || t('board.post_create_error'));
       }
 
+      if (!clearBoardDraft(localStorage, draftOwner)) {
+        logger.warn('게시글 초안 정리에 실패했지만 게시글 생성은 완료됐습니다.');
+      }
       alert(t('board.post_created'), 'success', t('common.complete'));
       router.push('/board');
     } catch (error) {
@@ -99,9 +118,16 @@ export default function BoardWritePage() {
     }
   };
 
-  // 임시저장: 백엔드 draft API 없음 → no-op 토스트만 (TODO: draft API/localStorage 추가 시 연동)
   const saveDraft = () => {
-    toast.info('임시저장되었습니다');
+    if (!title.trim() && !content.trim()) {
+      toast.info(t('board.draft_empty'));
+      return;
+    }
+    if (saveBoardDraft(localStorage, draftOwner, { title, content, category })) {
+      toast.success(t('board.draft_saved'));
+    } else {
+      toast.error(t('board.draft_save_failed'));
+    }
   };
 
   // 툴바: 커서 위치/선택 영역에 마크다운 구문 삽입
@@ -172,7 +198,8 @@ export default function BoardWritePage() {
 
   return (
     <div className='min-h-screen' style={{ background: 'var(--hn-bg)', color: 'var(--hn-fg)' }}>
-      <div className='w-full max-w-4xl mx-auto p-6'>
+      <div className='w-full max-w-4xl mx-auto p-6 pt-16 sm:pt-6'>
+        <h1 className='sr-only'>게시글 작성</h1>
         {/* write-bar: 취소 / 임시저장 / 발행 */}
         <div className='flex items-center justify-between mb-4'>
           <Button
@@ -184,7 +211,7 @@ export default function BoardWritePage() {
           </Button>
           <div className='flex items-center gap-2'>
             <Button onClick={saveDraft} variant='outline' disabled={saving}>
-              임시저장
+              {t('board.save_draft')}
             </Button>
             <Button onClick={submitPost} disabled={saving}>
               {saving ? t('common.saving') : '발행'}
@@ -194,13 +221,10 @@ export default function BoardWritePage() {
 
         <Card>
           <CardContent className='p-6 space-y-4'>
-            {/* 카테고리 태그 피커 (공지=admin 전용) */}
             <div className='flex flex-wrap items-center gap-2'>
               {[
                 { key: 'notice', label: '공지', bg: 'var(--hn-warn-soft)', fg: 'var(--hn-warn)', adminOnly: true },
-                { key: 'doc', label: '문서', bg: 'var(--hn-surface-3)', fg: 'var(--hn-fg-muted)' },
-                { key: 'ask', label: '질문', bg: 'var(--hn-info-soft)', fg: 'var(--hn-info)' },
-                { key: 'share', label: '공유', bg: 'var(--hn-good-soft)', fg: 'var(--hn-good)' },
+                { key: 'post', label: '일반', bg: 'var(--hn-surface-3)', fg: 'var(--hn-fg-muted)' },
               ]
                 .filter((c) => !c.adminOnly || userRole === 'admin')
                 .map((c) => {
@@ -237,7 +261,7 @@ export default function BoardWritePage() {
 
             {/* 툴바 장착 에디터 블록 */}
             <div className='border border-border rounded-xl overflow-hidden bg-[var(--hn-surface)]'>
-              <div className='flex items-center gap-1 px-3 py-2 bg-[var(--hn-surface-2)] border-b border-border'>
+              <div className='flex flex-wrap items-center gap-1 px-3 py-2 bg-[var(--hn-surface-2)] border-b border-border'>
                 {toolbarButtons.map((b) => {
                   const Icon = b.icon;
                   return (
@@ -246,6 +270,7 @@ export default function BoardWritePage() {
                       type='button'
                       variant='ghost'
                       size='icon'
+                      className='h-8 w-8 sm:h-9 sm:w-9'
                       aria-label={b.label}
                       title={b.label}
                       onClick={b.onClick}
@@ -254,9 +279,8 @@ export default function BoardWritePage() {
                     </Button>
                   );
                 })}
-                <div className='flex-1' />
                 {/* 서식/MD 모드 토글 (시각) */}
-                <div className='flex items-center rounded-lg border border-border overflow-hidden text-xs'>
+                <div className='ml-auto flex items-center rounded-lg border border-border overflow-hidden text-xs'>
                   {[
                     { key: 'rich', label: '서식' },
                     { key: 'md', label: 'MD' },

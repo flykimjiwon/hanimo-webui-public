@@ -7,6 +7,7 @@ import { verifyTokenWithResult } from '@/lib/auth';
 import { createServerError } from '@/lib/errorHandler';
 import { getNextModelServerEndpointWithIndex } from '@/lib/modelServers';
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
 
 async function ensureMemoryTable() {
   const client = await getPostgresClient();
@@ -174,7 +175,7 @@ export async function POST(request) {
       const llmStartTime = Date.now();
       const llmUrl = `${endpoint.endpoint}/v1/chat/completions`;
 
-      const response = await fetch(llmUrl, {
+      const response = await fetchWithProviderPolicy(llmUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -187,7 +188,7 @@ export async function POST(request) {
           max_tokens: 2048,
         }),
         signal: AbortSignal.timeout(60000),
-      });
+      }, { provider: endpoint.provider || 'model-server' });
 
       const llmElapsed = Date.now() - llmStartTime;
 

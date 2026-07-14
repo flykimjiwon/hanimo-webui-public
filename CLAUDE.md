@@ -148,8 +148,8 @@ npm run test:docker-install # Clean Docker install E2E
 
 - `middleware.js` owns Labs and cookie-origin boundaries, but route authorization is still explicit. Every protected API route must continue to call the shared user/admin verifier.
 - `chat1/`, `chat2/`, `chat3/` redirect to `chat/`; do not add another chat variant.
-- Remaining large modules include `admin/models/components/ModelForm.jsx` (727 lines), `admin/models/hooks/useModelConfig.js` (653 lines), and the legacy generate route.
-- App code still has 98 console calls across 9 files and lint has 12 warnings; migrate deliberately to Winston without hiding user-visible errors.
+- `admin/models/components/ModelForm.jsx` is now 125 lines. Remaining large modules include `admin/models/hooks/useModelConfig.js` (653 lines) and the legacy generate route.
+- App code still has 100 console calls across 11 files, while lint currently reports zero warnings; migrate deliberately to Winston without hiding user-visible errors.
 - New API keys are opaque `hmo_` values stored as full SHA-256 hashes. Do not reintroduce JWT-coupled tokens, token previews, or static salts.
 - Access tokens remain in localStorage in legacy client paths. Cookie-only access-token migration is a P2 security improvement.
 - The clean-Docker harness exists, but the 2026-07-11 local verification machine had no Docker runtime. Require its CI pass before tagging.

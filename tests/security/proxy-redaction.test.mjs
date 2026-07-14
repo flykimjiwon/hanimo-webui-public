@@ -33,6 +33,9 @@ test('redactRecursive handles case-insensitive keys, embedded credentials, and c
     client_secret: 'client',
     apiToken: 'api',
     api_token: 'api',
+    'x-goog-api-key': 'gemini',
+    'x-api-key': 'anthropic',
+    'api-key': 'azure',
     tokenCount: 4,
     nested: {
       message: 'send Bearer abc.def and Basic dXNlcjpwYXNz',
@@ -52,6 +55,9 @@ test('redactRecursive handles case-insensitive keys, embedded credentials, and c
   assert.equal(redacted.client_secret, '[REDACTED]');
   assert.equal(redacted.apiToken, '[REDACTED]');
   assert.equal(redacted.api_token, '[REDACTED]');
+  assert.equal(redacted['x-goog-api-key'], '[REDACTED]');
+  assert.equal(redacted['x-api-key'], '[REDACTED]');
+  assert.equal(redacted['api-key'], '[REDACTED]');
   assert.equal(redacted.tokenCount, 4);
   assert.equal(redacted.nested.message, 'send Bearer [REDACTED] and Basic [REDACTED]');
   assert.equal(redacted.self, '[Circular]');

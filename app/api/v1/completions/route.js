@@ -11,6 +11,8 @@ import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { getClientIP } from '@/lib/ip';
 import { verifyApiToken } from '@/lib/apiTokenUtils';
 import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
+import { resolveOpenAICompatibleKey } from '@/lib/security/provider-runtime-credentials.mjs';
+import { createProviderFailure } from '@/lib/security/provider-errors.mjs';
 
 // OpenAI-compatible legacy Completions API (FIM / Autocomplete only)
 // IDE extensions like Continue request this route when useLegacyCompletionsEndpoint: true is set
@@ -290,7 +292,7 @@ export async function POST(request) {
         error: {
           message:
             'Authorization header is required. Please provide a valid API token.',
-          type: 'invalid_request_error',
+          type: 'authentication_error',
         },
       },
       { status: 401, headers: corsHeaders }
@@ -304,7 +306,7 @@ export async function POST(request) {
       {
         error: {
           message: verificationResult.error || 'Invalid API token.',
-          type: 'invalid_request_error',
+          type: 'authentication_error',
         },
       },
       { status: 401, headers: corsHeaders }
@@ -445,14 +447,17 @@ export async function POST(request) {
             signal: AbortSignal.timeout(60000),
           });
         } catch (error) {
+          const failure = createProviderFailure(
+            error,
+            'Unable to connect to the configured model provider.'
+          );
+          logger.error('[v1/completions] Manual chat fallback failed:', {
+            correlationId: failure.correlationId,
+            ...failure.log,
+          });
           return NextResponse.json(
-            {
-              error: {
-                message: `Model server connection error: ${error.message}`,
-                type: 'server_error',
-              },
-            },
-            { status: 500, headers: corsHeaders }
+            failure.openAI,
+            { status: 503, headers: { ...corsHeaders, ...failure.headers } }
           );
         }
 
@@ -572,14 +577,17 @@ export async function POST(request) {
           signal: AbortSignal.timeout(60000),
         });
       } catch (error) {
+        const failure = createProviderFailure(
+          error,
+          'Unable to connect to the configured model provider.'
+        );
+        logger.error('[v1/completions] Manual provider request failed:', {
+          correlationId: failure.correlationId,
+          ...failure.log,
+        });
         return NextResponse.json(
-          {
-            error: {
-              message: `Model server connection error: ${error.message}`,
-              type: 'server_error',
-            },
-          },
-          { status: 500, headers: corsHeaders }
+          failure.openAI,
+          { status: 503, headers: { ...corsHeaders, ...failure.headers } }
         );
       }
 
@@ -675,14 +683,17 @@ export async function POST(request) {
       );
     }
 
-    const { endpoint, provider, modelName, apiKey } = endpointInfo;
+    const { endpoint, provider, modelName, apiKey: endpointApiKey } = endpointInfo;
     const resolvedModel = modelName || model;
 
     // ── OpenAI-compatible: forward /v1/completions as-is ─────────────────────
     if (provider === 'openai-compatible') {
       const targetUrl = buildOpenAiUrl(endpoint, '/completions');
       const headers = { 'Content-Type': 'application/json' };
-      if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+      const compatibleApiKey = await resolveOpenAICompatibleKey(endpointApiKey);
+      if (compatibleApiKey) {
+        headers.Authorization = `Bearer ${compatibleApiKey}`;
+      }
 
       const response = await fetchWithProviderPolicy(targetUrl, {
         method: 'POST',
@@ -880,15 +891,14 @@ export async function POST(request) {
       headers: corsHeaders,
     });
   } catch (error) {
-    logger.error('[v1/completions] Server error:', error);
+    const failure = createProviderFailure(error);
+    logger.error('[v1/completions] Server error:', {
+      correlationId: failure.correlationId,
+      ...failure.log,
+    });
     return NextResponse.json(
-      {
-        error: {
-          message: error.message || 'Internal server error',
-          type: 'server_error',
-        },
-      },
-      { status: 500, headers: corsHeaders }
+      failure.openAI,
+      { status: 500, headers: { ...corsHeaders, ...failure.headers } }
     );
   }
 }

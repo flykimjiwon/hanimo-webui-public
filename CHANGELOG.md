@@ -6,10 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.1.0] — 2026-03-11
+## [Unreleased]
+
+This worktree is not tagged or released yet.
 
 ### Added
-- Initial open-source release of hanimo-webui
+- Nine production appearance skins and a decomposed model configuration form
+- Browser-local, per-user community board drafts with restore and storage-failure handling
+- Setup-token protected first-administrator flow
+
+### Fixed
+- Fresh pinned bootstrap checkout no longer fails its own dirty-worktree guard
+- Authentication identity limits remain active without a trusted reverse proxy
+- First-administrator creation is serialized and covered by a concurrent transaction/service regression test
+- Public email preflight no longer reveals whether an account exists
+- OpenAI-compatible credentials consistently resolve endpoint, encrypted global setting, then provider environment
+- Provider requests retain long-running model timeouts while caller-specific shorter limits still win
+- Stable profile preferences no longer present unsaved controls as working settings
+- Signup, profile, and admin surfaces now share one canonical department contract with legacy-value normalization
+- Manual chat provider failures no longer hit a temporal-dead-zone error before returning the upstream status
+- Retry failover cancels retryable response bodies before switching providers
+- Board write now exposes only the general/notice categories that its persistence contract supports
+- Legacy board draft categories migrate to the canonical general category on read
+- Theme persistence degrades safely when browser storage is blocked
+- Signup and profile forms expose standard autocomplete and single-heading accessibility contracts
+- Profile labels and password visibility controls expose programmatic accessible names
+
+### Security
+- Provider redirects, DNS rebinding, private/reserved IPv6 ranges, and private-LAN opt-in use one outbound policy
+- Provider and setup credentials are redacted from diagnostics and never forwarded from callers
+- Stable provider connection failures return generic client errors with a correlation ID
+- Stable `/v1` authentication errors use one OpenAI-compatible error type and retain CORS headers
+- Auth limiter capacity is isolated by route namespace and combines account-wide and trusted-client budgets without evicting active blocks
+- Login timing and error copy no longer distinguish missing, password, and SSO-only local accounts
+
+## Planned 0.1.0 baseline
+
+### Added
+- Initial open-source release scope for hanimo-webui
 - Next.js 15 + React 19 based chat interface
 - Multi-model support via OpenAI-compatible API (Ollama, local models)
 - PostgreSQL-backed persistent chat history

@@ -1,17 +1,41 @@
 import { query } from '@/lib/postgres';
 import bcryptjs from 'bcryptjs';
 import {
+  getAllowedDepartments,
+  normalizeDepartment,
+} from '@/lib/departments.mjs';
+import {
+  authRateLimitKeys,
   authRateLimitConfig,
   consumeRateLimit,
   rateLimitKey,
   trustedClientAddress,
 } from '@/lib/security/rate-limit.mjs';
 
+const REGISTER_GLOBAL_RATE_KEY = rateLimitKey('auth:register', 'global');
+
 export async function POST(request) {
-  const { name, email, password, department, position } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: 'Invalid JSON payload.' }, { status: 400 });
+  }
+  const { name, email, password, department, position } = body || {};
 
   // Validate input values
-  if (!name || !email || !password || !department || !position) {
+  if (
+    typeof name !== 'string' ||
+    typeof email !== 'string' ||
+    typeof password !== 'string' ||
+    typeof department !== 'string' ||
+    typeof position !== 'string' ||
+    !name.trim() ||
+    !email.trim() ||
+    !password ||
+    !department.trim() ||
+    !position.trim()
+  ) {
     return new Response(
       JSON.stringify({ error: 'Please fill in all fields.' }),
       {
@@ -22,22 +46,42 @@ export async function POST(request) {
 
   // Normalize email to lowercase (prevent duplicates)
   const normalizedEmail = email.toLowerCase().trim();
+  const normalizedDepartment = normalizeDepartment(department);
   const limitConfig = authRateLimitConfig();
+  const globalLimit = consumeRateLimit(REGISTER_GLOBAL_RATE_KEY, {
+    limit: 30,
+    windowMs: limitConfig.windowMs,
+  });
+  if (!globalLimit.allowed) {
+    return Response.json(
+      { error: 'Too many sign-up attempts. Please try again later.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(globalLimit.retryAfterSeconds) },
+      }
+    );
+  }
   const clientAddress = trustedClientAddress(request);
-  const identityLimit = clientAddress
-    ? consumeRateLimit(
-        rateLimitKey('auth:register:identity', normalizedEmail, clientAddress),
-        { limit: 3, windowMs: limitConfig.windowMs }
-      )
-    : { allowed: true, retryAfterSeconds: 0 };
-  const clientLimit = clientAddress
-    ? consumeRateLimit(rateLimitKey('auth:register:client', clientAddress), {
+  const { identityKey, clientKey } = authRateLimitKeys(
+    'register',
+    normalizedEmail,
+    clientAddress
+  );
+  const identityLimit = consumeRateLimit(identityKey, {
+    limit: 3,
+    windowMs: limitConfig.windowMs,
+  });
+  const clientLimit = clientKey
+    ? consumeRateLimit(clientKey, {
         limit: 30,
         windowMs: limitConfig.windowMs,
       })
     : { allowed: true, retryAfterSeconds: 0 };
   if (!identityLimit.allowed || !clientLimit.allowed) {
-    const retryAfter = Math.max(identityLimit.retryAfterSeconds, clientLimit.retryAfterSeconds);
+    const retryAfter = Math.max(
+      identityLimit.retryAfterSeconds,
+      clientLimit.retryAfterSeconds
+    );
     return Response.json(
       { error: 'Too many sign-up attempts. Please try again later.' },
       { status: 429, headers: { 'Retry-After': String(retryAfter) } }
@@ -46,10 +90,8 @@ export async function POST(request) {
 
   // Check whether department is valid.
   // Configurable via ALLOWED_DEPARTMENTS env (comma-separated). Generic defaults for OSS.
-  const validDepartments = process.env.ALLOWED_DEPARTMENTS
-    ? process.env.ALLOWED_DEPARTMENTS.split(',').map((d) => d.trim()).filter(Boolean)
-    : ['Engineering', 'Product', 'Design', 'Operations', 'Other'];
-  if (!validDepartments.includes(department)) {
+  const validDepartments = getAllowedDepartments();
+  if (!validDepartments.includes(normalizedDepartment)) {
     return new Response(
       JSON.stringify({ error: 'Invalid department.' }),
       {
@@ -84,7 +126,7 @@ export async function POST(request) {
         name,
         normalizedEmail, // Store normalized email
         hash,
-        department,
+        normalizedDepartment,
         position,
         'user', // Default role
         new Date(),

@@ -17,7 +17,7 @@ hanimo-webui는 Next.js 15 기반의 **오픈소스 셀프호스팅 AI 챗 + 관
 
 공개판의 core 약속은 채팅, 모델 서버 설정, 사용자/관리자, API 토큰, OpenAI-compatible API입니다. Workflow / Screen / RAG / MCP 계열은 삭제 대상이 아니라, 공개판에서는 Labs 또는 플러그인 후보로 분리합니다.
 
-> 공개 준비 상태: credential/SSRF/upload/auth/Docker 기본값을 보강하고, `hmo_` 발급부터 인증된 OpenAI-compatible 업스트림 프록시까지 standalone E2E를 통과한 release candidate입니다.
+> 공개 준비 상태: 2026-07-13 기준선은 `hmo_` 발급부터 인증된 OpenAI-compatible 업스트림 프록시까지 standalone E2E를 통과했습니다. 2026-07-14 현재 로컬 worktree는 추가 보안·stable-core 하드닝과 non-Docker 게이트를 통과했지만 아직 release commit/public export/CI에는 반영되지 않았습니다.
 > clean Docker 설치 harness와 CI job은 준비됐지만 이 머신에는 Docker 실행기가 없어 로컬 실행은 미확인입니다. Labs의 기존 Workflow credential은 활성화 전에 재입력이 필요하며, 이 상태는 **보안 인증 완료를 의미하지 않습니다**.
 
 ---
@@ -50,7 +50,7 @@ hanimo-webui는 Next.js 15 기반의 **오픈소스 셀프호스팅 AI 챗 + 관
 
 | 항목 | 버전/도구 |
 |------|----------|
-| 프레임워크 | Next.js 15.5.9 |
+| 프레임워크 | Next.js 15.5.20 |
 | 런타임 | React 19.2.1 |
 | 언어 | JavaScript (`app/` App Router, `jsconfig` alias) |
 | UI | shadcn/ui + Tailwind CSS v4 |
@@ -69,7 +69,10 @@ hanimo-webui는 Next.js 15 기반의 **오픈소스 셀프호스팅 AI 챗 + 관
 - 기존 버전의 Workflow 평문 credential은 자동 사용하지 않습니다. 키를 설정한 뒤 다시 입력해야 합니다.
 - Labs 페이지와 API는 기본적으로 404를 반환합니다. 실험 범위를 이해한 운영자만 `.env`에 `HANIMO_ENABLE_LABS=true`를 설정해 활성화하세요.
 - 로그인·회원가입·refresh에는 기본 rate limit이 적용됩니다. 브라우저 쿠키가 포함된 상태 변경 요청은 same-origin이어야 합니다.
-- reverse proxy 뒤에서 운영할 때는 `HANIMO_PUBLIC_URL`을 실제 공개 origin으로 설정하고, 전달 IP를 통제하는 프록시에서만 `HANIMO_TRUST_PROXY=true`를 사용하세요.
+- reverse proxy 뒤에서 운영할 때는 `HANIMO_PUBLIC_URL`을 실제 공개 origin으로 설정하고, 전달 IP를 통제하는 프록시에서만 `HANIMO_TRUST_PROXY=true`를 사용하세요. 앱 앞의 신뢰 프록시 수는 `HANIMO_TRUST_PROXY_HOPS`(기본 `1`)로 맞춰야 합니다.
+- 첫 관리자 수동 생성 화면은 서버 `.env`의 `HANIMO_SETUP_TOKEN`을 요구합니다. 공식 설치 스크립트는 이 값을 자동 생성합니다.
+- Provider 호출의 기본 상한은 `HANIMO_PROVIDER_TIMEOUT_MS=600000`(10분)이며 최대 15분으로 제한됩니다. 각 호출이 지정한 더 짧은 타임아웃은 그대로 우선합니다.
+- 사설망 모델 서버는 기본 차단됩니다. 꼭 필요한 정확한 hostname 또는 IP만 `HANIMO_PROVIDER_LOCAL_ALLOWLIST`에 쉼표로 등록하세요. scheme·port·CIDR·wildcard는 허용하지 않으며 metadata/link-local 주소는 등록해도 차단됩니다. `localhost`, loopback, `host.docker.internal`은 별도 등록이 필요 없습니다.
 - `hmo_` API Key를 사용하는 `/api/v1/*` 서버 간 호출은 브라우저 cookie CSRF 정책과 분리되어 Hanimo Code·VS Code 같은 공식 클라이언트가 사용할 수 있습니다.
 
 ---

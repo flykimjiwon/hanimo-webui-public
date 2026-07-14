@@ -5,6 +5,7 @@ import {
   decryptProviderEndpoints,
   decryptProviderSecret,
 } from './security/provider-credentials.mjs';
+import { fetchWithProviderPolicy } from './security/provider-outbound.mjs';
 
 // Docker environment detection function
 function isDockerEnvironment() {
@@ -496,10 +497,10 @@ export async function checkModelServerHealth(endpoint) {
       }, 5000);
     }
 
-    const response = await fetch(fetchUrl, {
+    const response = await fetchWithProviderPolicy(fetchUrl, {
       method: 'GET',
       signal,
-    });
+    }, { provider: endpoint.provider || 'model-server' });
 
     // Read response body as text first for validation
     const responseText = await response.text();
@@ -650,11 +651,11 @@ export async function checkOpenAICompatibleHealth(endpoint) {
       }, 5000);
     }
 
-    const res = await fetch(url, {
+    const res = await fetchWithProviderPolicy(url, {
       method: 'GET',
       headers,
       signal,
-    });
+    }, { provider: 'openai-compatible' });
 
     // Read response body as text first for validation (read once)
     const responseText = await res.text();
@@ -836,11 +837,11 @@ export async function checkGeminiHealth(endpoint) {
       }, 5000);
     }
 
-    const res = await fetch(url, {
+    const res = await fetchWithProviderPolicy(url, {
       method: 'GET',
       headers,
       signal,
-    });
+    }, { provider: 'gemini' });
 
     // Read response body as text first for validation (read once)
     const responseText = await res.text();

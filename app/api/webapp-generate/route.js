@@ -21,6 +21,8 @@ import {
   decryptProviderEndpoints,
   decryptProviderSecret,
 } from '@/lib/security/provider-credentials.mjs';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
+import { createProviderFailure } from '@/lib/security/provider-errors.mjs';
 
 export const runtime = 'nodejs';
 
@@ -742,7 +744,7 @@ export async function POST(request) {
       });
 
       const startAt = Date.now();
-      const manualRes = await fetch(manualUrl, requestOptions);
+      const manualRes = await fetchWithProviderPolicy(manualUrl, requestOptions);
       if (!manualRes.ok) {
         const errorText = await manualRes.text().catch(() => '');
         try {
@@ -1267,7 +1269,7 @@ export async function POST(request) {
       const body = convertToGeminiFormat(openaiMessages);
 
       const startAt = Date.now();
-      const openaiRes = await fetch(geminiUrl, {
+      const openaiRes = await fetchWithProviderPolicy(geminiUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
@@ -1955,7 +1957,7 @@ export async function POST(request) {
       }
 
       const startAt = Date.now();
-      const openaiRes = await fetch(openaiUrl, {
+      const openaiRes = await fetchWithProviderPolicy(openaiUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
@@ -2384,7 +2386,7 @@ export async function POST(request) {
         `[generate] Ollama /api/chat call: ${filteredMultiturnHistory.length} history message(s) + current question`
       );
 
-      const llmRes = await fetch(llmUrl, {
+      const llmRes = await fetchWithProviderPolicy(llmUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2688,7 +2690,11 @@ export async function POST(request) {
       });
     }
   } catch (err) {
-    console.error('[/api/generate] Server error:', err);
+    const failure = createProviderFailure(err, 'Proxy request failed');
+    console.error('[/api/generate] Server error:', {
+      correlationId: failure.correlationId,
+      ...failure.log,
+    });
 
     // Write logs even on error conditions
     try {
@@ -2701,7 +2707,7 @@ export async function POST(request) {
           model: actualModelName || 'unknown',
           responseTime: 0,
           responseStatus: 500,
-          errorMessage: err.message,
+          errorMessage: failure.log.message,
           roundRobinIndex:
             typeof roundRobinIndex !== 'undefined' ? roundRobinIndex : null,
           roomId: roomId || null,
@@ -2713,8 +2719,8 @@ export async function POST(request) {
     }
 
     return NextResponse.json(
-      { error: 'Proxy request failed', details: err.message },
-      { status: 500 }
+      failure.web,
+      { status: 500, headers: failure.headers }
     );
   }
 }

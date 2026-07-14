@@ -1,4 +1,8 @@
 import logger from '@/lib/logger';
+import {
+  cancelProviderResponse,
+  fetchWithProviderPolicy,
+} from './security/provider-outbound.mjs';
 /**
  * Check whether the network error is retryable
  */
@@ -60,7 +64,6 @@ export async function fetchWithRetry(url, options, config = {}) {
   } = config;
 
   let lastError;
-  let lastResponse;
   let currentUrl = url;
   let currentOptions = options;
   const timeoutMs = isStreaming ? streamTimeoutMs : normalTimeoutMs;
@@ -95,10 +98,10 @@ export async function fetchWithRetry(url, options, config = {}) {
 
       try {
         // Call fetch
-        const response = await fetch(currentUrl, {
+        const response = await fetchWithProviderPolicy(currentUrl, {
           ...currentOptions,
           signal: controller.signal,
-        });
+        }, { provider: providerRef?.value || 'model-server' });
 
         // Clear timeout on success
         clearTimeout(timeoutId);
@@ -114,7 +117,13 @@ export async function fetchWithRetry(url, options, config = {}) {
               { url: currentUrl, status, attempt: attempt + 1 }
             );
 
-            lastResponse = response;
+            const responseReleased = await cancelProviderResponse(response);
+            if (!responseReleased) {
+              logger.warn('[Retry Utils] Failed to cancel retryable response body', {
+                url: currentUrl,
+                status,
+              });
+            }
 
             // Switch to next endpoint
             const nextEndpointInfo = await getNextEndpoint();
@@ -205,9 +214,5 @@ export async function fetchWithRetry(url, options, config = {}) {
     }
   }
 
-  // Return last response or error if all retries fail
-  if (lastResponse) {
-    return lastResponse;
-  }
   throw lastError;
 }

@@ -78,6 +78,10 @@ test('isBlockedIpAddress covers IPv4 and IPv6 private reserved multicast and map
     'fd00::1',
     'fe80::1',
     'ff02::1',
+    '64:ff9b:1::a9fe:a9fe',
+    'fec0::1',
+    '3fff::1',
+    '5f00::1',
   ]) {
     assert.equal(isBlockedIpAddress(address), true, address);
   }
@@ -125,7 +129,12 @@ test('fetchWithOutboundPolicy validates each redirect hop and bounds redirects',
 test('fetchWithOutboundPolicy strips sensitive headers on cross-origin redirects', async () => {
   const requests = [];
   const fakeFetch = async (url, init) => {
-    requests.push({ url, authorization: new Headers(init.headers).get('authorization') });
+    const headers = new Headers(init.headers);
+    requests.push({
+      url,
+      authorization: headers.get('authorization'),
+      setupToken: headers.get('x-hanimo-setup-token'),
+    });
     if (requests.length === 1) {
       return new Response('', { status: 302, headers: { location: 'https://next.example.com/final' } });
     }
@@ -133,7 +142,10 @@ test('fetchWithOutboundPolicy strips sensitive headers on cross-origin redirects
   };
 
   await fetchWithOutboundPolicy('https://api.example.com/start', {
-    headers: { Authorization: 'Bearer secret' },
+    headers: {
+      Authorization: 'Bearer secret',
+      'X-Hanimo-Setup-Token': 'setup-secret',
+    },
   }, {
     fetch: fakeFetch,
     allowlist: 'api.example.com,next.example.com',
@@ -141,8 +153,8 @@ test('fetchWithOutboundPolicy strips sensitive headers on cross-origin redirects
   });
 
   assert.deepEqual(requests, [
-    { url: 'https://api.example.com/start', authorization: 'Bearer secret' },
-    { url: 'https://next.example.com/final', authorization: null },
+    { url: 'https://api.example.com/start', authorization: 'Bearer secret', setupToken: 'setup-secret' },
+    { url: 'https://next.example.com/final', authorization: null, setupToken: null },
   ]);
 });
 
@@ -181,6 +193,21 @@ test('fetchWithOutboundPolicy composes timeout with caller signal and cancels re
     },
   });
   assert.equal(canceled, true);
+});
+
+test('fetchWithOutboundPolicy keeps timeout active while the response body is consumed', async () => {
+  const response = await fetchWithOutboundPolicy('https://api.example.com/slow-body', {}, {
+    timeoutMs: 5,
+    resolveHostname: publicResolver,
+    fetch: async (_url, init) => new Response(new ReadableStream({
+      start(controller) {
+        init.signal.addEventListener('abort', () => {
+          controller.error(new DOMException('body aborted', 'AbortError'));
+        }, { once: true });
+      },
+    }), { status: 200 }),
+  });
+  await assert.rejects(() => response.text(), /body aborted|Abort/);
 });
 
 test('getOutboundTimeoutMs uses defaults and caps configured timeout', () => {

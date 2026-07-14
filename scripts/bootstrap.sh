@@ -41,8 +41,10 @@ if [[ -e "$INSTALL_DIR" && ! -d "$INSTALL_DIR/.git" ]]; then
   exit 1
 fi
 
+FRESH_CLONE=0
 if [[ ! -d "$INSTALL_DIR/.git" ]]; then
   git clone --filter=blob:none --no-checkout "$REPOSITORY_URL" "$INSTALL_DIR"
+  FRESH_CLONE=1
 fi
 
 git -C "$INSTALL_DIR" fetch --depth=1 origin "$PINNED_REF"
@@ -52,7 +54,7 @@ if [[ "$PINNED_REF" =~ ^[0-9a-fA-F]{40}$ && "$RESOLVED_REF" != "$PINNED_REF" ]];
   exit 1
 fi
 
-if [[ -n "$(git -C "$INSTALL_DIR" status --short)" ]]; then
+if [[ "$FRESH_CLONE" -eq 0 && -n "$(git -C "$INSTALL_DIR" status --short)" ]]; then
   echo "Error: install checkout has local changes. Preserve them before continuing." >&2
   exit 1
 fi

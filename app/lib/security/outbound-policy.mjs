@@ -115,14 +115,18 @@ const BLOCKED_IPV6_RANGES = [
   ['::1', 128],
   ['::ffff:0:0', 96],
   ['64:ff9b::', 96],
+  ['64:ff9b:1::', 48],
   ['100::', 64],
   ['2001::', 23],
   ['2001:2::', 48],
   ['2001:10::', 28],
   ['2001:db8::', 32],
   ['2002::', 16],
+  ['3fff::', 20],
+  ['5f00::', 16],
   ['fc00::', 7],
   ['fe80::', 10],
+  ['fec0::', 10],
   ['ff00::', 8],
 ].map(([prefix, bits]) => [groupsFromPrefix(prefix), bits]);
 
@@ -148,6 +152,27 @@ export function isBlockedIpAddress(address) {
   if (version === 4) return isBlockedIpv4(normalized);
   if (version === 6) return isBlockedIpv6(normalized);
   return false;
+}
+
+export function isPrivateLanIpAddress(address) {
+  const normalized = normalizeHostname(address);
+  const version = net.isIP(normalized);
+  if (version === 4) {
+    const ipNumber = ipv4ToNumber(normalized);
+    return ipNumber !== null && [
+      ['10.0.0.0', 8],
+      ['127.0.0.0', 8],
+      ['172.16.0.0', 12],
+      ['192.168.0.0', 16],
+    ].some(([base, bits]) => inIpv4Range(ipNumber, base, bits));
+  }
+  if (version !== 6) return false;
+  const parsed = parseIpv6(normalized);
+  if (!parsed) return false;
+  if (parsed.mappedIpv4) return isPrivateLanIpAddress(parsed.mappedIpv4);
+  const loopback = parsed.slice(0, 7).every((group) => group === 0) && parsed[7] === 1;
+  const uniqueLocal = groupsFromPrefix('fc00::');
+  return loopback || (uniqueLocal !== null && ipv6StartsWith(parsed, uniqueLocal, 7));
 }
 
 export function isLinkLocalIpAddress(address) {
@@ -349,6 +374,55 @@ async function cancelResponseBody(response) {
   }
 }
 
+function retainResponseLifecycle(response, release) {
+  if (!response.body) {
+    release();
+    return response;
+  }
+
+  const reader = response.body.getReader();
+  let released = false;
+  const releaseOnce = () => {
+    if (released) return;
+    released = true;
+    release();
+  };
+  const body = new ReadableStream({
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          releaseOnce();
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      } catch (error) {
+        releaseOnce();
+        controller.error(error);
+      }
+    },
+    async cancel(reason) {
+      try {
+        await reader.cancel(reason);
+      } finally {
+        releaseOnce();
+      }
+    },
+  });
+  const retained = new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+  Object.defineProperties(retained, {
+    url: { value: response.url },
+    redirected: { value: response.redirected },
+    type: { value: response.type },
+  });
+  return retained;
+}
+
 export async function fetchWithOutboundPolicy(rawUrl, init = {}, options = {}) {
   const maxRedirects = options.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
   let currentUrl = await assertAllowedOutboundUrl(rawUrl, options);
@@ -357,8 +431,19 @@ export async function fetchWithOutboundPolicy(rawUrl, init = {}, options = {}) {
   for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount += 1) {
     const timeoutMs = options.timeoutMs || getOutboundTimeoutMs(options.env, options.timeoutEnvName);
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
     const composite = composeAbortSignals([init.signal, controller.signal]);
+    let timer;
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      clearTimeout(timer);
+      composite.signal?.removeEventListener('abort', release);
+      composite.cleanup();
+    };
+    composite.signal?.addEventListener('abort', release, { once: true });
+    timer = setTimeout(() => controller.abort(), timeoutMs);
+    timer.unref?.();
     let response;
     try {
       response = await (options.fetch || ((url, request) => fetchPinned(url, request, options)))(currentUrl, {
@@ -366,10 +451,11 @@ export async function fetchWithOutboundPolicy(rawUrl, init = {}, options = {}) {
         redirect: 'manual',
         signal: composite.signal,
       });
-    } finally {
-      clearTimeout(timer);
-      composite.cleanup();
+    } catch (error) {
+      release();
+      throw error;
     }
+    response = retainResponseLifecycle(response, release);
 
     if (![301, 302, 303, 307, 308].includes(response.status)) return response;
     const location = response.headers.get('location');
@@ -392,6 +478,7 @@ export async function fetchWithOutboundPolicy(rawUrl, init = {}, options = {}) {
         'x-goog-api-key',
         'x-api-key',
         'api-key',
+        'x-hanimo-setup-token',
       ]) headers.delete(name);
       requestInit = { ...requestInit, headers };
     }

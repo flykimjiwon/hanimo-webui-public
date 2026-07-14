@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTranslation } from '@/hooks/useTranslation';
+import { DEFAULT_DEPARTMENTS } from '@/lib/departments.mjs';
 
 const UserStatsChart = dynamic(() => import('@/components/admin/AnalyticsCharts').then(m => m.UserStatsChart), { ssr: false });
 const ModelStatsChart = dynamic(() => import('@/components/admin/AnalyticsCharts').then(m => m.ModelStatsChart), { ssr: false });
@@ -32,14 +33,7 @@ const PERIOD_OPTIONS = [
   { value: 'custom', labelKey: 'admin_analytics.period_custom' },
 ];
 
-const DEFAULT_DEPTS = [
-  '개발팀',
-  '프로덕트팀',
-  '마케팅팀',
-  '재무팀',
-  '운영팀',
-  '기타',
-];
+const DEFAULT_DEPTS = DEFAULT_DEPARTMENTS;
 
 const INITIAL_DATA = {
   userStats: [],

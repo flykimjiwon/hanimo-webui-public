@@ -9,7 +9,7 @@
 | 파일 | 용도 | SHA-256 |
 |---|---|---|
 | `Docker-Desktop-4.81.0-arm64.dmg` | Apple Silicon용 Docker Desktop 설치 이미지 | `a35a0b14fbf182fb2ef9f8e650ace9a8ebcc81ad4872d51bccc4496f5cdb0158` |
-| `hanimo-bootstrap.sh` | 공개 저장소의 pinning된 설치 bootstrap | `67a7ff932df0602a380b9483e35d6ad3c60bcd784d0d172bb817a13c4d85bd38` |
+| `hanimo-bootstrap.sh` | 공개 저장소의 pinning된 설치 bootstrap | `3dea231dab3825c87b0a79de9445d45a30b4ea1bbed96eb5fd2c9365bd02d2a7` |
 | `hanimo-webui-public-c254a4e.tar.gz` | 공개 저장소 commit `c254a4e56a9d63c395cdab6ac879094d0eff2eeb`의 오프라인 소스 사본 | `9bc7967eb8aa4ab308560d8fcbf0fc083c627dd24ccebaafa8167a367a95b672` |
 
 Docker Desktop 4.81.0은 Docker 공식 릴리스 페이지에서 2026-07-06 배포본으로 확인했습니다. Docker Desktop의 조직·정부 사용에는 구독 조건이 적용될 수 있으므로 설치 전에 [Docker Desktop 라이선스 조건](https://docs.docker.com/subscription/desktop-license/)을 확인하세요.
@@ -130,4 +130,3 @@ docker compose logs --no-color --tail=200 app db
 ```
 
 `docker compose down --volumes`는 DB 데이터를 삭제하므로 백업을 확인하기 전에는 실행하지 마세요. 백업·복구·업데이트 절차는 [운영 가이드](OPERATIONS.md)를 따릅니다.
-

@@ -140,6 +140,13 @@ ensure_env_file() {
     echo "Updated JWT_SECRET"
   fi
 
+  local setup_token
+  setup_token="$(get_env_value HANIMO_SETUP_TOKEN)"
+  if [[ -z "$setup_token" || "$setup_token" == "your-setup-token-here" || ${#setup_token} -lt 32 ]]; then
+    set_env_value HANIMO_SETUP_TOKEN "$(generate_secret)"
+    echo "Updated HANIMO_SETUP_TOKEN"
+  fi
+
   local credential_key
   credential_key="$(get_env_value HANIMO_CREDENTIAL_ENCRYPTION_KEY)"
   if [[ -z "$credential_key" || "$credential_key" == "your-credential-encryption-key-here" || ${#credential_key} -lt 32 ]]; then
@@ -195,6 +202,7 @@ export_runtime_env() {
   export POSTGRES_URI="$DB_URI"
   export PORT="$PORT_VALUE"
   export JWT_SECRET="$(get_env_value JWT_SECRET)"
+  export HANIMO_SETUP_TOKEN="$(get_env_value HANIMO_SETUP_TOKEN)"
   export HANIMO_CREDENTIAL_ENCRYPTION_KEY="$(get_env_value HANIMO_CREDENTIAL_ENCRYPTION_KEY)"
   export HANIMO_ADMIN_EMAIL="$(get_env_value HANIMO_ADMIN_EMAIL)"
   export HANIMO_ADMIN_PASSWORD="$(get_env_value HANIMO_ADMIN_PASSWORD)"

@@ -1,16 +1,71 @@
 import logger from '@/lib/logger';
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/postgres';
+import { query, transaction } from '@/lib/postgres';
+import { createFirstAdminLocked } from '@/lib/first-admin-lock.mjs';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import {
+  authRateLimitConfig,
+  consumeRateLimit,
+  rateLimitKey,
+} from '@/lib/security/rate-limit.mjs';
+import { verifySetupToken } from '@/lib/security/setup-token.mjs';
+
+const FIRST_ADMIN_RATE_KEY = rateLimitKey('auth:first-admin', 'global');
+
+function adminExistsResponse() {
+  return NextResponse.json(
+    { error: 'An admin account already exists. Please request permissions from the existing admin.' },
+    { status: 403 }
+  );
+}
 
 export async function POST(request) {
   try {
+    if (!verifySetupToken(
+      request.headers.get('x-hanimo-setup-token'),
+      process.env.HANIMO_SETUP_TOKEN
+    )) {
+      return NextResponse.json(
+        { error: 'A valid setup token is required.' },
+        { status: 403 }
+      );
+    }
+
+    const rateConfig = authRateLimitConfig();
+    const rate = consumeRateLimit(FIRST_ADMIN_RATE_KEY, {
+      limit: rateConfig.identityLimit,
+      windowMs: rateConfig.windowMs,
+    });
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Too many setup attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rate.retryAfterSeconds) },
+        }
+      );
+    }
+
     const { name, email, password } = await request.json();
 
-    if (!name || !email || !password) {
+    if (
+      typeof name !== 'string' ||
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      !name.trim() ||
+      !email.trim() ||
+      !password
+    ) {
       return NextResponse.json(
         { error: 'Please enter name, email, and password.' },
+        { status: 400 }
+      );
+    }
+
+    if (name.length > 200 || email.length > 320 || password.length > 128) {
+      return NextResponse.json(
+        { error: 'One or more setup fields are too long.' },
         { status: 400 }
       );
     }
@@ -22,42 +77,36 @@ export async function POST(request) {
       );
     }
 
-    const adminCheck = await query(
+    const existingAdmin = await query(
       "SELECT COUNT(*) as count FROM users WHERE role = 'admin'",
       []
     );
-    const adminCount = parseInt(adminCheck.rows[0].count, 10);
-
-    if (adminCount > 0) {
-      return NextResponse.json(
-        { error: 'An admin account already exists. Please request permissions from the existing admin.' },
-        { status: 403 }
-      );
+    if (parseInt(existingAdmin.rows[0].count, 10) > 0) {
+      return adminExistsResponse();
     }
 
+    const normalizedName = name.trim();
     const normalizedEmail = email.toLowerCase().trim();
-    const existingUser = await query(
-      'SELECT id FROM users WHERE email = $1 LIMIT 1',
-      [normalizedEmail]
-    );
+    const hash = await bcryptjs.hash(password, 12);
+    const creation = await transaction((client) => createFirstAdminLocked(client, {
+      name: normalizedName,
+      email: normalizedEmail,
+      passwordHash: hash,
+    }));
 
-    if (existingUser.rows.length > 0) {
+    if (!creation) {
+      throw new Error('Database transaction is unavailable.');
+    }
+    if (creation.outcome === 'admin-exists') {
+      return adminExistsResponse();
+    }
+    if (creation.outcome === 'email-exists') {
       return NextResponse.json(
         { error: 'Email already registered.' },
         { status: 409 }
       );
     }
-
-    const hash = await bcryptjs.hash(password, 12);
-
-    const result = await query(
-      `INSERT INTO users (name, email, password_hash, role, auth_type, created_at)
-       VALUES ($1, $2, $3, 'admin', 'local', CURRENT_TIMESTAMP)
-       RETURNING id, email, name, role`,
-      [name, normalizedEmail, hash]
-    );
-
-    const user = result.rows[0];
+    const user = creation.user;
 
     const token = jwt.sign(
       {

@@ -174,10 +174,10 @@ generate_secret() {
     return
   fi
   if [[ -r /dev/urandom ]]; then
-    LC_ALL=C tr -dc 'a-f0-9' </dev/urandom | head -c 64
+    LC_ALL=C od -An -N32 -tx1 /dev/urandom | tr -d '[:space:]'
     return
   fi
-  die 127 "Cannot generate JWT_SECRET. Install openssl or Node.js."
+  die 127 "Cannot generate a secure secret. Install openssl or Node.js."
 }
 
 get_env_value() {
@@ -229,6 +229,15 @@ ensure_env_file() {
     log "$(color 32 Updated) JWT_SECRET in .env"
   else
     log "$(color 32 OK) JWT_SECRET already configured"
+  fi
+
+  local setup_token
+  setup_token="$(get_env_value HANIMO_SETUP_TOKEN)"
+  if [[ -z "$setup_token" || "$setup_token" == "your-setup-token-here" || ${#setup_token} -lt 32 ]]; then
+    set_env_value HANIMO_SETUP_TOKEN "$(generate_secret)"
+    log "$(color 32 Updated) HANIMO_SETUP_TOKEN in .env"
+  else
+    log "$(color 32 OK) HANIMO_SETUP_TOKEN already configured"
   fi
 
   local credential_key

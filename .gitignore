@@ -121,6 +121,7 @@ skills-lock.json
 
 # Playwright test reports & artifacts
 tests/reports/
+.playwright-cli/
 
 # Development workflow state
 .sisyphus/

@@ -11,6 +11,8 @@ import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { getClientIP } from '@/lib/ip';
 import { saveMessageDual } from '@/lib/messageLogger';
 import { getModelsFromTables } from '@/lib/modelTables';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
+import { createProviderFailure } from '@/lib/security/provider-errors.mjs';
 
 function getValueByPath(source, path) {
   if (!source || !path) return undefined;
@@ -435,7 +437,9 @@ Room name:`;
         }
 
         const manualStartTime = Date.now();
-        const manualRes = await fetch(manualUrl, requestOptions);
+        const manualRes = await fetchWithProviderPolicy(manualUrl, requestOptions, {
+          provider: 'manual',
+        });
         const responseTime = Date.now() - manualStartTime;
         if (!manualRes.ok) {
           const errorText = await manualRes.text().catch(() => '');
@@ -574,11 +578,11 @@ Room name:`;
       };
 
       const llmStartTime = Date.now();
-      const response = await fetch(llmUrl, {
+      const response = await fetchWithProviderPolicy(llmUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-      });
+      }, { provider });
 
       const responseTime = Date.now() - llmStartTime;
 
@@ -803,10 +807,14 @@ Room name:`;
       });
     }
   } catch (error) {
-    logger.error('Room name generation API error:', error);
+    const failure = createProviderFailure(error, 'Room name generation failed');
+    logger.error('Room name generation API error:', {
+      correlationId: failure.correlationId,
+      ...failure.log,
+    });
     return NextResponse.json(
-      { error: 'Room name generation failed', details: error.message },
-      { status: 500 }
+      failure.web,
+      { status: 500, headers: failure.headers }
     );
   }
 }

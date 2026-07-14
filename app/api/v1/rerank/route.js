@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import logger from '@/lib/logger';
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
 import { verifyApiToken, resolveEndpoint, buildOpenAiUrl, getValueByPath, applyTemplate, findModelRecord } from '@/lib/apiTokenUtils';
 import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
+import { resolveOpenAICompatibleKey } from '@/lib/security/provider-runtime-credentials.mjs';
+import { createProviderFailure } from '@/lib/security/provider-errors.mjs';
 
 function getCorsHeaders(request) {
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim()) || [];
@@ -139,14 +142,17 @@ export async function POST(request) {
           signal: AbortSignal.timeout(30000),
         });
       } catch (error) {
+        const failure = createProviderFailure(
+          error,
+          'Unable to connect to the configured model provider.'
+        );
+        logger.error('[v1/rerank] Manual provider request failed:', {
+          correlationId: failure.correlationId,
+          ...failure.log,
+        });
         return NextResponse.json(
-          {
-            error: {
-              message: `Model server connection error: ${error.message}`,
-              type: 'server_error',
-            },
-          },
-          { status: 500, headers: corsHeaders }
+          failure.openAI,
+          { status: 503, headers: { ...corsHeaders, ...failure.headers } }
         );
       }
 
@@ -205,7 +211,7 @@ export async function POST(request) {
       );
     }
 
-    const { endpoint, provider, modelName, apiKey } = endpointInfo;
+    const { endpoint, provider, modelName, apiKey: endpointApiKey } = endpointInfo;
     const resolvedModel = modelName || model;
 
     if (provider !== 'openai-compatible') {
@@ -223,8 +229,9 @@ export async function POST(request) {
 
     const targetUrl = buildOpenAiUrl(endpoint, '/rerank');
     const headers = { 'Content-Type': 'application/json' };
-    if (apiKey) {
-      headers.Authorization = `Bearer ${apiKey}`;
+    const compatibleApiKey = await resolveOpenAICompatibleKey(endpointApiKey);
+    if (compatibleApiKey) {
+      headers.Authorization = `Bearer ${compatibleApiKey}`;
     }
     const response = await fetchWithProviderPolicy(targetUrl, {
       method: 'POST',
@@ -241,7 +248,7 @@ export async function POST(request) {
 
     logExternalApiRequest({
       sourceType: 'external',
-      provider: endpointInfo.type || 'openai-compatible',
+      provider: endpointInfo.provider || 'openai-compatible',
       apiType: 'rerank',
       endpoint: '/v1/rerank',
       model: resolvedModel,
@@ -261,14 +268,14 @@ export async function POST(request) {
       headers: corsHeaders,
     });
   } catch (error) {
+    const failure = createProviderFailure(error);
+    logger.error('[v1/rerank] Server error:', {
+      correlationId: failure.correlationId,
+      ...failure.log,
+    });
     return NextResponse.json(
-      {
-        error: {
-          message: error.message || 'Internal server error',
-          type: 'server_error',
-        },
-      },
-      { status: 500, headers: getCorsHeaders(request) }
+      failure.openAI,
+      { status: 500, headers: { ...getCorsHeaders(request), ...failure.headers } }
     );
   }
 }

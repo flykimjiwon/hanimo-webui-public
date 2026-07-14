@@ -5,6 +5,10 @@ import { query } from '@/lib/postgres';
 import bcryptjs from 'bcryptjs';
 import { isValidUUID } from '@/lib/utils';
 import {
+  getAllowedDepartments,
+  normalizeDepartment,
+} from '@/lib/departments.mjs';
+import {
   createAuthError,
   createValidationError,
   createNotFoundError,
@@ -69,21 +73,22 @@ export async function PATCH(request) {
     const { name, department, cell, currentPassword, newPassword } = body;
 
     // Input validation
-    if (!name || !department || !cell) {
+    if (
+      typeof name !== 'string' ||
+      typeof department !== 'string' ||
+      typeof cell !== 'string' ||
+      !name.trim() ||
+      !department.trim() ||
+      !cell.trim()
+    ) {
       return createValidationError('Please fill in all fields.');
     }
 
     // Check valid department
-    const validDepartments = [
-      'Digital Service Development Department',
-      'Global Service Development Department',
-      'Financial Service Development Department',
-      'Information Service Development Department',
-      'Tech Innovation Unit',
-      'Other Department',
-    ];
+    const normalizedDepartment = normalizeDepartment(department);
+    const validDepartments = getAllowedDepartments();
 
-    if (!validDepartments.includes(department)) {
+    if (!validDepartments.includes(normalizedDepartment)) {
       return createValidationError('Invalid department.');
     }
 
@@ -113,7 +118,7 @@ export async function PATCH(request) {
     updateParams.push(name);
 
     updateFields.push(`department = $${paramIndex++}`);
-    updateParams.push(department);
+    updateParams.push(normalizedDepartment);
 
     updateFields.push(`cell = $${paramIndex++}`);
     updateParams.push(cell);

@@ -20,6 +20,7 @@ export default function SetupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [setupToken, setSetupToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -58,7 +59,10 @@ export default function SetupPage() {
     try {
       const res = await fetch('/api/auth/create-first-admin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Hanimo-Setup-Token': setupToken,
+        },
         body: JSON.stringify({ name, email, password }),
       });
 
@@ -244,6 +248,28 @@ export default function SetupPage() {
                       <AlertDescription>{error}</AlertDescription>
                     </Alert>
                   )}
+
+                  <div className='space-y-2'>
+                    <Label>{t('setup.token_label')}</Label>
+                    <div className='relative'>
+                      <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
+                      <Input
+                        type='password'
+                        required
+                        minLength={32}
+                        maxLength={256}
+                        value={setupToken}
+                        onChange={(e) => setSetupToken(e.target.value)}
+                        className='pl-10'
+                        autoComplete='off'
+                        spellCheck={false}
+                        placeholder={t('setup.token_placeholder')}
+                      />
+                    </div>
+                    <p className='text-xs text-muted-foreground break-keep'>
+                      {t('setup.token_help')}
+                    </p>
+                  </div>
 
                   <div className='space-y-2'>
                     <Label>{t('signup.name')}</Label>

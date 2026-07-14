@@ -1,7 +1,6 @@
 'use client';
 
 
-import logger from '@/lib/logger';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -19,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { DEPARTMENT_CATALOG } from '@/lib/departments.mjs';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -32,56 +32,14 @@ export default function SignUpPage() {
   const [position, setPosition] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [emailError, setEmailError] = useState('');
-  const [checkingEmail, setCheckingEmail] = useState(false);
 
   const departments = [
     { value: '', label: t('signup.group_placeholder') },
-    { value: '개발팀', label: t('signup.group_digital') },
-    { value: '마케팅팀', label: t('signup.group_global') },
-    { value: '재무팀', label: t('signup.group_finance') },
-    { value: '운영팀', label: t('signup.group_info') },
-    { value: '프로덕트팀', label: t('signup.group_tech') },
-    { value: '기타', label: t('signup.group_other') },
+    ...DEPARTMENT_CATALOG.map(({ value, labelKey }) => ({
+      value,
+      label: t(labelKey),
+    })),
   ];
-
-  // 이메일 중복 검증 함수
-  const checkEmailDuplicate = async (emailValue) => {
-    if (!emailValue || !emailValue.includes('@')) return;
-
-    setCheckingEmail(true);
-    setEmailError('');
-
-    try {
-      const response = await fetch('/api/auth/check-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailValue }),
-      });
-
-      const data = await response.json();
-
-      if (!data.available) {
-        setEmailError(data.message);
-      }
-    } catch (error) {
-      logger.error('Email validation error:', error);
-    } finally {
-      setCheckingEmail(false);
-    }
-  };
-
-  // 이메일 입력 핸들러
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-    setEmailError('');
-
-    clearTimeout(window.emailCheckTimer);
-    window.emailCheckTimer = setTimeout(() => {
-      checkEmailDuplicate(value);
-    }, 500);
-  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -165,9 +123,9 @@ export default function SignUpPage() {
             </p>
 
             {/* H1 */}
-            <h1 className='font-bold mb-8' style={{ fontSize: 26, lineHeight: 1.3, letterSpacing: '-0.02em', color: 'var(--hn-fg)' }}>
+            <p className='font-bold mb-8' style={{ fontSize: 26, lineHeight: 1.3, letterSpacing: '-0.02em', color: 'var(--hn-fg)' }}>
               팀에 합류하고<br />AI 워크스페이스를 시작하세요.
-            </h1>
+            </p>
 
             {/* Feature bullets */}
             <ul className='flex flex-col gap-3'>
@@ -286,6 +244,7 @@ export default function SignUpPage() {
                       id='signup-name'
                       data-testid='signup-name'
                       type='text'
+                      autoComplete='name'
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -305,28 +264,14 @@ export default function SignUpPage() {
                       id='signup-email'
                       data-testid='signup-email'
                       type='email'
+                      autoComplete='email'
                       required
                       value={email}
-                      onChange={handleEmailChange}
-                      className={`pl-10 pr-10 ${emailError ? 'border-destructive' : ''}`}
+                      onChange={(event) => setEmail(event.target.value)}
+                      className='pl-10'
                       placeholder={t('auth.email_placeholder')}
                     />
-                    {checkingEmail && (
-                      <Loader2
-                        data-testid='signup-email-checking'
-                        className='absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin'
-                      />
-                    )}
                   </div>
-                  {emailError && (
-                    <p
-                      id='signup-email-error'
-                      data-testid='signup-email-error'
-                      className='text-sm text-destructive mt-1'
-                    >
-                      {emailError}
-                    </p>
-                  )}
                 </div>
 
                 <div className='space-y-2'>
@@ -366,6 +311,7 @@ export default function SignUpPage() {
                       id='signup-position'
                       data-testid='signup-position'
                       type='text'
+                      autoComplete='organization-title'
                       required
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
@@ -385,6 +331,7 @@ export default function SignUpPage() {
                       id='signup-password'
                       data-testid='signup-password'
                       type='password'
+                      autoComplete='new-password'
                       required
                       minLength={6}
                       value={password}
@@ -412,6 +359,7 @@ export default function SignUpPage() {
                       id='signup-confirm-password'
                       data-testid='signup-confirm-password'
                       type='password'
+                      autoComplete='new-password'
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -434,7 +382,7 @@ export default function SignUpPage() {
                   id='signup-submit'
                   data-testid='signup-submit'
                   type='submit'
-                  disabled={loading || emailError || checkingEmail}
+                  disabled={loading}
                   className='w-full'
                   size='lg'
                 >

@@ -6,12 +6,14 @@ import crypto from 'crypto';
 import { runAutoMigration } from '@/lib/autoMigrate';
 import { NextResponse } from 'next/server';
 import {
+  authRateLimitKeys,
   authRateLimitConfig,
   clearRateLimit,
   consumeRateLimit,
-  rateLimitKey,
   trustedClientAddress,
 } from '@/lib/security/rate-limit.mjs';
+
+const DUMMY_PASSWORD_HASH = '$2a$12$W8M010AppXqOOgQYombubePwbUa2HLaUJW.TmKlkJ2viA1t1peCRi';
 import { shouldUseSecureAuthCookie } from '@/lib/security/auth-cookie-policy.mjs';
 
 function rateLimited(retryAfterSeconds) {
@@ -38,14 +40,19 @@ export async function POST(request) {
 
   const limitConfig = authRateLimitConfig();
   const clientAddress = trustedClientAddress(request);
-  const identityKey = clientAddress
-    ? rateLimitKey('auth:login:identity', normalizedEmail, clientAddress)
-    : null;
-  const clientKey = clientAddress
-    ? rateLimitKey('auth:login:client', clientAddress)
-    : null;
-  const identityLimit = identityKey
-    ? consumeRateLimit(identityKey, {
+  const { identityKey, identityClientKey, clientKey } = authRateLimitKeys(
+    'login',
+    normalizedEmail,
+    clientAddress
+  );
+  const identityLimit = consumeRateLimit(identityKey, {
+    limit: clientAddress
+      ? limitConfig.distributedIdentityLimit
+      : limitConfig.identityLimit,
+    windowMs: limitConfig.windowMs,
+  });
+  const identityClientLimit = identityClientKey
+    ? consumeRateLimit(identityClientKey, {
         limit: limitConfig.identityLimit,
         windowMs: limitConfig.windowMs,
       })
@@ -56,8 +63,12 @@ export async function POST(request) {
         windowMs: limitConfig.windowMs,
       })
     : { allowed: true, retryAfterSeconds: 0 };
-  if (!identityLimit.allowed || !clientLimit.allowed) {
-    return rateLimited(Math.max(identityLimit.retryAfterSeconds, clientLimit.retryAfterSeconds));
+  if (!identityLimit.allowed || !identityClientLimit.allowed || !clientLimit.allowed) {
+    return rateLimited(Math.max(
+      identityLimit.retryAfterSeconds,
+      identityClientLimit.retryAfterSeconds,
+      clientLimit.retryAfterSeconds
+    ));
   }
 
   const result = await query(
@@ -65,33 +76,17 @@ export async function POST(request) {
     [normalizedEmail]
   );
 
-  if (result.rows.length === 0) {
+  const user = result.rows[0] || null;
+  const match = await bcryptjs.compare(
+    password,
+    user?.password_hash || DUMMY_PASSWORD_HASH
+  );
+  if (!user || user.auth_type === 'sso' || !user.password_hash || !match) {
     return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
   }
 
-  const user = result.rows[0];
-
-  // SSO users cannot use regular login
-  if (user.auth_type === 'sso') {
-    return new Response(
-      JSON.stringify({ error: 'This is an SSO account. Please use SSO login (/sso).' }),
-      {
-        status: 401,
-      }
-    );
-  }
-
-  // If password_hash is missing (abnormal case)
-  if (!user.password_hash) {
-    return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
-  }
-
-  const match = await bcryptjs.compare(password, user.password_hash);
-  if (!match) {
-    return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
-  }
-
-  if (identityKey) clearRateLimit(identityKey);
+  clearRateLimit(identityKey);
+  if (identityClientKey) clearRateLimit(identityClientKey);
 
   // Update last login time
   await query(

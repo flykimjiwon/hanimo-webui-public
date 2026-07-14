@@ -26,8 +26,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { decodeJWTPayload } from '@/lib/jwtUtils';
+import {
+  DEPARTMENT_CATALOG,
+  normalizeDepartment,
+} from '@/lib/departments.mjs';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -44,8 +47,6 @@ export default function ProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userRole, setUserRole] = useState('');
-  // TODO: wire prefs to /api/user/preferences when endpoint is available
-  const [prefs, setPrefs] = useState({ notif: true, digest: false, tts: false, history: true });
 
   // 기본 정보
   const [name, setName] = useState('');
@@ -59,14 +60,10 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changePassword, setChangePassword] = useState(false);
 
-  const departments = [
-    { value: '개발팀', label: t('signup.group_digital') },
-    { value: '마케팅팀', label: t('signup.group_global') },
-    { value: '재무팀', label: t('signup.group_finance') },
-    { value: '운영팀', label: t('signup.group_info') },
-    { value: '프로덕트팀', label: t('signup.group_tech') },
-    { value: '기타', label: t('signup.group_other') },
-  ];
+  const departments = DEPARTMENT_CATALOG.map(({ value, labelKey }) => ({
+    value,
+    label: t(labelKey),
+  }));
 
   // 현재 사용자 정보 조회
   const fetchUserInfo = useCallback(async () => {
@@ -92,7 +89,7 @@ export default function ProfilePage() {
       const data = await response.json();
       setName(data.user.name || '');
       setEmail(data.user.email || '');
-      setDepartment(data.user.department || '');
+      setDepartment(normalizeDepartment(data.user.department));
       setCell(data.user.cell || '');
       try {
         const payload = decodeJWTPayload(token);
@@ -263,11 +260,13 @@ export default function ProfilePage() {
 
                 {/* 이름 */}
                 <div className='space-y-2'>
-                  <Label>{t('profile.name')}</Label>
+                  <Label htmlFor='profile-name'>{t('profile.name')}</Label>
                   <div className='relative'>
                     <User className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
                     <Input
+                      id='profile-name'
                       type='text'
+                      autoComplete='name'
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -279,11 +278,13 @@ export default function ProfilePage() {
 
                 {/* 이메일 (읽기 전용) */}
                 <div className='space-y-2'>
-                  <Label>{t('profile.email')}</Label>
+                  <Label htmlFor='profile-email'>{t('profile.email')}</Label>
                   <div className='relative'>
                     <Mail className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
                     <Input
+                      id='profile-email'
                       type='email'
+                      autoComplete='username'
                       value={email}
                       readOnly
                       className='pl-10 bg-muted text-muted-foreground cursor-not-allowed'
@@ -297,10 +298,11 @@ export default function ProfilePage() {
 
                 {/* 부서 */}
                 <div className='space-y-2'>
-                  <Label>{t('signup.group')}</Label>
+                  <Label htmlFor='profile-department'>{t('signup.group')}</Label>
                   <div className='relative'>
                     <Building className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
                     <select
+                      id='profile-department'
                       required
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
@@ -318,10 +320,11 @@ export default function ProfilePage() {
 
                 {/* Cell */}
                 <div className='space-y-2'>
-                  <Label>{t('profile.cell')}</Label>
+                  <Label htmlFor='profile-cell'>{t('profile.cell')}</Label>
                   <div className='relative'>
                     <Phone className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
                     <Input
+                      id='profile-cell'
                       type='text'
                       required
                       value={cell}
@@ -354,11 +357,13 @@ export default function ProfilePage() {
                   <div className='space-y-4 bg-muted p-4 rounded-lg'>
                     {/* 현재 비밀번호 */}
                     <div className='space-y-2'>
-                      <Label>{t('profile.current_password')}</Label>
+                      <Label htmlFor='profile-current-password'>{t('profile.current_password')}</Label>
                       <div className='relative'>
                         <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
                         <Input
+                          id='profile-current-password'
                           type={showCurrentPassword ? 'text' : 'password'}
+                          autoComplete='current-password'
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
                           className='pl-10 pr-10'
@@ -366,6 +371,7 @@ export default function ProfilePage() {
                         />
                         <button
                           type='button'
+                          aria-label={t(showCurrentPassword ? 'profile.hide_password' : 'profile.show_password')}
                           onClick={() =>
                             setShowCurrentPassword(!showCurrentPassword)
                           }
@@ -382,11 +388,13 @@ export default function ProfilePage() {
 
                     {/* 새 비밀번호 */}
                     <div className='space-y-2'>
-                      <Label>{t('profile.new_password')}</Label>
+                      <Label htmlFor='profile-new-password'>{t('profile.new_password')}</Label>
                       <div className='relative'>
                         <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
                         <Input
+                          id='profile-new-password'
                           type={showNewPassword ? 'text' : 'password'}
+                          autoComplete='new-password'
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           className='pl-10 pr-10'
@@ -394,6 +402,7 @@ export default function ProfilePage() {
                         />
                         <button
                           type='button'
+                          aria-label={t(showNewPassword ? 'profile.hide_password' : 'profile.show_password')}
                           onClick={() => setShowNewPassword(!showNewPassword)}
                           className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground'
                         >
@@ -411,11 +420,13 @@ export default function ProfilePage() {
 
                     {/* 새 비밀번호 확인 */}
                     <div className='space-y-2'>
-                      <Label>{t('profile.confirm_password')}</Label>
+                      <Label htmlFor='profile-confirm-password'>{t('profile.confirm_password')}</Label>
                       <div className='relative'>
                         <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground' />
                         <Input
+                          id='profile-confirm-password'
                           type={showConfirmPassword ? 'text' : 'password'}
+                          autoComplete='new-password'
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           className='pl-10 pr-10'
@@ -423,6 +434,7 @@ export default function ProfilePage() {
                         />
                         <button
                           type='button'
+                          aria-label={t(showConfirmPassword ? 'profile.hide_password' : 'profile.show_password')}
                           onClick={() =>
                             setShowConfirmPassword(!showConfirmPassword)
                           }
@@ -472,25 +484,11 @@ export default function ProfilePage() {
         {/* 환경설정 카드 */}
         <Card className='py-0 gap-0'>
           <CardContent className='p-6'>
-            <h3 className='text-[15px] font-semibold mb-4'>환경설정</h3>
-            {[
-              { key: 'notif', label: '알림', desc: '새 공지 및 시스템 알림을 받습니다' },
-              { key: 'digest', label: '주간 다이제스트', desc: '매주 활동 요약을 이메일로 받습니다' },
-              { key: 'tts', label: 'TTS 자동 재생', desc: '메시지를 자동으로 읽어줍니다' },
-              { key: 'history', label: '대화 기록 저장', desc: '채팅 기록을 저장하고 검색합니다' },
-            ].map((p) => (
-              <div key={p.key} className='flex items-center justify-between py-[10px] border-b border-border last:border-0'>
-                <div>
-                  <p className='text-[13px] font-medium'>{p.label}</p>
-                  <p className='text-[11.5px] text-muted-foreground'>{p.desc}</p>
-                </div>
-                {/* TODO: wire to /api/user/preferences when endpoint is available */}
-                <Switch
-                  checked={prefs[p.key]}
-                  onCheckedChange={(v) => setPrefs((s) => ({ ...s, [p.key]: v }))}
-                />
-              </div>
-            ))}
+            <h3 className='text-[15px] font-semibold mb-2'>{t('profile.preferences')}</h3>
+            <p className='text-sm text-muted-foreground break-keep'>
+              <span className='block'>{t('profile.preferences_coming_soon')}</span>
+              <span className='block'>{t('profile.preferences_unavailable')}</span>
+            </p>
           </CardContent>
         </Card>
 

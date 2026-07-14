@@ -7,6 +7,7 @@ import {
   normalizeModelsResponse,
 } from '@/lib/openai-gateway.mjs';
 import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
+import { resolveOpenAICompatibleKey } from '@/lib/security/provider-runtime-credentials.mjs';
 
 export const runtime = 'nodejs';
 
@@ -34,14 +35,14 @@ export async function GET(request) {
     const token = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1] || null;
     if (!token) {
       return NextResponse.json(
-        { error: { message: 'API token required.', type: 'auth_error' } },
+        { error: { message: 'API token required.', type: 'authentication_error' } },
         { status: 401, headers: corsHeaders }
       );
     }
     const verificationResult = await verifyApiToken(token);
     if (!verificationResult.valid) {
       return NextResponse.json(
-        { error: { message: verificationResult.error, type: 'auth_error' } },
+        { error: { message: verificationResult.error, type: 'authentication_error' } },
         { status: 401, headers: corsHeaders }
       );
     }
@@ -61,10 +62,9 @@ export async function GET(request) {
 
     const provider = endpointInfo.provider || 'model-server';
     const configuredApiKey =
-      endpointInfo.apiKey ||
-      (provider === 'openai-compatible'
-        ? process.env.OPENAI_COMPAT_API_KEY || ''
-        : '');
+      provider === 'openai-compatible'
+        ? await resolveOpenAICompatibleKey(endpointInfo.apiKey)
+        : endpointInfo.apiKey || '';
     const upstream = buildModelsUpstreamRequest({
       endpoint: endpointInfo.endpoint,
       provider,

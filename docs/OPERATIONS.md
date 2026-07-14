@@ -8,7 +8,7 @@
 
 ```bash
 curl -fsSLo hanimo-bootstrap.sh https://raw.githubusercontent.com/flykimjiwon/hanimo-webui-public/main/scripts/bootstrap.sh
-echo "67a7ff932df0602a380b9483e35d6ad3c60bcd784d0d172bb817a13c4d85bd38  hanimo-bootstrap.sh" | shasum -a 256 -c -
+echo "3dea231dab3825c87b0a79de9445d45a30b4ea1bbed96eb5fd2c9365bd02d2a7  hanimo-bootstrap.sh" | shasum -a 256 -c -
 bash hanimo-bootstrap.sh --yes
 ```
 
@@ -16,7 +16,7 @@ bash hanimo-bootstrap.sh --yes
 
 ```bash
 curl -fsSLo hanimo-bootstrap.sh https://raw.githubusercontent.com/flykimjiwon/hanimo-webui-public/main/scripts/bootstrap.sh
-echo "67a7ff932df0602a380b9483e35d6ad3c60bcd784d0d172bb817a13c4d85bd38  hanimo-bootstrap.sh" | shasum -a 256 -c -
+echo "3dea231dab3825c87b0a79de9445d45a30b4ea1bbed96eb5fd2c9365bd02d2a7  hanimo-bootstrap.sh" | shasum -a 256 -c -
 less hanimo-bootstrap.sh
 bash hanimo-bootstrap.sh --yes --dir "$HOME/hanimo-webui"
 ```

@@ -8,6 +8,7 @@ import {
   decryptProviderSecret,
 } from '@/lib/security/provider-credentials.mjs';
 import { buildOpenAiEndpoint } from '@/lib/openai-gateway.mjs';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
 
 export async function GET(request) {
   try {
@@ -95,7 +96,7 @@ export async function GET(request) {
 
           logger.info(`[get-local-models] Querying Gemini model server: ${url}`);
 
-          const response = await fetch(url, {
+          const response = await fetchWithProviderPolicy(url, {
             method: 'GET',
             headers,
             signal: AbortSignal.timeout(30000),
@@ -136,7 +137,7 @@ export async function GET(request) {
 
           logger.info(`[get-local-models] Querying OpenAI-compatible model server: ${url}`);
 
-          const response = await fetch(url, {
+          const response = await fetchWithProviderPolicy(url, {
             method: 'GET',
             headers,
             signal: AbortSignal.timeout(30000),
@@ -169,7 +170,7 @@ export async function GET(request) {
           // LLM API: /api/tags
           logger.info(`[get-local-models] Querying LLM model server: ${endpoint.url}`);
 
-          const response = await fetch(`${endpoint.url}/api/tags`, {
+          const response = await fetchWithProviderPolicy(`${endpoint.url}/api/tags`, {
             method: 'GET',
             headers: {
               Accept: 'application/json',

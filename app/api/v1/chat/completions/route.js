@@ -3,6 +3,8 @@ import {
   buildGeminiGenerateUrl,
   decryptProviderEndpoints,
 } from '@/lib/security/provider-credentials.mjs';
+import { resolveOpenAICompatibleKey } from '@/lib/security/provider-runtime-credentials.mjs';
+import { createProviderFailure } from '@/lib/security/provider-errors.mjs';
 import { NextResponse } from 'next/server';
 import {
   getNextModelServerEndpointWithIndex,
@@ -25,6 +27,13 @@ import {
   MODEL_SERVER_RETRY_DELAY,
 } from '@/lib/config';
 import crypto from 'crypto';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers':
+    'Content-Type, Authorization, X-User-Id, X-Organization-Id, X-Project-Id, X-Environment, X-Client-Name, X-Client-Version, X-User-Name, X-Workspace, X-Session-Id, X-Request-Id',
+};
 
 // OpenAI-compatible Chat Completions API
 // Convert Ollama-format responses to OpenAI format
@@ -303,10 +312,10 @@ export async function POST(request) {
         error: {
           message:
             'Authorization header is required. Please provide a valid API token.',
-          type: 'invalid_request_error',
+          type: 'authentication_error',
         },
       },
-      { status: 401 }
+      { status: 401, headers: corsHeaders }
     );
   }
 
@@ -318,10 +327,10 @@ export async function POST(request) {
       {
         error: {
           message: verificationResult.error || 'Invalid API token.',
-          type: 'invalid_request_error',
+          type: 'authentication_error',
         },
       },
-      { status: 401 }
+      { status: 401, headers: corsHeaders }
     );
   }
 
@@ -346,6 +355,8 @@ export async function POST(request) {
       // Continue even if lookup fails
     }
   }
+
+  const correlationId = crypto.randomUUID();
 
   // Collect additional header metadata for external API logging
   const identificationHeaders = {
@@ -401,20 +412,14 @@ export async function POST(request) {
     xClientVersion: request.headers.get('x-client-version'),
     xWorkspace: request.headers.get('x-workspace'),
     xSessionId: request.headers.get('x-session-id'),
-    xRequestId: request.headers.get('x-request-id'), // Unique ID for request tracing
+    clientRequestId: request.headers.get('x-request-id'),
+    xRequestId: correlationId,
 
     // === Timezone information ===
     timezone:
       request.headers.get('x-timezone') ||
       request.headers.get('timezone') ||
       Intl.DateTimeFormat().resolvedOptions().timeZone,
-  };
-
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers':
-      'Content-Type, Authorization, X-User-Id, X-Organization-Id, X-Project-Id, X-Environment, X-Client-Name, X-Client-Version, X-User-Name, X-Workspace, X-Session-Id, X-Request-Id',
   };
 
   try {
@@ -726,18 +731,18 @@ export async function POST(request) {
       try {
         manualRes = await fetchWithProviderPolicy(manualUrl, requestOptions, { provider });
       } catch (error) {
+        const failure = createProviderFailure(
+          error,
+          'Unable to connect to the configured model provider.',
+          correlationId
+        );
+        logger.error('[OpenAI Chat Completions] Manual provider connection failed:', {
+          correlationId,
+          ...failure.log,
+        });
         return NextResponse.json(
-          {
-            error: {
-              message: `Model server connection error: ${error.message}`,
-              type: 'server_error',
-              details: {
-                endpoint: manualUrl,
-                error: error.message,
-              },
-            },
-          },
-          { status: 500, headers: corsHeaders }
+          failure.openAI,
+          { status: 503, headers: { ...corsHeaders, ...failure.headers } }
         );
       }
 
@@ -774,12 +779,7 @@ export async function POST(request) {
             apiType: 'chat',
             endpoint: '/v1/chat/completions',
             model,
-            messages: [
-              ...messages,
-              ...(responseContent
-                ? [{ role: 'assistant', content: responseContent }]
-                : []),
-            ],
+            messages,
             responseTokenCount: 0,
             promptTokenCount: promptTokens,
             responseTime,
@@ -1183,8 +1183,8 @@ export async function POST(request) {
 
     // Retrieve API key (for Gemini provider)
     let apiKey = endpointApiKey;
-    if (provider === 'openai-compatible' && !apiKey) {
-      apiKey = process.env.OPENAI_COMPAT_API_KEY || '';
+    if (provider === 'openai-compatible') {
+      apiKey = await resolveOpenAICompatibleKey(endpointApiKey);
     }
     if (provider === 'gemini') {
       try {
@@ -1655,8 +1655,8 @@ export async function POST(request) {
               throw new Error('Gemini API key not found for retry');
             }
           } else {
-            if (nextProvider === 'openai-compatible' && !nextApiKey) {
-              nextApiKey = process.env.OPENAI_COMPAT_API_KEY || '';
+            if (nextProvider === 'openai-compatible') {
+              nextApiKey = await resolveOpenAICompatibleKey(nextApiKey);
             }
             options = {
               ...options,
@@ -1846,28 +1846,20 @@ export async function POST(request) {
         logger.error('[OpenAI Chat Completions] Logging failed:', logError);
       });
 
-      // Provide a clearer error message
-      let userFriendlyMessage = `Model server connection error: ${errorMessage}`;
+      let userFriendlyMessage = 'Unable to connect to the configured model provider.';
       if (isConnectionRefused) {
-        userFriendlyMessage +=
-          '. Please check if the model server is running and accessible.';
+        userFriendlyMessage = 'The configured model provider is unavailable.';
       } else if (isTimeout) {
-        userFriendlyMessage +=
-          '. The request timed out. Please check the model server status.';
+        userFriendlyMessage = 'The configured model provider timed out.';
       }
 
+      const failure = createProviderFailure(error, userFriendlyMessage, correlationId);
       return NextResponse.json(
+        failure.openAI,
         {
-          error: {
-            message: userFriendlyMessage,
-            type: 'server_error',
-            details: {
-              endpoint: redactEndpointForLog(modelServerUrl),
-              error: errorMessage,
-            },
-          },
-        },
-        { status: 503, headers: corsHeaders }
+          status: 503,
+          headers: { ...corsHeaders, ...failure.headers },
+        }
       );
     }
 
@@ -2773,10 +2765,12 @@ export async function POST(request) {
       });
     }
   } catch (error) {
-    logger.error('[OpenAI Chat Completions] Server error:', error);
-
     const responseTime = Date.now() - startTime;
-    const errorMessage = error.message || 'Internal server error';
+    const failure = createProviderFailure(error, 'Internal server error.', correlationId);
+    logger.error('[OpenAI Chat Completions] Server error:', {
+      correlationId,
+      ...failure.log,
+    });
 
     // Run logging in fire-and-forget mode (improves response speed)
     Promise.all([
@@ -2791,7 +2785,7 @@ export async function POST(request) {
         userId: userInfo?.userId,
         responseTime,
         statusCode: 500,
-        error: errorMessage,
+        error: failure.log.message,
         promptTokens: 0,
         completionTokens: 0,
         totalTokens: 0,
@@ -2808,7 +2802,7 @@ export async function POST(request) {
         responseTime,
         statusCode: 500,
         isStream: false,
-        error: errorMessage,
+        error: failure.log.message,
         retryCount: 0, // Failed before retry due to server error
         clientIP,
         userAgent,
@@ -2827,28 +2821,18 @@ export async function POST(request) {
     });
 
     return NextResponse.json(
-      {
-        error: {
-          message: errorMessage,
-          type: 'server_error',
-        },
-      },
-      { status: 500, headers: corsHeaders }
+      failure.openAI,
+      { status: 500, headers: { ...corsHeaders, ...failure.headers } }
     );
   }
 }
 
-export async function OPTIONS(request) {
+export async function OPTIONS() {
   return NextResponse.json(
     {},
     {
       status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers':
-          'Content-Type, Authorization, X-User-Id, X-Organization-Id, X-Project-Id, X-Environment, X-Client-Name, X-Client-Version, X-User-Name, X-Workspace, X-Session-Id, X-Request-Id',
-      },
+      headers: corsHeaders,
     }
   );
 }

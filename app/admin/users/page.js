@@ -33,8 +33,9 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/useTranslation';
+import { DEFAULT_DEPARTMENTS } from '@/lib/departments.mjs';
 
-const DEFAULT_DEPTS = ['개발팀', '마케팅팀', '재무팀', '운영팀', '프로덕트팀', '기타'];
+const DEFAULT_DEPTS = DEFAULT_DEPARTMENTS;
 
 export default function UsersPage() {
   const { alert, confirm } = useAlert();

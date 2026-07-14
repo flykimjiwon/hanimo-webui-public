@@ -6,6 +6,7 @@ import { verifyAdminWithResult } from '@/lib/auth';
 import { createServerError, createAuthError, createForbiddenError } from '@/lib/errorHandler';
 import { getNextModelServerEndpointWithIndex } from '@/lib/modelServers';
 import { logExternalApiRequest } from '@/lib/externalApiLogger';
+import { fetchWithProviderPolicy } from '@/lib/security/provider-outbound.mjs';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BATCH_USERS = 50;
@@ -227,7 +228,7 @@ export async function PATCH(request) {
             const llmStartTime = Date.now();
             const llmUrl = `${endpoint.endpoint}/v1/chat/completions`;
 
-            const llmRes = await fetch(llmUrl, {
+            const llmRes = await fetchWithProviderPolicy(llmUrl, {
               method: 'POST',
               headers: reqHeaders,
               body: JSON.stringify({ model: targetModel, messages: [{ role: 'system', content: MEMORY_SYSTEM_PROMPT }, { role: 'user', content: userPrompt }], temperature: 0.3, max_tokens: 2048 }),
